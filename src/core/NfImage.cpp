@@ -22,7 +22,6 @@
  */
 
 #include "NfImage.h"
-#include "NfImageData.h"
 
 namespace NfCore {
 
@@ -53,6 +52,11 @@ const NfImageData* NfImage::getData() const
     return m_data.get();
 }
 
+int NfImage::setWidth() const
+{
+    return m_data ? m_data->setWidth() : 0;
+}
+
 int NfImage::width() const
 {
     return m_data ? m_data->width() : 0;
@@ -68,9 +72,9 @@ int NfImage::channels() const
         return m_data ? m_data->channels() : 0;
 }
 
-std::string_view NfImage::format() const
+NfImage::ImageFormat NfImage::format() const
 {
-        return "Unknown";
+        return m_data->format();
 }
 
 bool NfImage::isValid() const

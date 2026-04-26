@@ -28,7 +28,6 @@
 #include "core/NfThumbnail.h"
 #include "core/NfLogger.h"
 #include "core/NeofluxonCore.h"
-#include "NfQtPixmap.h"
 
 #include <QTimer>
 
@@ -84,15 +83,10 @@ const QPixmap& NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
 const QPixmap& NfPhotoProvider::getPreview(const NfPhoto &photo) const
 {
         const auto* cacheImage = m_previewCache->get(photo.id());
-        if (cacheImage) {
-                const auto *thumbnail = dynamic_cast<const NfQtPixmap*>(cacheImage);
-                if (thumbnail)
-                        return thumbnail->pixmap();
-        }
+        if (cacheImage)
+                return getPixmap(cacheImage);
 
-        m_photoLoader->requestPreview(photo, []() {
-                return std::make_unique<NfQtPixmap>(); }
-        );
+        m_photoLoader->requestPreview(photo)
 
         return m_thumbnailPlaceholder;
 }

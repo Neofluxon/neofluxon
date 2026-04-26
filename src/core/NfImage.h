@@ -24,29 +24,30 @@
 #ifndef NF_IMAGE_H
 #define NF_IMAGE_H
 
+#include "NfImageData.h"
+
 #include <memory>
-#include <string_view>
 
 namespace NfCore {
-
-class NfImageData;
 
 class NfImage
 {
  public:
+        using ImageFormat = NfImageData::ImageFormat;
+
         NfImage();
         explicit NfImage(std::unique_ptr<NfImageData> data);
         virtual ~NfImage();
-        virtual void setData(std::unique_ptr<NfImageData> data);
-        virtual NfImageData* getData();
-        virtual const NfImageData* getData() const;
+        void setData(std::unique_ptr<NfImageData> data);
+        NfImageData* getData();
+        const NfImageData* getData() const;
         int width() const;
         int height() const;
         int channels() const;
-        std::string_view format() const;
+        ImageFormat format() const;
         bool isValid() const;
-        virtual size_t size() const;
-        virtual void resize(int w, int h);
+        size_t size() const;
+        void scale(int w, int h);
 
  protected:
         std::unique_ptr<NfImageData> m_data;

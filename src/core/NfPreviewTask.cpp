@@ -44,13 +44,14 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
         NfImageDecoder decoder(getPhoto());
         std::unique_ptr<NfImageData> imageData;
-        constexpr int targetRes = 1600;
+        constexpr int maxTarget = 2000;
+        constexpr int minTarget = 900;
 
         const auto method = extractionMethod();
 
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
-                imageData = decoder.previewImageData(targetRes);
+                imageData = decoder.previewImageData(minTarget);
         }
 
         if (!imageData && (method == ExtractionMethod::FromRaw
@@ -63,11 +64,9 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
 
         imageContainer()->setData(std::move(imageData));
 
-        auto w = imageContainer()->width();
         auto h = imageContainer()->height();
-
-        if (w > targetRes || h > targetRes)
-                imageContainer()->resize(targetRes, targetRes);
+        if (h > maxTarget)
+                imageContainer()->resize(maxTarget, maxTarget);
 
         return TaskStatus::Success;
 }
