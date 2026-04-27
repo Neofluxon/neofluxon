@@ -1,4 +1,5 @@
 set(COMMON_HEADERS
+    NfQPixmap.h
     context/NfContext.h
     context/NfFolderContext.h
     state/NfUiFolderModeState.h
@@ -9,6 +10,7 @@ set(COMMON_HEADERS
 )
 
 set(COMMON_SOURCES
+    NfQPixmap.cpp
     state/NfUiFolderModeState.cpp
     state/NfUiLibraryModeState.cpp
     state/NfUiShootsModeState.cpp

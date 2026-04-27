@@ -28,8 +28,10 @@
 #include "core/NfThumbnail.h"
 #include "core/NfLogger.h"
 #include "core/NeofluxonCore.h"
+#include "NfQPixmap.h"
 
 #include <QTimer>
+#include <QCahce>
 
 using namespace NfCore;
 
@@ -42,7 +44,9 @@ NfPhotoProvider::NfPhotoProvider(NeofluxonCore *core,
         , m_thumbnailCache{core->thumbnailCache()}
         , m_previewCache{core->previewCache()}
         , m_thumbnailPlaceholder{":/thumb_w160.jpg"}
+        , m_thumbnailPixmapCache{QCahce<uint64_t, QPixmap>(150 * 1024 * 1024)}
 {
+        m_thubnailPixmapCache.set
         auto timer = new QTimer(this);
         QObject::connect(timer, &QTimer::timeout, this, &NfPhotoProvider::onTimeout);
         timer->start(100);
@@ -66,16 +70,21 @@ const std::filesystem::path& NfPhotoProvider::getPath() const
 
 const QPixmap& NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
 {
+        const auto* pixmapImage = m_thumbnailPixmapCache.object(photo.id());
+        if (pixmapImage)
+                return *pixmapImage;
+
         const auto* cacheImage = m_thumbnailCache->get(photo.id());
         if (cacheImage) {
-                const auto *thumbnail = dynamic_cast<const NfQtPixmap*>(cacheImage);
-                if (thumbnail)
-                        return thumbnail->pixmap();
+                auto pixmap = NfQPixmap::convertToPixmap(cacheImage);
+                auto size   = NfQPixmap::estimateSizeBytes(pixmap);
+                m_thumbnailPixmapCache.insert(photo.id().value(),
+                                              pixmap,
+                                              size);
+                return *pixmapImage;
         }
 
-        m_photoLoader->requestThumbnail(photo, []() {
-                return std::make_unique<NfQtPixmap>(); }
-        );
+        m_photoLoader->requestThumbnail(photo);
 
         return m_thumbnailPlaceholder;
 }
