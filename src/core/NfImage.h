@@ -47,7 +47,8 @@ class NfImage
         ImageFormat format() const;
         bool isValid() const;
         size_t size() const;
-        void scale(int w, int h);
+        void scaleToHeight(int h);
+        void fixOrientation();
 
  protected:
         std::unique_ptr<NfImageData> m_data;

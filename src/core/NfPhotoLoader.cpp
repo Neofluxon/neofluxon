@@ -87,7 +87,10 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                                 return;
 
                         auto thumbnail = thumbnailTask->takeThumbnail();
-                        m_thumbnailsQueue.push_back(std::move(*thumbnail));
+                        auto photoId = thumbnail->id();
+
+                        m_thubnailsCache->add(photoId, thumbnail->releaseImage());
+                        m_thumbnailsQueue.push_back(photoId);
                 }
                 });
 
@@ -121,7 +124,10 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
                                 return;
 
                         auto preview = previewTask->takePreview();
-                        m_previewsQueue.push_back(std::move(*preview));
+                        auto photoId = previewTask->id();
+
+                        m_previewCache->add(photoId, preview->releaseImage());
+                        m_previewsQueue.push_back(photoId);
                 }
         });
 
@@ -133,18 +139,13 @@ std::vector<NfPhoto> NfPhotoLoader::takePhotos()
         return m_pathScanner->takePhotos();
 }
 
-std::vector<NfThumbnail> NfPhotoLoader::takeThumbnails()
+std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()
 {
         std::scoped_lock lock(m_queueMutex);
-        for (auto const& t: m_thumbnailsQueue) {
-                NF_LOG_DEBUG("thumbnail: ["
-                             << t.getImage()->width()
-                             << "x" << t.getImage()->height() << "]");
-        }
         return std::move(m_thumbnailsQueue);
 }
 
-std::vector<NfPreview> NfPhotoLoader::takePreviews()
+std::vector<NfPhotoId> NfPhotoLoader::takePreviews()
 {
         std::scoped_lock lock(m_queueMutex);
         return std::move(m_previewsQueue);

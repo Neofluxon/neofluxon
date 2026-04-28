@@ -23,7 +23,7 @@
 
 #include "NfPhotoProvider.h"
 #include "core/NfPhotoLoader.h"
-#include "core/NfGuiCache.h"
+#include "core/NfCache.h"
 #include "core/NfPhotoId.h"
 #include "core/NfThumbnail.h"
 #include "core/NfLogger.h"
@@ -43,10 +43,11 @@ NfPhotoProvider::NfPhotoProvider(NeofluxonCore *core,
         , m_photoLoader{core->photoLoader()}
         , m_thumbnailCache{core->thumbnailCache()}
         , m_previewCache{core->previewCache()}
-        , m_thumbnailPlaceholder{":/thumb_w160.jpg"}
         , m_thumbnailPixmapCache{QCahce<uint64_t, QPixmap>(150 * 1024 * 1024)}
+        , m_previewPixmapCache{QCahce<uint64_t, QPixmap>(50 * 1024 * 1024)}
+        , m_thumbnailPlaceholder{":/thumb_w160.jpg"}
+        , m_thumbnailPlaceholder{":/thumb_w160.jpg"}
 {
-        m_thubnailPixmapCache.set
         auto timer = new QTimer(this);
         QObject::connect(timer, &QTimer::timeout, this, &NfPhotoProvider::onTimeout);
         timer->start(100);
@@ -91,13 +92,23 @@ const QPixmap& NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
 
 const QPixmap& NfPhotoProvider::getPreview(const NfPhoto &photo) const
 {
+        const auto* pixmapImage = m_previewPixmapCache.object(photo.id());
+        if (pixmapImage)
+                return *pixmapImage;
+
         const auto* cacheImage = m_previewCache->get(photo.id());
-        if (cacheImage)
-                return getPixmap(cacheImage);
+        if (cacheImage) {
+                auto pixmap = NfQPixmap::convertToPixmap(cacheImage);
+                auto size   = NfQPixmap::estimateSizeBytes(pixmap);
+                m_previewPixmapCache.insert(photo.id().value(),
+                                              pixmap,
+                                              size);
+                return *pixmapImage;
+        }
 
-        m_photoLoader->requestPreview(photo)
+        m_photoLoader->requestPreview(photo);
 
-        return m_thumbnailPlaceholder;
+        return m_previewPlaceholder;
 }
 
 void NfPhotoProvider::onTimeout()
@@ -119,37 +130,15 @@ void NfPhotoProvider::processNewPhotos()
 void NfPhotoProvider::processThumbnails()
 {
         auto thumbnails = m_photoLoader->takeThumbnails();
-        if (thumbnails.empty())
-                return;
-
-        std::vector<NfPhotoId> photoIds;
-        photoIds.reserve(thumbnails.size());
-
-        for(auto &thumb : thumbnails) {
-                m_thumbnailCache->add(thumb.id(), thumb.releaseImage());
-                photoIds.push_back(thumb.id());
-        }
-
-        if (!photoIds.empty())
-                emit thumbnailsLoaded(photoIds);
+        if (!thumbnails.empty())
+                emit thumbnailsLoaded(thumbnails);
 }
 
 void NfPhotoProvider::processPreviews()
 {
         auto previews = m_photoLoader->takePreviews();
-        if (previews.empty())
-                return;
-
-        std::vector<NfPhotoId> photoIds;
-        photoIds.reserve(previews.size());
-
-        for(auto &preview : previews) {
-                m_previewCache->add(preview.id(), preview.releaseImage());
-                photoIds.push_back(preview.id());
-        }
-
         if (!photoIds.empty())
-                emit previewsLoaded(photoIds);
+                emit previewsLoaded(previews);
 }
 
 } // namespace NfUi

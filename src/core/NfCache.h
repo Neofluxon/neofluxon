@@ -4,7 +4,7 @@
 #include "NfPhotoId.h"
 
 #include <memory>
-#include <optional>
+#include <mutex>
 #include <list>
 #include <unordered_map>
 #include <cstddef>
@@ -24,20 +24,20 @@ class NfImage;
  *
  * @warning Not thread-safe. Must be used only from the GUI thread.
  */
-class NfGuiCache {
+class NfCache {
 public:
     // Default cache size 250 MB
     static constexpr std::size_t DEFAULT_MAX_SIZE_BYTES = 250ULL * 1024 * 1024;
 
-    explicit NfGuiCache(/*NfDiskCache* diskCache = nullptr,*/
+    explicit NfCache(/*NfDiskCache* diskCache = nullptr,*/
                         std::size_t maxSizeBytes = DEFAULT_MAX_SIZE_BYTES);
-    ~NfGuiCache();
+    ~NfCache();
 
-    NfGuiCache(const NfGuiCache&) = delete;
-    NfGuiCache& operator=(const NfGuiCache&) = delete;
+    NfCache(const NfCache&) = delete;
+    NfCache& operator=(const NfCache&) = delete;
 
-    NfGuiCache(NfGuiCache&&) noexcept = default;
-    NfGuiCache& operator=(NfGuiCache&&) noexcept = default;
+    NfCache(NfCache&&) noexcept = default;
+    NfCache& operator=(NfCache&&) noexcept = default;
 
     /// Adds or replaces an image. Updates LRU order.
     /// Image is rejected if it exceeds max cache size.
@@ -53,7 +53,7 @@ public:
     /// Clears all cached images.
     void clear();
 
-    [[nodiscard]] std::size_t currentSizeBytes() const noexcept;
+    [nodiscard]] std::size_t currentSizeBytes() const noexcept;
     [[nodiscard]] std::size_t maxSizeBytes() const noexcept;
 
     /// Updates max cache size and evicts items if necessary.
@@ -71,6 +71,7 @@ private:
 
 private:
     //    NfDiskCache* m_diskCache;
+    std::mutext m_mutex;
     std::size_t m_maxSizeBytes;
     std::size_t m_currentSizeBytes;
     std::unordered_map<

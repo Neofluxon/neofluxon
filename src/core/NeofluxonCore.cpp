@@ -23,15 +23,15 @@
 
 #include "NeofluxonCore.h"
 #include "NfPhotoLoader.h"
-#include "NfGuiCache.h"
+#include "NfCache.h"
 #include "NfLogger.h"
 
 namespace NfCore {
 
 NeofluxonCore::NeofluxonCore()
-        : m_photoLoader{std::make_unique<NfPhotoLoader>()}
-        , m_thumbnailCache{std::make_unique<NfGuiCache>()}
-        , m_previewCache{std::make_unique<NfGuiCache>()}
+        , m_thumbnailCache{std::make_unique<NfCache>()}
+        , m_previewCache{std::make_unique<NfCache>()}
+        , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache, )}
 {
         NF_LOG_DEBUG("called");
 }
@@ -46,12 +46,12 @@ NfPhotoLoader* NeofluxonCore::photoLoader() const
         return m_photoLoader.get();
 }
 
-NfGuiCache* NeofluxonCore::thumbnailCache() const
+NfCache* NeofluxonCore::thumbnailCache() const
 {
         return m_thumbnailCache.get();
 }
 
-NfGuiCache* NeofluxonCore::previewCache() const
+NfCache* NeofluxonCore::previewCache() const
 {
         return m_previewCache.get();
 }

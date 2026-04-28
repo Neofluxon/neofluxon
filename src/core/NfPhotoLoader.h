@@ -25,8 +25,7 @@
 #define NF_PHOTO_LOADER_H
 
 #include "NfPhoto.h"
-#include "NfThumbnail.h"
-#include "NfPreview.h"
+#include "PhotoId.h"
 #include "NfForegroundThreadPool.h"
 
 #include <filesystem>
@@ -71,8 +70,8 @@ public:
         NfForegroundThreadPool m_threadPool;
         std::mutex m_queueMutex;
         uint64_t m_generationId;
-        std::vector<NfThumbnail> m_thumbnailsQueue;
-        std::vector<NfPreview> m_previewsQueue;
+        std::vector<NfPhotoId> m_thumbnailsQueue;
+        std::vector<NfPhotoId> m_previewsQueue;
         uint64_t m_sequence = 0;
 };
 

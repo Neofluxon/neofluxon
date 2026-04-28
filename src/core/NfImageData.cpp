@@ -23,6 +23,9 @@
 
 #include "NfImageData.h"
 
+#include <turbojpeg.h>
+#include <cstring>
+
 namespace NfCore {
 
 NfImageData::NfImageData()
@@ -138,6 +141,127 @@ void NfImageData::setFormat(NfImageData::ImageFormat format)
 NfImageData::ImageFormat NfImageData::format() const
 {
         return m_format;
+}
+
+bool NfImageData::ensureARGB32Premultiplied()
+{
+        if (m_format == ImageFormat::Format_ARGB32_Premultiplied)
+                return true;
+
+        // -------------------------
+        // 1. JPEG decode
+        // -------------------------
+        if (m_format == ImageFormat::Format_JPEG) {
+                tjhandle tj = tjInitDecompress();
+                if (!tj)
+                        return false;
+
+                int w = 0, h = 0, subsamp = 0, cs = 0;
+
+                if (tjDecompressHeader3(tj,
+                                        m_data.data(),
+                                        m_data.size(),
+                                        &w, &h,
+                                        &subsamp,
+                                        &cs) != 0)
+                        {
+                                tjDestroy(tj);
+                                return false;
+                        }
+
+                std::vector<unsigned char> bgra;
+                bgra.resize((size_t)w * h * 4);
+
+                if (tjDecompress2(
+                                  tj,
+                                  m_data.data(),
+                                  m_data.size(),
+                                  bgra.data(),
+                                  w,
+                                  0,
+                                  h,
+                                  TJPF_BGRA,          // A = 255
+                                  TJFLAG_FASTDCT) != 0)
+                        {
+                                tjDestroy(tj);
+                                return false;
+                        }
+
+                tjDestroy(tj);
+
+                m_data = std::move(bgra);
+                m_width = w;
+                m_height = h;
+                m_channels = 4;
+                m_format = ImageFormat::Format_ARGB32_Premultiplied;
+
+                return true;
+        }
+
+    // -------------------------
+    // 2. RGB888 → ARGB
+    // -------------------------
+    if (m_format == ImageFormat::Format_RGB888)
+    {
+        std::vector<unsigned char> out;
+        out.resize((size_t)m_width * m_height * 4);
+
+        const unsigned char* src = m_data.data();
+        unsigned char* dst = out.data();
+
+        for (int i = 0; i < m_width * m_height; ++i)
+        {
+            unsigned char r = src[i * 3 + 0];
+            unsigned char g = src[i * 3 + 1];
+            unsigned char b = src[i * 3 + 2];
+
+            // BGRA layout (Qt friendly)
+            dst[i * 4 + 0] = b;
+            dst[i * 4 + 1] = g;
+            dst[i * 4 + 2] = r;
+            dst[i * 4 + 3] = 255;
+        }
+
+        m_data = std::move(out);
+        m_channels = 4;
+        m_format = ImageFormat::Format_ARGB32_Premultiplied;
+
+        return true;
+    }
+
+    // -------------------------
+    // 3. RGBA8888 → premultiply
+    // -------------------------
+    if (m_format == ImageFormat::Format_RGBA8888)
+    {
+        unsigned char* p = m_data.data();
+
+        for (int i = 0; i < m_width * m_height; ++i)
+        {
+            unsigned char a = p[i * 4 + 3];
+
+            p[i * 4 + 0] = (p[i * 4 + 0] * a) / 255;
+            p[i * 4 + 1] = (p[i * 4 + 1] * a) / 255;
+            p[i * 4 + 2] = (p[i * 4 + 2] * a) / 255;
+        }
+
+        m_format = ImageFormat::Format_ARGB32_Premultiplied;
+        return true;
+    }
+
+    // -------------------------
+    // 4. Bitmap fallback (unknown raw)
+    // -------------------------
+    if (m_format == ImageFormat::Format_BITMAP)
+    {
+        // You must define what BITMAP means in your system.
+        // Usually:
+        // - decode header
+        // - expand to RGB or BGRA
+        return false; // placeholder
+    }
+
+    return false;
 }
 
 } // namespace NfCore

@@ -37,7 +37,7 @@
 namespace NfCore {
 class NeofluxonCore;
 class NfPhotoLoader;
-class NfGuiCache;
+class NfCache;
 }
 
 using namespace NfCore;
@@ -79,10 +79,13 @@ private:
         void processPreviews();
 
         NfPhotoLoader *m_photoLoader;
-        NfGuiCache *m_thumbnailCache;
-        NfGuiCache *m_previewCache;
+        NfCache *m_thumbnailCache;
+        NfCache *m_previewCache;
+        QCahce<uint64_t, QPixmap> m_thumbnailPixmapCache;
+        QCahce<uint64_t, QPixmap>m_previewPixmapCache;
         std::filesystem::path m_path;
         QPixmap m_thumbnailPlaceholder;
+        QPixmap m_previewPlaceholder;
 };
 
 } // namespace NfUi

@@ -42,20 +42,22 @@ NfPreviewTask::~NfPreviewTask() = default;
 
 NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
-        NfImageDecoder decoder(getPhoto());
+                NfImageDecoder decoder(getPhoto());
         std::unique_ptr<NfImageData> imageData;
-        constexpr int maxTarget = 2000;
-        constexpr int minTarget = 900;
+        constexpr int maxTarget = 250;
+        constexpr int minTarget = 120;
 
         const auto method = extractionMethod();
 
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
-                imageData = decoder.previewImageData(minTarget);
+                NF_LOG_DEBUG("load embedded image");
+                imageData = decoder.thumbnailImageData(minTarget);
         }
 
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
+                NF_LOG_DEBUG("no suitable embedded image, load from raw");
                 imageData = decoder.rawImage();
         }
 
@@ -63,10 +65,15 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
                 return TaskStatus::Failed;
 
         imageContainer()->setData(std::move(imageData));
+        if (imageContainer()->orientation() != NfImage::Orientation::Normal) {
+                NF_LOG_DEBUG("fix orientation");
+                imageContainer()->fixOrientation();
+        }
 
-        auto h = imageContainer()->height();
-        if (h > maxTarget)
-                imageContainer()->resize(maxTarget, maxTarget);
+        if (imageContainer()->height() > maxTarget) {
+                NF_LOG_DEBUG("resize to target: " << maxTarget);
+                imageContainer()->resizeToHeight(maxTarget, maxTarget);
+        }
 
         return TaskStatus::Success;
 }

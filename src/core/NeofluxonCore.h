@@ -29,7 +29,7 @@
 namespace NfCore {
 
 class NfPhotoLoader;
-class NfGuiCache;
+class NfCache;
 
 class NeofluxonCore {
 public:
@@ -41,13 +41,13 @@ public:
         NeofluxonCore& operator=(NeofluxonCore&&) noexcept = default;
 
         NfPhotoLoader* photoLoader() const;
-        NfGuiCache* thumbnailCache() const;
-        NfGuiCache* previewCache() const;
+        NfCache* thumbnailCache() const;
+        NfCache* previewCache() const;
 
 private:
         std::unique_ptr<NfPhotoLoader> m_photoLoader;
-        std::unique_ptr<NfGuiCache> m_thumbnailCache;
-        std::unique_ptr<NfGuiCache> m_previewCache;
+        std::unique_ptr<NfCache> m_thumbnailCache;
+        std::unique_ptr<NfCache> m_previewCache;
 };
 
 } // namespace NfCore

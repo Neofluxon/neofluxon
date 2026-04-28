@@ -62,11 +62,14 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
                 return TaskStatus::Failed;
 
         imageContainer()->setData(std::move(imageData));
+        if (imageContainer()->orientation() != NfImage::Orientation::Normal) {
+                NF_LOG_DEBUG("fix orientation");
+                imageContainer()->fixOrientation();
+        }
 
-        auto h = imageContainer()->height();
-        if (h > maxTarget) {
+        if (imageContainer()->height() > maxTarget) {
                 NF_LOG_DEBUG("resize to target: " << maxTarget);
-                imageContainer()->resize(maxTarget, maxTarget);
+                imageContainer()->resizeToHeight(maxTarget, maxTarget);
         }
 
         return TaskStatus::Success;
