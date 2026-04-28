@@ -143,125 +143,113 @@ NfImageData::ImageFormat NfImageData::format() const
         return m_format;
 }
 
-bool NfImageData::ensureARGB32Premultiplied()
+bool NfImageData::convertToARGB32Premultiplied()
 {
         if (m_format == ImageFormat::Format_ARGB32_Premultiplied)
                 return true;
 
-        // -------------------------
-        // 1. JPEG decode
-        // -------------------------
-        if (m_format == ImageFormat::Format_JPEG) {
-                tjhandle tj = tjInitDecompress();
-                if (!tj)
-                        return false;
+        // JPEG -> ARGB Premultiplied
+        if (m_format == ImageFormat::Format_JPEG)
+                return jpegToARGBPremultiplied();
 
-                int w = 0, h = 0, subsamp = 0, cs = 0;
+        // RGB888 (3 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
+        if (m_format == ImageFormat::Format_RGB888) {
+                std::vector<unsigned char> out;
+                out.resize((size_t)m_width * m_height * 4);
 
-                if (tjDecompressHeader3(tj,
-                                        m_data.data(),
-                                        m_data.size(),
-                                        &w, &h,
-                                        &subsamp,
-                                        &cs) != 0)
-                        {
-                                tjDestroy(tj);
-                                return false;
-                        }
+                const unsigned char* src = m_data.data();
+                unsigned char* dst = out.data();
 
-                std::vector<unsigned char> bgra;
-                bgra.resize((size_t)w * h * 4);
+                for (int i = 0; i < m_width * m_height; i++) {
+                        // Swap R and B for the ARGB32 integer format (BGRA in memory)
+                        dst[i * 4 + 0] = src[i * 3 + 2]; // Blue
+                        dst[i * 4 + 1] = src[i * 3 + 1]; // Green
+                        dst[i * 4 + 2] = src[i * 3 + 0]; // Red
+                        dst[i * 4 + 3] = 255;            // Alpha (Opaque)
+                }
 
-                if (tjDecompress2(
-                                  tj,
-                                  m_data.data(),
-                                  m_data.size(),
-                                  bgra.data(),
-                                  w,
-                                  0,
-                                  h,
-                                  TJPF_BGRA,          // A = 255
-                                  TJFLAG_FASTDCT) != 0)
-                        {
-                                tjDestroy(tj);
-                                return false;
-                        }
-
-                tjDestroy(tj);
-
-                m_data = std::move(bgra);
-                m_width = w;
-                m_height = h;
+                m_data = std::move(out);
                 m_channels = 4;
                 m_format = ImageFormat::Format_ARGB32_Premultiplied;
-
                 return true;
         }
 
-    // -------------------------
-    // 2. RGB888 → ARGB
-    // -------------------------
-    if (m_format == ImageFormat::Format_RGB888)
-    {
-        std::vector<unsigned char> out;
-        out.resize((size_t)m_width * m_height * 4);
+        // RGBA8888 (4 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
+        if (m_format == ImageFormat::Format_RGBA8888) {
+                std::vector<unsigned char> out;
+                out.resize((size_t)m_width * m_height * 4);
 
-        const unsigned char* src = m_data.data();
-        unsigned char* dst = out.data();
+                const unsigned char* src = m_data.data();
+                unsigned char* dst = out.data();
 
-        for (int i = 0; i < m_width * m_height; ++i)
-        {
-            unsigned char r = src[i * 3 + 0];
-            unsigned char g = src[i * 3 + 1];
-            unsigned char b = src[i * 3 + 2];
+                for (int i = 0; i < m_width * m_height; i++) {
+                        unsigned char r = src[i * 4 + 0];
+                        unsigned char g = src[i * 4 + 1];
+                        unsigned char b = src[i * 4 + 2];
+                        unsigned char a = src[i * 4 + 3];
 
-            // BGRA layout (Qt friendly)
-            dst[i * 4 + 0] = b;
-            dst[i * 4 + 1] = g;
-            dst[i * 4 + 2] = r;
-            dst[i * 4 + 3] = 255;
+                        // 1. Premultiply and 2. Swap R/B to match BGRA memory layout
+                        dst[i * 4 + 0] = (b * a) / 255; // Blue
+                        dst[i * 4 + 1] = (g * a) / 255; // Green
+                        dst[i * 4 + 2] = (r * a) / 255; // Red
+                        dst[i * 4 + 3] = a;             // Alpha
+                }
+
+                m_data = std::move(out);
+                m_format = ImageFormat::Format_ARGB32_Premultiplied;
+                return true;
         }
-
-        m_data = std::move(out);
-        m_channels = 4;
-        m_format = ImageFormat::Format_ARGB32_Premultiplied;
-
-        return true;
-    }
-
-    // -------------------------
-    // 3. RGBA8888 → premultiply
-    // -------------------------
-    if (m_format == ImageFormat::Format_RGBA8888)
-    {
-        unsigned char* p = m_data.data();
-
-        for (int i = 0; i < m_width * m_height; ++i)
-        {
-            unsigned char a = p[i * 4 + 3];
-
-            p[i * 4 + 0] = (p[i * 4 + 0] * a) / 255;
-            p[i * 4 + 1] = (p[i * 4 + 1] * a) / 255;
-            p[i * 4 + 2] = (p[i * 4 + 2] * a) / 255;
-        }
-
-        m_format = ImageFormat::Format_ARGB32_Premultiplied;
-        return true;
-    }
-
-    // -------------------------
-    // 4. Bitmap fallback (unknown raw)
-    // -------------------------
-    if (m_format == ImageFormat::Format_BITMAP)
-    {
-        // You must define what BITMAP means in your system.
-        // Usually:
-        // - decode header
-        // - expand to RGB or BGRA
-        return false; // placeholder
-    }
 
     return false;
+}
+
+bool NfImageData::jpegToARGBPremultiplied()
+{
+        auto tj = tjInitDecompress();
+        if (!tj)
+                return false;
+
+        int w = 0;
+        int h = 0;
+        int subsamp = 0;
+        int cs = 0;
+
+        auto res = tjDecompressHeader3(tj,
+                                       m_data.data(),
+                                       m_data.size(),
+                                       &w, &h,
+                                       &subsamp,
+                                       &cs);
+        if (res != 0) {
+                tjDestroy(tj);
+                return false;
+        }
+
+        std::vector<unsigned char> bgra;
+        bgra.resize((size_t)w * h * 4);
+
+        res = tjDecompress2(tj,
+                            m_data.data(),
+                            m_data.size(),
+                            bgra.data(),
+                            w,
+                            0,
+                            h,
+                            TJPF_BGRA,
+                            TJFLAG_FASTDCT);
+
+        if (res != 0) {
+                tjDestroy(tj);
+                return false;
+        }
+
+        tjDestroy(tj);
+
+        m_data = std::move(bgra);
+        m_width = w;
+        m_height = h;
+        m_channels = 4;
+        m_format = ImageFormat::Format_ARGB32_Premultiplied;
 }
 
 } // namespace NfCore

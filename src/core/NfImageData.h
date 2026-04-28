@@ -36,8 +36,6 @@ public:
         enum class ImageFormat : int {
                 Format_Unknown,
                 Format_JPEG,
-                Format_BITMAP,
-                Format_Invalid,
                 Format_RGB888,
                 Format_RGBA8888,
                 Format_ARGB32_Premultiplied
@@ -68,6 +66,8 @@ public:
         int orientation() const;
         void setFormat(ImageFormat format);
         ImageFormat format() const;
+        static std::unique_ptr<NfImageData> convertedToFormat(ImageFormat format,
+                                                              NfImageData *data);
 
 private:
         std::vector<unsigned char> m_data;

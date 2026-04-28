@@ -205,22 +205,20 @@ std::unique_ptr<NfImageData> NfImageDecoder::rawImage() const
         size_t rgbaSize = pixelCount * 4;
         std::vector<unsigned char> rgbaBuffer(rgbaSize);
 
-        // Interleave RGB into RGBA
         const unsigned char* src = processed->data;
         unsigned char* dst = rgbaBuffer.data();
+        for (size_t i = 0; i < pixelCount; i++) {
+                dst[0] = src[2]; // Blue
+                dst[1] = src[1]; // Green
+                dst[2] = src[0]; // Red
+                dst[3] = 255;    // Alpha (Opaque)
 
-        for (size_t i = 0; i < pixelCount; ++i) {
-                dst[0] = src[0]; // R
-                dst[1] = src[1]; // G
-                dst[2] = src[2]; // B
-                dst[3] = 255; // A (Opaque)
                 src += 3;
                 dst += 4;
         }
-
         // Set the data into your NfImage object
         imageData->setData(rgbaBuffer.data(), rgbaBuffer.size());
-        imageData->setFormat(NfImageData::ImageFormat::Format_RGBA8888);
+        imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
         imageData->setWidth(processed->width);
         imageData->setHeight(processed->height);
         imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
