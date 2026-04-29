@@ -79,7 +79,7 @@ void NfCache::add(const NfPhotoId &id,
         m_currentSizeBytes += imageSizeBytes;
 }
 
-NfImage* NfCache::get(const NfPhotoId& id)
+std::unique_ptr<NfImage> NfCache::get(const NfPhotoId& id)
 {
         std::unique_lock lock(m_mutex);
 
@@ -89,7 +89,7 @@ NfImage* NfCache::get(const NfPhotoId& id)
 
         refreshAccess(it->second.first);
 
-        return it->second.second.get();
+        return std::make_unique<NfImage>(*(it->second.second));
 }
 
 bool NfCache::remove(const NfPhotoId& id)

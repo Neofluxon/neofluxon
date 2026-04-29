@@ -32,23 +32,23 @@ using namespace NfCore;
 
 namespace NfUi {
 
-std::unique_ptr<QPixmap> NfQPixmap::convertToPixmap(NfImage *image)
+std::unique_ptr<QPixmap> NfQPixmap::convertToPixmap(const NfImage *image)
 {
         if (!image || !image->isValid())
                 return nullptr;
 
-        const auto* data = image->getData();
-        const auto* rawPtr = reinterpret_cast<const uchar*>(data->getdata());
+        const auto* imageData = image->getData();
+        const auto* rawPtr = reinterpret_cast<const uchar*>(imageData->data());
 
         auto pixmap = std::make_unique<QPixmap>();
         bool isLoaded = false;
 
-        if (data->format() == NfImageData::ImageFormat::Format_JPEG) {
-                isLoaded = pixmap->loadFromData(rawPtr, data->size());
+        if (imageData->format() == NfImageData::ImageFormat::Format_JPEG) {
+                isLoaded = pixmap->loadFromData(rawPtr, imageData->size());
         } else {
                 QImage::Format qtFmt;
 
-                switch (data->format()) {
+                switch (imageData->format()) {
                 case NfImageData::ImageFormat::Format_RGB888:
                         qtFmt = QImage::Format_RGB888;
                         break;

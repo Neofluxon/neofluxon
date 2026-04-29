@@ -29,9 +29,10 @@
 namespace NfCore {
 
 NeofluxonCore::NeofluxonCore()
-        , m_thumbnailCache{std::make_unique<NfCache>()}
+        : m_thumbnailCache{std::make_unique<NfCache>()}
         , m_previewCache{std::make_unique<NfCache>()}
-        , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache, )}
+        , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache.get(),
+                                                        m_previewCache.get())}
 {
         NF_LOG_DEBUG("called");
 }

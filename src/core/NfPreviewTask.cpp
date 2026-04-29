@@ -26,15 +26,15 @@
 #include "NfImageData.h"
 #include "NfImage.h"
 #include "NfPreview.h"
+#include "NfLogger.h"
 
 #include <stdexcept>
 #include <iostream>
 
 namespace NfCore {
 
-NfPreviewTask::NfPreviewTask(const NfPhoto& photo,
-                             std::unique_ptr<NfImage> imageContainer)
-        : NfImageTask(photo, std::move(imageContainer))
+NfPreviewTask::NfPreviewTask(const NfPhoto& photo)
+        : NfImageTask(photo)
 {
 }
 
@@ -42,10 +42,10 @@ NfPreviewTask::~NfPreviewTask() = default;
 
 NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
-                NfImageDecoder decoder(getPhoto());
+        NfImageDecoder decoder(getPhoto());
         std::unique_ptr<NfImageData> imageData;
-        constexpr int maxTarget = 250;
-        constexpr int minTarget = 120;
+        constexpr int minTarget = 900;
+        constexpr int maxTarget = 2000;
 
         const auto method = extractionMethod();
 
@@ -64,15 +64,16 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
         if (!imageData)
                 return TaskStatus::Failed;
 
-        imageContainer()->setData(std::move(imageData));
-        if (imageContainer()->orientation() != NfImage::Orientation::Normal) {
-                NF_LOG_DEBUG("fix orientation");
-                imageContainer()->fixOrientation();
+        auto* image = getImage();
+        image->setData(std::move(imageData));
+        if (image->height() > maxTarget) {
+                NF_LOG_DEBUG("resize to target: " << maxTarget);
+                getImage()->scaleToHeight(maxTarget);
         }
 
-        if (imageContainer()->height() > maxTarget) {
-                NF_LOG_DEBUG("resize to target: " << maxTarget);
-                imageContainer()->resizeToHeight(maxTarget, maxTarget);
+        if (image->orientation() != NfImage::Orientation::Normal) {
+                NF_LOG_DEBUG("fix orientation");
+                getImage()->applyOrientation();
         }
 
         return TaskStatus::Success;

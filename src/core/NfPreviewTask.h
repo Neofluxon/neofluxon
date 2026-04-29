@@ -36,7 +36,7 @@ class NfImage;
 
 class NfPreviewTask : public NfImageTask {
 public:
-        NfPreviewTask(const NfPhoto& photo, std::unique_ptr<NfImage> imageContainer);
+        NfPreviewTask(const NfPhoto& photo);
         NfPreviewTask(NfPreviewTask&&) noexcept = default;
         NfPreviewTask& operator=(NfPreviewTask&&) noexcept = default;
         NfPreviewTask(const NfPreviewTask&) = delete;

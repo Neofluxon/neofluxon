@@ -45,9 +45,9 @@ public:
         NfCache* previewCache() const;
 
 private:
-        std::unique_ptr<NfPhotoLoader> m_photoLoader;
         std::unique_ptr<NfCache> m_thumbnailCache;
         std::unique_ptr<NfCache> m_previewCache;
+        std::unique_ptr<NfPhotoLoader> m_photoLoader;
 };
 
 } // namespace NfCore

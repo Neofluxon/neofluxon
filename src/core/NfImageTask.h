@@ -46,7 +46,7 @@ public:
                 Fastest
         };
 
-        NfImageTask(const NfPhoto& photo, std::unique_ptr<NfImage> imageContainer);
+        NfImageTask(const NfPhoto& photo);
         NfImageTask(NfImageTask&&) noexcept = default;
         NfImageTask& operator=(NfImageTask&&) noexcept = default;
         NfImageTask(const NfImageTask&) = delete;
@@ -57,6 +57,7 @@ public:
         uint64_t generationId() const;
         void setExtractionMethod(ExtractionMethod method);
         ExtractionMethod extractionMethod() const;
+        NfImage* getImage() const;
         std::unique_ptr<NfImage> takeImage();
         const NfPhoto& getPhoto() const;
 
@@ -66,7 +67,7 @@ protected:
 private:
         uint64_t m_generationId;
         NfPhoto m_photo;
-        std::unique_ptr<NfImage> m_imageContainer;
+        std::unique_ptr<NfImage> m_image;
         ExtractionMethod m_extractionMethod;
 };
 

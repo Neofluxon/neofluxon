@@ -40,6 +40,25 @@ NfImage::NfImage(std::unique_ptr<NfImageData> data)
 
 NfImage::~NfImage() = default;
 
+NfImage::NfImage(const NfImage& other)
+{
+        if (other.m_data)
+                m_data = std::make_unique<NfImageData>(*other.m_data);
+}
+
+// Copy Assignment
+NfImage& NfImage::operator=(const NfImage& other)
+{
+        if (this != &other) {
+                if (other.m_data)
+                        m_data = std::make_unique<NfImageData>(*other.m_data);
+                else
+                        m_data.reset();
+        }
+
+        return *this;
+}
+
 void NfImage::setData(std::unique_ptr<NfImageData> data)
 {
         m_data = std::move(data);
@@ -53,11 +72,6 @@ NfImageData* NfImage::getData()
 const NfImageData* NfImage::getData() const
 {
     return m_data.get();
-}
-
-int NfImage::setWidth() const
-{
-    return m_data ? m_data->setWidth() : 0;
 }
 
 int NfImage::width() const
@@ -90,34 +104,38 @@ size_t NfImage::size() const
         return m_data->size();
 }
 
+NfImage::Orientation NfImage::orientation() const
+{
+        return static_cast<Orientation>(m_data->orientation());
+}
+
 void NfImage::applyOrientation()
 {
         if (!m_data)
                 return;
 
-        int orientation = m_data->orientation();
-        if (orientation == 0)
+        if (orientation() == Orientation::Normal)
                 return;
 
         int w = m_data->width();
         int h = m_data->height();
 
-        const uint32_t* src = reinterpret_cast<const uint32_t*>(m_data->data().data());
+        const uint32_t* src = reinterpret_cast<const uint32_t*>(m_data->data());
 
         std::vector<unsigned char> newData;
-        newData.resize(m_data->data().size());
+        newData.resize(m_data->size());
         uint32_t* dst = reinterpret_cast<uint32_t*>(newData.data());
 
         int newW = w;
         int newH = h;
 
-        switch (orientation) {
-        case 3: // 180° Rotation
+        switch (orientation()) {
+        case Orientation::Rotate180: // 180° Rotation
                 for (int i = 0; i < w * h; ++i)
                         dst[w * h - 1 - i] = src[i];
                 break;
 
-        case 6: // 90° CW (Swaps Width and Height)
+        case Orientation::Rotate90CW: // 90° CW (Swaps Width and Height)
                 newW = h;
                 newH = w;
                 for (int y = 0; y < h; ++y) {
@@ -128,7 +146,7 @@ void NfImage::applyOrientation()
                 }
                 break;
 
-        case 5: // 90° CCW (Swaps Width and Height)
+        case Orientation::Rotate270CW: // 90° CCW (Swaps Width and Height)
                 newW = h;
                 newH = w;
                 for (int y = 0; y < h; ++y) {
@@ -147,7 +165,7 @@ void NfImage::applyOrientation()
         m_data->setData(newData.data(), newData.size());
         m_data->setWidth(newW);
         m_data->setHeight(newH);
-        m_data->setOrientation(0);
+        m_data->setOrientation(static_cast<int>(Orientation::Normal));
 }
 
 void NfImage::scaleToHeight(int h)
@@ -161,7 +179,7 @@ void NfImage::scaleToHeight(int h)
         std::vector<unsigned char> scaledBuffer;
         scaledBuffer.resize(scaledWidth * h * 4);
 
-        stbir_resize_uint8_linear(m_data->data().data(),
+        stbir_resize_uint8_linear(m_data->data(),
                                   m_data->width(),
                                   m_data->height(),
                                   0, // Input
@@ -173,7 +191,7 @@ void NfImage::scaleToHeight(int h)
         );
 
         m_data->resize(scaledBuffer.size());
-        m_data->setData(scaledBuffer, scaledBuffer.size());
+        m_data->setData(scaledBuffer.data(), scaledBuffer.size());
         m_data->setWidth(scaledWidth);
         m_data->setHeight(h);
 }

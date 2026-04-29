@@ -34,10 +34,24 @@ class NfImage
 {
  public:
         using ImageFormat = NfImageData::ImageFormat;
+        enum class Orientation : int {
+                Normal = 0,
+                FlipVertical = 1,
+                FlipHorizontal = 2,
+                Rotate180 = 3,
+                Rotate90CWFlipVertical = 4,
+                Rotate270CW = 5,
+                Rotate90CW = 6,
+                Rotate90CWFlipHorizontal = 7
+        };
 
         NfImage();
         explicit NfImage(std::unique_ptr<NfImageData> data);
         virtual ~NfImage();
+        NfImage(const NfImage& other);
+        NfImage& operator=(const NfImage& other);
+        NfImage(NfImage&& other) noexcept = default;
+        NfImage& operator=(NfImage&& other) noexcept = default;
         void setData(std::unique_ptr<NfImageData> data);
         NfImageData* getData();
         const NfImageData* getData() const;
@@ -48,7 +62,8 @@ class NfImage
         bool isValid() const;
         size_t size() const;
         void scaleToHeight(int h);
-        void fixOrientation();
+        Orientation orientation() const;
+        void applyOrientation();
 
  protected:
         std::unique_ptr<NfImageData> m_data;

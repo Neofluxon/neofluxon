@@ -83,6 +83,8 @@ std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData(int targetRes) c
         imageData->setWidth(t.twidth);
         imageData->setHeight(t.theight);
 
+        imageData->convertToARGB32Premultiplied();
+
         NF_LOG_DEBUG("thumbnail loaded:  " << m_photo.path());
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
@@ -135,6 +137,8 @@ std::unique_ptr<NfImageData> NfImageDecoder::previewImageData(int targetRes) con
         imageData->setOrientation(rawProcessor->imgdata.sizes.flip);
         imageData->setWidth(t.twidth);
         imageData->setHeight(t.theight);
+
+        imageData->convertToARGB32Premultiplied();
 
         NF_LOG_DEBUG("preview loaded:  " << m_photo.path());
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));

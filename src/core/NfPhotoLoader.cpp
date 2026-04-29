@@ -22,6 +22,7 @@
  */
 
 #include "NfPhotoLoader.h"
+#include "NfCache.h"
 #include "NfPathScanner.h"
 #include "NfImage.h"
 #include "NfThumbnailTask.h"
@@ -30,8 +31,10 @@
 
 namespace NfCore {
 
-NfPhotoLoader::NfPhotoLoader()
+NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache)
         : m_pathScanner{std::make_unique<NfPathScanner>()}
+        , m_thumbnailsCache{thumbnailsCache}
+        , m_previewsCache{previewsCache}
         , m_generationId{0}
 {
 }
@@ -58,10 +61,9 @@ const std::filesystem::path& NfPhotoLoader::getPath() const
         return m_path;
 }
 
-void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
-                                     ImageContainerCallback imageContainer)
+void NfPhotoLoader::requestThumbnail(const NfPhoto &photo)
 {
-        auto task = std::make_unique<NfThumbnailTask>(photo, imageContainer());
+        auto task = std::make_unique<NfThumbnailTask>(photo);
         {
                 std::scoped_lock lock(m_queueMutex);
                 task->setGenerationId(m_generationId);
@@ -87,10 +89,8 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                                 return;
 
                         auto thumbnail = thumbnailTask->takeThumbnail();
-                        auto photoId = thumbnail->id();
-
-                        m_thubnailsCache->add(photoId, thumbnail->releaseImage());
-                        m_thumbnailsQueue.push_back(photoId);
+                        m_thumbnailsCache->add(thumbnail->id(), thumbnail->releaseImage());
+                        m_thumbnailsQueue.push_back(thumbnail->id());
                 }
                 });
 
@@ -99,10 +99,9 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
         m_threadPool.submit(std::move(task));
 }
 
-void NfPhotoLoader::requestPreview(const NfPhoto &photo,
-                                   ImageContainerCallback imageContainer)
+void NfPhotoLoader::requestPreview(const NfPhoto &photo)
 {
-        auto task = std::make_unique<NfPreviewTask>(photo, imageContainer());
+        auto task = std::make_unique<NfPreviewTask>(photo);
         {
                 std::scoped_lock lock(m_queueMutex);
                 task->setGenerationId(m_generationId);
@@ -124,10 +123,8 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
                                 return;
 
                         auto preview = previewTask->takePreview();
-                        auto photoId = previewTask->id();
-
-                        m_previewCache->add(photoId, preview->releaseImage());
-                        m_previewsQueue.push_back(photoId);
+                        m_previewsCache->add(preview->id(), preview->releaseImage());
+                        m_previewsQueue.push_back(preview->id());
                 }
         });
 

@@ -28,10 +28,10 @@
 #include "core/NfThumbnail.h"
 #include "core/NfLogger.h"
 #include "core/NeofluxonCore.h"
+#include "core/NfImage.h"
 #include "NfQPixmap.h"
 
 #include <QTimer>
-#include <QCahce>
 
 using namespace NfCore;
 
@@ -43,10 +43,10 @@ NfPhotoProvider::NfPhotoProvider(NeofluxonCore *core,
         , m_photoLoader{core->photoLoader()}
         , m_thumbnailCache{core->thumbnailCache()}
         , m_previewCache{core->previewCache()}
-        , m_thumbnailPixmapCache{QCahce<uint64_t, QPixmap>(150 * 1024 * 1024)}
-        , m_previewPixmapCache{QCahce<uint64_t, QPixmap>(50 * 1024 * 1024)}
+        , m_thumbnailPixmapCache{QCache<uint64_t, QPixmap>(150 * 1024 * 1024)}
+        , m_previewPixmapCache{QCache<uint64_t, QPixmap>(50 * 1024 * 1024)}
         , m_thumbnailPlaceholder{":/thumb_w160.jpg"}
-        , m_thumbnailPlaceholder{":/thumb_w160.jpg"}
+        , m_previewPlaceholder{":/thumb_w160.jpg"}
 {
         auto timer = new QTimer(this);
         QObject::connect(timer, &QTimer::timeout, this, &NfPhotoProvider::onTimeout);
@@ -69,19 +69,25 @@ const std::filesystem::path& NfPhotoProvider::getPath() const
         return m_path;
 }
 
-const QPixmap& NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
+QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
 {
-        const auto* pixmapImage = m_thumbnailPixmapCache.object(photo.id());
+        auto* pixmapImage = m_thumbnailPixmapCache.object(photo.id().value());
         if (pixmapImage)
                 return *pixmapImage;
 
-        const auto* cacheImage = m_thumbnailCache->get(photo.id());
+        auto cacheImage = m_thumbnailCache->get(photo.id());
         if (cacheImage) {
-                auto pixmap = NfQPixmap::convertToPixmap(cacheImage);
-                auto size   = NfQPixmap::estimateSizeBytes(pixmap);
+                auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
+                cacheImage.reset();
+
+                auto size   = NfQPixmap::estimateSizeBytes(pixmap.get());
+                pixmapImage = pixmap.release();
+
+                // Pixmap cache is called only from the GUI thread
                 m_thumbnailPixmapCache.insert(photo.id().value(),
-                                              pixmap,
+                                              pixmapImage,
                                               size);
+
                 return *pixmapImage;
         }
 
@@ -90,19 +96,25 @@ const QPixmap& NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
         return m_thumbnailPlaceholder;
 }
 
-const QPixmap& NfPhotoProvider::getPreview(const NfPhoto &photo) const
+QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo) const
 {
-        const auto* pixmapImage = m_previewPixmapCache.object(photo.id());
+        auto* pixmapImage = m_previewPixmapCache.object(photo.id().value());
         if (pixmapImage)
                 return *pixmapImage;
 
-        const auto* cacheImage = m_previewCache->get(photo.id());
+        auto cacheImage = m_previewCache->get(photo.id());
         if (cacheImage) {
-                auto pixmap = NfQPixmap::convertToPixmap(cacheImage);
-                auto size   = NfQPixmap::estimateSizeBytes(pixmap);
+                auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
+                cacheImage.reset();
+
+                auto size   = NfQPixmap::estimateSizeBytes(pixmap.get());
+                pixmapImage = pixmap.release();
+
+                // Pixmap cache is called only from the GUI thread
                 m_previewPixmapCache.insert(photo.id().value(),
-                                              pixmap,
+                                              pixmapImage,
                                               size);
+
                 return *pixmapImage;
         }
 
@@ -137,7 +149,7 @@ void NfPhotoProvider::processThumbnails()
 void NfPhotoProvider::processPreviews()
 {
         auto previews = m_photoLoader->takePreviews();
-        if (!photoIds.empty())
+        if (!previews.empty())
                 emit previewsLoaded(previews);
 }
 

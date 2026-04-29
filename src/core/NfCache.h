@@ -45,7 +45,7 @@ public:
 
     // Returns image if present and marks it as recently used.
     /// @warning Returned pointer may become invalid after any cache modification.
-    [[nodiscard]] NfImage* get(const NfPhotoId& id);
+    [[nodiscard]] std::unique_ptr<NfImage> get(const NfPhotoId& id);
 
     /// Removes image if present.
     [[nodiscard]] bool remove(const NfPhotoId& id);
@@ -53,7 +53,7 @@ public:
     /// Clears all cached images.
     void clear();
 
-    [nodiscard]] std::size_t currentSizeBytes() const noexcept;
+    [[nodiscard]] std::size_t currentSizeBytes() const noexcept;
     [[nodiscard]] std::size_t maxSizeBytes() const noexcept;
 
     /// Updates max cache size and evicts items if necessary.
@@ -71,7 +71,7 @@ private:
 
 private:
     //    NfDiskCache* m_diskCache;
-    std::mutext m_mutex;
+    mutable std::mutex m_mutex;
     std::size_t m_maxSizeBytes;
     std::size_t m_currentSizeBytes;
     std::unordered_map<

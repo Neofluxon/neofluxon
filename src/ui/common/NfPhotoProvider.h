@@ -29,6 +29,7 @@
 
 #include <QObject>
 #include <QPixmap>
+#include <QCache>
 
 #include <filesystem>
 #include <vector>
@@ -61,8 +62,8 @@ public:
         void setPath(const std::filesystem::path& path);
         const std::filesystem::path& getPath() const;
 
-        const QPixmap& getThumbnail(const NfPhoto &photo) const;
-        const QPixmap& getPreview(const NfPhoto &photo) const;
+        QPixmap getThumbnail(const NfPhoto &photo) const;
+        QPixmap getPreview(const NfPhoto &photo) const;
         void reqiestPreview(const NfPhoto &photo) const;
 
 signals:
@@ -81,8 +82,8 @@ private:
         NfPhotoLoader *m_photoLoader;
         NfCache *m_thumbnailCache;
         NfCache *m_previewCache;
-        QCahce<uint64_t, QPixmap> m_thumbnailPixmapCache;
-        QCahce<uint64_t, QPixmap>m_previewPixmapCache;
+        mutable QCache<uint64_t, QPixmap> m_thumbnailPixmapCache;
+        mutable QCache<uint64_t, QPixmap>m_previewPixmapCache;
         std::filesystem::path m_path;
         QPixmap m_thumbnailPlaceholder;
         QPixmap m_previewPlaceholder;

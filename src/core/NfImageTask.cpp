@@ -26,11 +26,10 @@
 
 namespace NfCore {
 
-NfImageTask::NfImageTask(const NfPhoto& photo,
-                         std::unique_ptr<NfImage> imageContainer)
+NfImageTask::NfImageTask(const NfPhoto& photo)
         : m_generationId{0}
         , m_photo{photo}
-        , m_imageContainer{std::move(imageContainer)}
+        , m_image{std::make_unique<NfImage>()}
         , m_extractionMethod{ExtractionMethod::Fastest}
 {
 }
@@ -57,19 +56,19 @@ NfImageTask::ExtractionMethod NfImageTask::extractionMethod() const
         return m_extractionMethod;
 }
 
+NfImage* NfImageTask::getImage() const
+{
+        return m_image.get();
+}
+
 std::unique_ptr<NfImage> NfImageTask::takeImage()
 {
-        return std::move(m_imageContainer);
+        return std::move(m_image);
 }
 
 const NfPhoto& NfImageTask::getPhoto() const
 {
         return m_photo;
-}
-
-NfImage* NfImageTask::imageContainer() const
-{
-        return m_imageContainer.get();
 }
 
 } // namespace NfCore

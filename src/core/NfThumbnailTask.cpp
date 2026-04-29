@@ -29,9 +29,8 @@
 
 namespace NfCore {
 
-NfThumbnailTask::NfThumbnailTask(const NfPhoto& photo,
-                                 std::unique_ptr<NfImage> imageContainer)
-        : NfImageTask(photo, std::move(imageContainer))
+NfThumbnailTask::NfThumbnailTask(const NfPhoto& photo)
+        : NfImageTask(photo)
 {
 }
 
@@ -61,15 +60,17 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
         if (!imageData)
                 return TaskStatus::Failed;
 
-        imageContainer()->setData(std::move(imageData));
-        if (imageContainer()->height() > maxTarget) {
+        auto* image = getImage();
+
+        image->setData(std::move(imageData));
+        if (image->height() > maxTarget) {
                 NF_LOG_DEBUG("resize to target: " << maxTarget);
-                imageContainer()->resizeToHeight(maxTarget);
+                getImage()->scaleToHeight(maxTarget);
         }
 
-        if (imageContainer()->orientation() != NfImage::Orientation::Normal) {
+        if (image->orientation() != NfImage::Orientation::Normal) {
                 NF_LOG_DEBUG("fix orientation");
-                imageContainer()->fixOrientation();
+                getImage()->applyOrientation();
         }
 
         return TaskStatus::Success;

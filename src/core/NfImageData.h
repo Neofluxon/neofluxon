@@ -45,10 +45,10 @@ public:
         NfImageData(size_t size);
         NfImageData(int w, int h, int c);
         ~NfImageData();
-        NfImageData(const NfImageData&) = default;
-        NfImageData(NfImageData&&) noexcept = default;
-        NfImageData& operator=(const NfImageData&) = default;
-        NfImageData& operator=(NfImageData&&) noexcept = default;
+        NfImageData(const NfImageData& other) = default;
+        NfImageData& operator=(const NfImageData& other) = default;
+        NfImageData(NfImageData&& other) noexcept = default;
+        NfImageData& operator=(NfImageData&& other) noexcept = default;
         void setData(const unsigned char* ptr, size_t len);
         const unsigned char* data() const;
         unsigned char* data();
@@ -66,8 +66,10 @@ public:
         int orientation() const;
         void setFormat(ImageFormat format);
         ImageFormat format() const;
-        static std::unique_ptr<NfImageData> convertedToFormat(ImageFormat format,
-                                                              NfImageData *data);
+        bool convertToARGB32Premultiplied();
+
+protected:
+        bool jpegToARGBPremultiplied();
 
 private:
         std::vector<unsigned char> m_data;

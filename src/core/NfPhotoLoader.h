@@ -25,8 +25,10 @@
 #define NF_PHOTO_LOADER_H
 
 #include "NfPhoto.h"
-#include "PhotoId.h"
+#include "NfPhotoId.h"
 #include "NfForegroundThreadPool.h"
+#include "NfThumbnail.h"
+#include "NfPreview.h"
 
 #include <filesystem>
 #include <vector>
@@ -38,24 +40,22 @@ namespace NfCore {
 
 class NfPathScanner;
 class NfImage;
+class NfCache;
 
 class NfPhotoLoader {
 public:
-        NfPhotoLoader();
+        NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache);
         ~NfPhotoLoader();
-        using ImageContainerCallback = std::function<std::unique_ptr<NfImage>()>;
 
         void setPath(const std::filesystem::path &path);
         const std::filesystem::path& getPath() const;
 
-        void requestThumbnail(const NfPhoto &photo,
-                              ImageContainerCallback imageContainer);
-        void requestPreview(const NfPhoto &photo,
-                            ImageContainerCallback imagecontainer);
+        void requestThumbnail(const NfPhoto &photo);
+        void requestPreview(const NfPhoto &photo);
 
         std::vector<NfPhoto> takePhotos();
-        std::vector<NfThumbnail> takeThumbnails();
-        std::vector<NfPreview> takePreviews();
+        std::vector<NfPhotoId> takeThumbnails();
+        std::vector<NfPhotoId> takePreviews();
 
  protected:
 
@@ -68,6 +68,8 @@ public:
         std::unique_ptr<NfPathScanner> m_pathScanner;
         std::filesystem::path m_path;
         NfForegroundThreadPool m_threadPool;
+        NfCache* m_thumbnailsCache;
+        NfCache* m_previewsCache;
         std::mutex m_queueMutex;
         uint64_t m_generationId;
         std::vector<NfPhotoId> m_thumbnailsQueue;

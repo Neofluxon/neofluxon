@@ -250,6 +250,8 @@ bool NfImageData::jpegToARGBPremultiplied()
         m_height = h;
         m_channels = 4;
         m_format = ImageFormat::Format_ARGB32_Premultiplied;
+
+        return true;
 }
 
 } // namespace NfCore
