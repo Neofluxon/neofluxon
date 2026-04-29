@@ -4,6 +4,12 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(JPEG_TURBO REQUIRED libturbojpeg)
 find_path(STB_INCLUDE_DIR stb_image_resize2.h PATH_SUFFIXES stb)
 
+if(STB_INCLUDE_DIR)
+    message(STATUS "Found stb_image_resize2.h at: ${STB_INCLUDE_DIR}")
+else()
+    message(FATAL_ERROR "stb_image_resize2.h not found! Install libstb-dev.")
+endif()
+
 file(GLOB CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
@@ -22,7 +28,7 @@ add_library(${PROJECT_NAME}::CoreLibrary ALIAS NfCore)
 target_include_directories(NfCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${JPEG_TURBO_INCLUDE_DIRS}
-    ${JPEG_TURBO_INCLUDE_DIRS}
+    ${STB_INCLUDE_DIR}
 )
 
 target_link_libraries(NfCore PRIVATE
