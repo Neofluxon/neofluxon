@@ -74,7 +74,7 @@ void NfForegroundThreadPool::threadLoop(std::stop_token stoken)
                     if (stoken.stop_requested())
                             break;
 
-                    task = std::move(m_taskQueue.top());
+                    task = std::move(const_cast<std::unique_ptr<NfTask>&>(m_taskQueue.top()));
                     m_taskQueue.pop();
                 }
 
@@ -84,6 +84,14 @@ void NfForegroundThreadPool::threadLoop(std::stop_token stoken)
                         task->notifyCompletion(status);
                 }
         }
+}
+
+bool NfForegroundThreadPool::TaskCompare::operator()(const std::unique_ptr<NfTask>& a,
+                                                     const std::unique_ptr<NfTask>& b) const
+{
+        if (a->priority() != b->priority())
+                return a->priority() > b->priority();
+        return a->sequence() < b->sequence();
 }
 
 } // namespace NfCore

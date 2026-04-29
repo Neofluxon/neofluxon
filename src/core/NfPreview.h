@@ -42,8 +42,7 @@ public:
 
         const NfPhotoId& id() const;
         NfImage* getImage() const;
-
-        [[nodiscard]] std::unique_ptr<NfImage> releaseImage();
+        std::unique_ptr<NfImage> releaseImage();
 
 private:
         NfPhotoId m_photoId;

@@ -39,13 +39,12 @@ class NfImageDecoder {
  public:
         NfImageDecoder(const NfPhoto &photo);
         ~NfImageDecoder();
-        std::unique_ptr<NfImageData> thumbnailImageData() const;
-        std::unique_ptr<NfImageData> previewImageData() const;
+        std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const;
+        std::unique_ptr<NfImageData> previewImageData(int targetRes) const;
+        std::unique_ptr<NfImageData> rawImage() const;
 
 protected:
         static int selectBestForTarget(const libraw_thumbnail_list_t& thumbList, int targetSize);
-        static int selectThumbnail(const libraw_thumbnail_list_t& thumbList);
-        static int selectPreview(const libraw_thumbnail_list_t& thumbList);
         static bool isSupportedFormat(int format);
         static NfImageData::ImageFormat libRawToNfImageFormat(int format);
 

@@ -29,6 +29,7 @@
 
 #include <QObject>
 #include <QPixmap>
+#include <QCache>
 
 #include <filesystem>
 #include <vector>
@@ -37,7 +38,7 @@
 namespace NfCore {
 class NeofluxonCore;
 class NfPhotoLoader;
-class NfGuiCache;
+class NfCache;
 }
 
 using namespace NfCore;
@@ -61,8 +62,8 @@ public:
         void setPath(const std::filesystem::path& path);
         const std::filesystem::path& getPath() const;
 
-        const QPixmap& getThumbnail(const NfPhoto &photo) const;
-        const QPixmap& getPreview(const NfPhoto &photo) const;
+        QPixmap getThumbnail(const NfPhoto &photo) const;
+        QPixmap getPreview(const NfPhoto &photo) const;
         void reqiestPreview(const NfPhoto &photo) const;
 
 signals:
@@ -79,10 +80,13 @@ private:
         void processPreviews();
 
         NfPhotoLoader *m_photoLoader;
-        NfGuiCache *m_thumbnailCache;
-        NfGuiCache *m_previewCache;
+        NfCache *m_thumbnailCache;
+        NfCache *m_previewCache;
+        mutable QCache<uint64_t, QPixmap> m_thumbnailPixmapCache;
+        mutable QCache<uint64_t, QPixmap>m_previewPixmapCache;
         std::filesystem::path m_path;
         QPixmap m_thumbnailPlaceholder;
+        QPixmap m_previewPlaceholder;
 };
 
 } // namespace NfUi

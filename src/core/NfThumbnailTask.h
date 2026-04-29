@@ -24,37 +24,26 @@
 #ifndef NF_THUMBNAIL_TASK_H
 #define NF_THUMBNAIL_TASK_H
 
-#include "NfTask.h"
-#include "NfPhoto.h"
+#include "NfImageTask.h"
 
 #include <memory>
-#include <string>
-#include <cstdint>
 
 namespace NfCore {
 
 class NfImage;
 class NfThumbnail;
 
-class NfThumbnailTask : public NfTask {
+class NfThumbnailTask : public NfImageTask {
 public:
-        NfThumbnailTask(const NfPhoto& photo, std::unique_ptr<NfImage> imageContainer);
+        NfThumbnailTask(const NfPhoto& photo);
+        NfThumbnailTask(NfThumbnailTask&&) noexcept = default;
+        NfThumbnailTask& operator=(NfThumbnailTask&&) noexcept = default;
+        NfThumbnailTask(const NfThumbnailTask&) = delete;
+        NfThumbnailTask& operator=(const NfThumbnailTask&) = delete;
         ~NfThumbnailTask();
 
-        void setGenerationId(uint64_t generationId);
-        uint64_t generationId() const;
-
         TaskStatus execute() override;
-
         std::unique_ptr<NfThumbnail> takeThumbnail();
-
-        [[nodiscard]] std::string getErrorMessage() const { return m_errorMessage; }
-
-private:
-        uint64_t m_generationId;
-        NfPhoto m_photo;
-        std::unique_ptr<NfImage> m_imageContainer;
-        std::string m_errorMessage;
 };
 
 } // namespace NfCore

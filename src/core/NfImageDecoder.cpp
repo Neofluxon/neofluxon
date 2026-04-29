@@ -26,6 +26,7 @@
 #include "NfLogger.h"
 
 #include <libraw/libraw.h>
+#include <omp.h>
 
 namespace NfCore {
 
@@ -36,7 +37,7 @@ NfImageDecoder::NfImageDecoder(const NfPhoto &photo)
 
 NfImageDecoder::~NfImageDecoder() = default;
 
-std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData() const
+std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData(int targetRes) const
 {
         NF_LOG_DEBUG("open file: " << m_photo.path());
 
@@ -51,13 +52,13 @@ std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData() const
                      << rawProcessor->imgdata.sizes.width
                      << "x" << rawProcessor->imgdata.sizes.height);
 
-        int bestIndex = selectThumbnail(rawProcessor->imgdata.thumbs_list);
+        int bestIndex = selectBestForTarget(rawProcessor->imgdata.thumbs_list, targetRes);
         if (bestIndex < 0) {
-                NF_LOG_ERROR("no thumbnail");
+                NF_LOG_DEBUG("no thumbnail");
                 return nullptr;
         }
 
-        NF_LOG_ERROR("unpack thumbnail at index: " << bestIndex);
+        NF_LOG_DEBUG("unpack thumbnail at index: " << bestIndex);
 
         if (rawProcessor->unpack_thumb_ex(bestIndex) != LIBRAW_SUCCESS) {
                 NF_LOG_ERROR("can't unpack thumbnail at index: " << bestIndex);
@@ -82,6 +83,8 @@ std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData() const
         imageData->setWidth(t.twidth);
         imageData->setHeight(t.theight);
 
+        imageData->convertToARGB32Premultiplied();
+
         NF_LOG_DEBUG("thumbnail loaded:  " << m_photo.path());
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
@@ -89,7 +92,7 @@ std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData() const
         return imageData;
 }
 
-std::unique_ptr<NfImageData> NfImageDecoder::previewImageData() const
+std::unique_ptr<NfImageData> NfImageDecoder::previewImageData(int targetRes) const
 {
         NF_LOG_DEBUG("open file: " << m_photo.path());
 
@@ -104,9 +107,9 @@ std::unique_ptr<NfImageData> NfImageDecoder::previewImageData() const
                      << rawProcessor->imgdata.sizes.width
                      << "x" << rawProcessor->imgdata.sizes.height);
 
-        auto bestIndex = selectPreview(rawProcessor->imgdata.thumbs_list);
+        auto bestIndex = selectBestForTarget(rawProcessor->imgdata.thumbs_list, targetRes);
         if (bestIndex < 0) {
-                NF_LOG_ERROR("can't find preview");
+                NF_LOG_DEBUG("can't find preview");
                 return nullptr;
         }
 
@@ -135,6 +138,8 @@ std::unique_ptr<NfImageData> NfImageDecoder::previewImageData() const
         imageData->setWidth(t.twidth);
         imageData->setHeight(t.theight);
 
+        imageData->convertToARGB32Premultiplied();
+
         NF_LOG_DEBUG("preview loaded:  " << m_photo.path());
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
@@ -154,20 +159,87 @@ NfImageData::ImageFormat NfImageDecoder::libRawToNfImageFormat(int format)
         }
 }
 
+std::unique_ptr<NfImageData> NfImageDecoder::rawImage() const
+{
+        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
+
+        LibRaw rawProcessor;
+
+        if (rawProcessor.open_file(m_photo.path().string().c_str()) != LIBRAW_SUCCESS)
+                return nullptr;
+
+        //rawProcessor.imgdata.params.half_size = 1;
+        rawProcessor.imgdata.params.use_fuji_rotate = 0;
+
+        if (rawProcessor.unpack() != LIBRAW_SUCCESS)
+                return nullptr;
+
+        // Use linear interpolation.
+        rawProcessor.imgdata.params.user_qual = 0;
+        rawProcessor.imgdata.params.output_bps = 8;
+
+        // Use Camera White Balance
+        rawProcessor.imgdata.params.use_camera_wb = 1;
+        rawProcessor.imgdata.params.use_auto_wb = 0;
+
+        // Disable heavy noise reduction or brightness loops
+        rawProcessor.imgdata.params.no_auto_bright = 1;
+
+        auto start = std::chrono::high_resolution_clock::now();
+        if (rawProcessor.dcraw_process() != LIBRAW_SUCCESS)
+                return nullptr;
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        NF_LOG_INFO("load image time: " << duration.count() << "us");
+
+
+        int err = 0;
+        auto* processed = rawProcessor.dcraw_make_mem_image(&err);
+        if (!processed || processed->colors != 3) {
+                if (processed)
+                        rawProcessor.dcraw_clear_mem(processed);
+                return nullptr;
+        }
+
+        auto imageData = std::make_unique<NfImageData>();
+
+        // Calculate RGBA size: width * height * 4
+        size_t pixelCount = processed->width * processed->height;
+        size_t rgbaSize = pixelCount * 4;
+        std::vector<unsigned char> rgbaBuffer(rgbaSize);
+
+        const unsigned char* src = processed->data;
+        unsigned char* dst = rgbaBuffer.data();
+        for (size_t i = 0; i < pixelCount; i++) {
+                dst[0] = src[2]; // Blue
+                dst[1] = src[1]; // Green
+                dst[2] = src[0]; // Red
+                dst[3] = 255;    // Alpha (Opaque)
+
+                src += 3;
+                dst += 4;
+        }
+        // Set the data into your NfImage object
+        imageData->setData(rgbaBuffer.data(), rgbaBuffer.size());
+        imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
+        imageData->setWidth(processed->width);
+        imageData->setHeight(processed->height);
+        imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
+
+        rawProcessor.dcraw_clear_mem(processed);
+
+        NF_LOG_INFO("thumbnail loaded:  " << m_photo.path());
+        NF_LOG_INFO("format: " << static_cast<int>(imageData->format()));
+        NF_LOG_INFO("dimentions: " << imageData->width() << "x" << imageData->height());
+
+        return imageData;
+}
+
 bool NfImageDecoder::isSupportedFormat(int format)
 {
         return (format == LIBRAW_THUMBNAIL_JPEG)
                 || (format == LIBRAW_THUMBNAIL_BITMAP);
-}
-
-int NfImageDecoder::selectThumbnail(const libraw_thumbnail_list_t& list)
-{
-        return selectBestForTarget(list, 256);
-}
-
-int NfImageDecoder::selectPreview(const libraw_thumbnail_list_t& list)
-{
-        return selectBestForTarget(list, 1600);
 }
 
 int NfImageDecoder::selectBestForTarget(const libraw_thumbnail_list_t& list,
@@ -184,21 +256,13 @@ int NfImageDecoder::selectBestForTarget(const libraw_thumbnail_list_t& list,
 
                 NF_LOG_DEBUG("[" << i << "][" << w << "x" << h << "]");
 
-                if (w <= 0 || h <= 0)
-                        continue;
-
-                int size = std::max(w, h);
-                int distance = std::abs(size - targetSize);
-
-                if (distance < minDistance) {
-                        minDistance = distance;
-                        bestIndex = i;
+                if (h >= targetSize) {
+                        NF_LOG_DEBUG("best index:" << i);
+                        return i;
                 }
         }
 
-        NF_LOG_DEBUG("Best index:" << bestIndex);
-
-    return bestIndex;
+    return -1;
 }
 
 } // namespace NfCore

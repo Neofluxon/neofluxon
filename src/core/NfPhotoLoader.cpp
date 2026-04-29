@@ -22,6 +22,7 @@
  */
 
 #include "NfPhotoLoader.h"
+#include "NfCache.h"
 #include "NfPathScanner.h"
 #include "NfImage.h"
 #include "NfThumbnailTask.h"
@@ -30,8 +31,10 @@
 
 namespace NfCore {
 
-NfPhotoLoader::NfPhotoLoader()
+NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache)
         : m_pathScanner{std::make_unique<NfPathScanner>()}
+        , m_thumbnailsCache{thumbnailsCache}
+        , m_previewsCache{previewsCache}
         , m_generationId{0}
 {
 }
@@ -58,14 +61,20 @@ const std::filesystem::path& NfPhotoLoader::getPath() const
         return m_path;
 }
 
-void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, std::unique_ptr<NfImage> image)
+void NfPhotoLoader::requestThumbnail(const NfPhoto &photo)
 {
-        auto task = std::make_unique<NfThumbnailTask>(photo, std::move(image));
+        auto task = std::make_unique<NfThumbnailTask>(photo);
         {
                 std::scoped_lock lock(m_queueMutex);
                 task->setGenerationId(m_generationId);
         }
 
+        task->setPriority(NfTask::Priority::Immediate);
+        task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
+        {
+                std::scoped_lock lock(m_queueMutex);
+                task->setSequence(m_sequence++);
+        }
         task->setResult([&](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
@@ -80,21 +89,26 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, std::unique_ptr<NfIma
                                 return;
 
                         auto thumbnail = thumbnailTask->takeThumbnail();
-                        m_thumbnailsQueue.push_back(std::move(*thumbnail));
+                        m_thumbnailsCache->add(thumbnail->id(), thumbnail->releaseImage());
+                        m_thumbnailsQueue.push_back(thumbnail->id());
                 }
-        });
+                });
+
+        NF_LOG_DEBUG("submit embedded thumbnail task");
 
         m_threadPool.submit(std::move(task));
 }
 
-void NfPhotoLoader::requestPreview(const NfPhoto &photo, std::unique_ptr<NfImage> image)
+void NfPhotoLoader::requestPreview(const NfPhoto &photo)
 {
-        auto task = std::make_unique<NfPreviewTask>(photo, std::move(image));
+        auto task = std::make_unique<NfPreviewTask>(photo);
         {
                 std::scoped_lock lock(m_queueMutex);
                 task->setGenerationId(m_generationId);
         }
 
+        task->setPriority(NfTask::Priority::Immediate);
+        task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setResult([&](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
@@ -109,7 +123,8 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo, std::unique_ptr<NfImage
                                 return;
 
                         auto preview = previewTask->takePreview();
-                        m_previewsQueue.push_back(std::move(*preview));
+                        m_previewsCache->add(preview->id(), preview->releaseImage());
+                        m_previewsQueue.push_back(preview->id());
                 }
         });
 
@@ -121,13 +136,13 @@ std::vector<NfPhoto> NfPhotoLoader::takePhotos()
         return m_pathScanner->takePhotos();
 }
 
-std::vector<NfThumbnail> NfPhotoLoader::takeThumbnails()
+std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()
 {
         std::scoped_lock lock(m_queueMutex);
         return std::move(m_thumbnailsQueue);
 }
 
-std::vector<NfPreview> NfPhotoLoader::takePreviews()
+std::vector<NfPhotoId> NfPhotoLoader::takePreviews()
 {
         std::scoped_lock lock(m_queueMutex);
         return std::move(m_previewsQueue);

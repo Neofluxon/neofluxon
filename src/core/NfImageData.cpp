@@ -23,6 +23,9 @@
 
 #include "NfImageData.h"
 
+#include <turbojpeg.h>
+#include <cstring>
+
 namespace NfCore {
 
 NfImageData::NfImageData()
@@ -138,6 +141,117 @@ void NfImageData::setFormat(NfImageData::ImageFormat format)
 NfImageData::ImageFormat NfImageData::format() const
 {
         return m_format;
+}
+
+bool NfImageData::convertToARGB32Premultiplied()
+{
+        if (m_format == ImageFormat::Format_ARGB32_Premultiplied)
+                return true;
+
+        // JPEG -> ARGB Premultiplied
+        if (m_format == ImageFormat::Format_JPEG)
+                return jpegToARGBPremultiplied();
+
+        // RGB888 (3 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
+        if (m_format == ImageFormat::Format_RGB888) {
+                std::vector<unsigned char> out;
+                out.resize((size_t)m_width * m_height * 4);
+
+                const unsigned char* src = m_data.data();
+                unsigned char* dst = out.data();
+
+                for (int i = 0; i < m_width * m_height; i++) {
+                        // Swap R and B for the ARGB32 integer format (BGRA in memory)
+                        dst[i * 4 + 0] = src[i * 3 + 2]; // Blue
+                        dst[i * 4 + 1] = src[i * 3 + 1]; // Green
+                        dst[i * 4 + 2] = src[i * 3 + 0]; // Red
+                        dst[i * 4 + 3] = 255;            // Alpha (Opaque)
+                }
+
+                m_data = std::move(out);
+                m_channels = 4;
+                m_format = ImageFormat::Format_ARGB32_Premultiplied;
+                return true;
+        }
+
+        // RGBA8888 (4 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
+        if (m_format == ImageFormat::Format_RGBA8888) {
+                std::vector<unsigned char> out;
+                out.resize((size_t)m_width * m_height * 4);
+
+                const unsigned char* src = m_data.data();
+                unsigned char* dst = out.data();
+
+                for (int i = 0; i < m_width * m_height; i++) {
+                        unsigned char r = src[i * 4 + 0];
+                        unsigned char g = src[i * 4 + 1];
+                        unsigned char b = src[i * 4 + 2];
+                        unsigned char a = src[i * 4 + 3];
+
+                        // 1. Premultiply and 2. Swap R/B to match BGRA memory layout
+                        dst[i * 4 + 0] = (b * a) / 255; // Blue
+                        dst[i * 4 + 1] = (g * a) / 255; // Green
+                        dst[i * 4 + 2] = (r * a) / 255; // Red
+                        dst[i * 4 + 3] = a;             // Alpha
+                }
+
+                m_data = std::move(out);
+                m_format = ImageFormat::Format_ARGB32_Premultiplied;
+                return true;
+        }
+
+    return false;
+}
+
+bool NfImageData::jpegToARGBPremultiplied()
+{
+        auto tj = tjInitDecompress();
+        if (!tj)
+                return false;
+
+        int w = 0;
+        int h = 0;
+        int subsamp = 0;
+        int cs = 0;
+
+        auto res = tjDecompressHeader3(tj,
+                                       m_data.data(),
+                                       m_data.size(),
+                                       &w, &h,
+                                       &subsamp,
+                                       &cs);
+        if (res != 0) {
+                tjDestroy(tj);
+                return false;
+        }
+
+        std::vector<unsigned char> bgra;
+        bgra.resize((size_t)w * h * 4);
+
+        res = tjDecompress2(tj,
+                            m_data.data(),
+                            m_data.size(),
+                            bgra.data(),
+                            w,
+                            0,
+                            h,
+                            TJPF_BGRA,
+                            TJFLAG_FASTDCT);
+
+        if (res != 0) {
+                tjDestroy(tj);
+                return false;
+        }
+
+        tjDestroy(tj);
+
+        m_data = std::move(bgra);
+        m_width = w;
+        m_height = h;
+        m_channels = 4;
+        m_format = ImageFormat::Format_ARGB32_Premultiplied;
+
+        return true;
 }
 
 } // namespace NfCore

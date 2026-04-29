@@ -24,7 +24,7 @@
 #ifndef NF_FOREGROUND_THREAD_POOL_H
 #define NF_FOREGROUND_THREAD_POOL_H
 
-#include <stack>
+#include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -33,6 +33,7 @@
 #include <atomic>
 #include <memory>
 #include <cstddef>
+#include <vector>
 
 namespace NfCore {
 
@@ -52,10 +53,17 @@ public:
 private:
         void threadLoop(std::stop_token stoken);
 
+        struct TaskCompare {
+                bool operator()(const std::unique_ptr<NfTask>& a,
+                                const std::unique_ptr<NfTask>& b) const;
+        };
+
         std::vector<std::jthread> m_poolThreads;
         mutable std::mutex m_queueMutex;
         std::condition_variable_any m_conditionVariable;
-        std::stack<std::unique_ptr<NfTask>> m_taskQueue;
+        std::priority_queue<std::unique_ptr<NfTask>,
+                            std::vector<std::unique_ptr<NfTask>>,
+                            TaskCompare> m_taskQueue;
 };
 
 } // namespace NfCore

@@ -1,5 +1,5 @@
 /**
- * File name: NfGuiCache.cpp
+ * File name: NfCache.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,41 +21,52 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfGuiCache.h"
+#include "NfCache.h"
 //#include "NfDiskCache.h"
 #include "NfImage.h"
 #include "NfLogger.h"
 
 namespace NfCore {
 
-NfGuiCache::NfGuiCache(/*NfDiskCache* diskCache, */std::size_t maxSizeBytes)
+NfCache::NfCache(/*NfDiskCache* diskCache, */std::size_t maxSizeBytes)
 //        : m_diskCache{diskCache}
         : m_maxSizeBytes{maxSizeBytes}
         , m_currentSizeBytes{0}
 {
 }
 
-NfGuiCache::~NfGuiCache() = default;
+NfCache::~NfCache() = default;
 
-void NfGuiCache::add(const NfPhotoId &id, std::unique_ptr<NfImage> image)
+void NfCache::add(const NfPhotoId &id,
+                     std::unique_ptr<NfImage> image,
+                     bool replace)
 {
         if (!image)
                 return;
 
         auto imageSizeBytes = image->size();
 
+        std::unique_lock lock(m_mutex);
+
         // Reject oversized images that can never fit
         if (imageSizeBytes > m_maxSizeBytes)
                 return;
 
-        // Check if already exists - update and move to front
+        // Check if already exists. Update and move to front
         if (auto it = m_memoryCache.find(id); it != m_memoryCache.end()) {
                 auto& cacheImage = it->second.second;
-                std::size_t oldSizeBytes = cacheImage->size();
-                cacheImage = std::move(image);
-                m_currentSizeBytes -= oldSizeBytes;
-                m_currentSizeBytes += imageSizeBytes;
+                // Update the image only if it is marked to be replaced.
+                if (replace) {
+                        NF_LOG_DEBUG("replace older image");
+                        std::size_t oldSizeBytes = cacheImage->size();
+                        cacheImage = std::move(image);
+                        m_currentSizeBytes -= oldSizeBytes;
+                        m_currentSizeBytes += imageSizeBytes;
+                }
+
+                // Move to front
                 refreshAccess(it->second.first);
+
                 return;
         }
 
@@ -68,19 +79,22 @@ void NfGuiCache::add(const NfPhotoId &id, std::unique_ptr<NfImage> image)
         m_currentSizeBytes += imageSizeBytes;
 }
 
-NfImage* NfGuiCache::get(const NfPhotoId& id)
+std::unique_ptr<NfImage> NfCache::get(const NfPhotoId& id)
 {
+        std::unique_lock lock(m_mutex);
+
         auto it = m_memoryCache.find(id);
         if (it == m_memoryCache.end())
                 return nullptr;
 
         refreshAccess(it->second.first);
 
-        return it->second.second.get();
+        return std::make_unique<NfImage>(*(it->second.second));
 }
 
-bool NfGuiCache::remove(const NfPhotoId& id)
+bool NfCache::remove(const NfPhotoId& id)
 {
+        std::unique_lock lock(m_mutex);
         auto it = m_memoryCache.find(id);
         if (it == m_memoryCache.end())
                 return false;
@@ -92,41 +106,45 @@ bool NfGuiCache::remove(const NfPhotoId& id)
         return true;
 }
 
-void NfGuiCache::clear()
+void NfCache::clear()
 {
+        std::unique_lock lock(m_mutex);
         m_memoryCache.clear();
         m_lruOrder.clear();
         m_currentSizeBytes = 0;
 }
 
-std::size_t NfGuiCache::currentSizeBytes() const noexcept
+std::size_t NfCache::currentSizeBytes() const noexcept
 {
+        std::unique_lock lock(m_mutex);
         return m_currentSizeBytes;
 }
 
-std::size_t NfGuiCache::maxSizeBytes() const noexcept
+std::size_t NfCache::maxSizeBytes() const noexcept
 {
+        std::unique_lock lock(m_mutex);
         return m_maxSizeBytes;
 }
 
-void NfGuiCache::setMaxSizeBytes(std::size_t maxSizeBytes)
+void NfCache::setMaxSizeBytes(std::size_t maxSizeBytes)
 {
+        std::unique_lock lock(m_mutex);
         m_maxSizeBytes = maxSizeBytes;
         if (m_currentSizeBytes > m_maxSizeBytes)
                 evictUntilFits(0);
 }
 
-void NfGuiCache::refreshAccess(std::list<NfPhotoId>::iterator it)
+void NfCache::refreshAccess(std::list<NfPhotoId>::iterator it)
 {
         m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder, it);
 }
 
-void NfGuiCache::removeFromLRU(std::list<NfPhotoId>::iterator it)
+void NfCache::removeFromLRU(std::list<NfPhotoId>::iterator it)
 {
         m_lruOrder.erase(it);
 }
 
-void NfGuiCache::evictUntilFits(std::size_t requiredSize)
+void NfCache::evictUntilFits(std::size_t requiredSize)
 {
         // Evict LRU items until we have enough space for the new image
         while (!m_lruOrder.empty() && (m_currentSizeBytes + requiredSize > m_maxSizeBytes)) {

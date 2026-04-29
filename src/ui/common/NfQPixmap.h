@@ -1,5 +1,5 @@
 /**
- * File name: NfQtPixmap.h
+ * File name: NfQPixmap.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,38 +21,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_QTPIXMAP_H
-#define NF_QTPIXMAP_H
+#ifndef NF_QPIXMAP_H
+#define NF_QPIXMAP_H
 
-#include "core/NfImage.h"
-
-#include <QPixmap>
+#include <memory>
+#include <cstddef>
 
 namespace NfCore {
-        class NfImageData;
+    class NfImage;
 }
 
-using namespace NfCore;
+class QPixmap;
 
 namespace NfUi {
 
-
-class NfQtPixmap : public NfImage {
+class NfQPixmap {
 public:
-        NfQtPixmap() = default;
-        ~NfQtPixmap() override = default;
-
-        void setData(std::unique_ptr<NfImageData> data) override;
-    const QPixmap& pixmap() const;
-        std::size_t size() const override;
-
-protected:
-        void fixOrientation(QImage &img, int orientation);
-
-private:
-        QPixmap m_pixmapImage;
+        static std::unique_ptr<QPixmap> convertToPixmap(const NfCore::NfImage *image);
+        static std::size_t estimateSizeBytes(const QPixmap *pixmap);
 };
 
 } // namespace NfUi
 
-#endif // NF_QTPIXMAP_H
+#endif // NF_QPIXMAP_H

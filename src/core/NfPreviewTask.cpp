@@ -26,46 +26,62 @@
 #include "NfImageData.h"
 #include "NfImage.h"
 #include "NfPreview.h"
+#include "NfLogger.h"
 
 #include <stdexcept>
 #include <iostream>
 
 namespace NfCore {
 
-NfPreviewTask::NfPreviewTask(const NfPhoto& photo,
-                                 std::unique_ptr<NfImage> imageContainer)
-        : m_generationId{0}
-        , m_photo{photo}
-        , m_imageContainer{std::move(imageContainer)}
+NfPreviewTask::NfPreviewTask(const NfPhoto& photo)
+        : NfImageTask(photo)
 {
 }
 
 NfPreviewTask::~NfPreviewTask() = default;
 
-void NfPreviewTask::setGenerationId(uint64_t generationId)
-{
-        m_generationId = generationId;
-}
-
-uint64_t NfPreviewTask::generationId() const
-{
-        return m_generationId;
-}
-
 NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
-        NfImageDecoder decoder(m_photo);
-        auto image = decoder.previewImageData();
-        if (!image)
+        NfImageDecoder decoder(getPhoto());
+        std::unique_ptr<NfImageData> imageData;
+        constexpr int minTarget = 900;
+        constexpr int maxTarget = 2000;
+
+        const auto method = extractionMethod();
+
+        if (method == ExtractionMethod::Embedded
+            || method == ExtractionMethod::Fastest) {
+                NF_LOG_DEBUG("load embedded image");
+                imageData = decoder.thumbnailImageData(minTarget);
+        }
+
+        if (!imageData && (method == ExtractionMethod::FromRaw
+                           || method == ExtractionMethod::Fastest)) {
+                NF_LOG_DEBUG("no suitable embedded image, load from raw");
+                imageData = decoder.rawImage();
+        }
+
+        if (!imageData)
                 return TaskStatus::Failed;
 
-        m_imageContainer->setData(std::move(image));
+        auto* image = getImage();
+        image->setData(std::move(imageData));
+        if (image->height() > maxTarget) {
+                NF_LOG_DEBUG("resize to target: " << maxTarget);
+                getImage()->scaleToHeight(maxTarget);
+        }
+
+        if (image->orientation() != NfImage::Orientation::Normal) {
+                NF_LOG_DEBUG("fix orientation");
+                getImage()->applyOrientation();
+        }
+
         return TaskStatus::Success;
 }
 
 std::unique_ptr<NfPreview> NfPreviewTask::takePreview()
 {
-        return std::make_unique<NfPreview>(m_photo.id(), std::move(m_imageContainer));
+        return std::make_unique<NfPreview>(getPhoto().id(), takeImage());
 }
 
 } // namespace NfCore
