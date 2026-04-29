@@ -58,6 +58,8 @@ Neofluxon is [Free Software](https://www.gnu.org/philosophy/free-sw.en.html), re
 
 * **Qt6**
 * **LibRaw** ([https://www.libraw.org](https://www.libraw.org))
+* **libjpeg-turbo** (https://libjpeg-turbo.org/)
+* **stb_image_resize2** (https://github.com/nothings/stb)
 
 ### Build Requirements
 
