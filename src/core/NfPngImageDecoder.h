@@ -1,5 +1,5 @@
 /**
- * File name: NfImageDecoder.h
+ * File name: NfPngImageDecoder.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,33 +21,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_IMAGE_DECODER_H
-#define NF_IMAGE_DECODER_H
+#ifndef NF_PNG_IMAGE_DECODER_H
+#define NF_PNG_IMAGE_DECODER_H
 
-#include "NfPhoto.h"
-#include "NfImageData.h"
+#include "NfImageDecoder.h"
 
 #include <memory>
 
 namespace NfCore {
 
-class NfImageData;
+class NfPhoto
 
-class NfImageDecoder {
+class NfPngImageDecoder {
  public:
-        explicit NfImageDecoder(const NfPhoto &photo);
-        ~NfImageDecoder();
-        virtual std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const = 0;
-        virtual std::unique_ptr<NfImageData> previewImageData(int targetRes) const = 0;
-        virtual std::unique_ptr<NfImageData> fullImageData() const = 0;
+        explicit NfPngImageDecoder(const NfPhoto &photo);
+        ~NfPngImageDecoder();
+        std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const override;
+        std::unique_ptr<NfImageData> previewImageData(int targetRes) const override;
+        std::unique_ptr<NfImageData> fullImageData() const override;
 
-protected:
-        const NfPhoto& getPhoto() const;
-
-private:
-        NfPhoto m_photo;
+ private:
+        std::unique_ptr<NfImageData> decodeScaled(int targetRes) const;
 };
 
 } // namespace NfCore
 
-#endif // NF_IMAGE_DECODER_H
+#endif // NF_PNG_IMAGE_DECODER_H

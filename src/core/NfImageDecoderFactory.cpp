@@ -23,10 +23,9 @@
 
 #include "NfImageDecoderFactory.h"
 #include "NfPhoto.h"
-#include "NfJpegDecoder.h"
-#include "NfRawDecoder.h"
-
-#include <algorithm>
+#include "NfJpegImageDecoder.h"
+#include "NfPngImageDecoder.h"
+#include "NfRawImageDecoder.h"
 
 namespace NfCore {
 
@@ -34,17 +33,15 @@ std::unique_ptr<NfImageDecoder> NfImageDecoderFactory::createDecoder(const NfPho
 {
         switch (photo.format()) {
         case PhotoFormat::Jpeg:
-                return std::make_unique<NfJpegDecoder>();
+                return std::make_unique<NfJpegImageDecoder>(photo);
         case PhotoFormat::Raw:
-                return std::make_unique<NfRawDecoder>();
+                return std::make_unique<NfRawImageDecoder>(photo);
         case PhotoFormat::Png:
-                // return std::make_unique<NfPngDecoder>();
+                return std::make_unique<NfPngImageDecoder>(photo);
                 break;
         case PhotoFormat::Unknown:
         default:
                 return nullptr;
         }
-
-        return nullptr;
 }
 } // namespace NfCore

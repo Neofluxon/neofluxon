@@ -1,5 +1,7 @@
 find_package(OpenMP REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(PNG REQUIRED)
 
 pkg_check_modules(JPEG_TURBO REQUIRED libturbojpeg)
 find_path(STB_INCLUDE_DIR stb_image_resize2.h PATH_SUFFIXES stb)
@@ -29,10 +31,14 @@ target_include_directories(NfCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${JPEG_TURBO_INCLUDE_DIRS}
     ${STB_INCLUDE_DIR}
+    ${PNG_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIRS}
 )
 
 target_link_libraries(NfCore PRIVATE
         raw
         OpenMP::OpenMP_CXX
         ${JPEG_TURBO_LIBRARIES}
+        ${PNG_LIBRARIES}
+        ${ZLIB_LIBRARIES}
 )

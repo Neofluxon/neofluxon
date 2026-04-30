@@ -22,6 +22,7 @@
  */
 
 #include "NfPreviewTask.h"
+#include "NfImageDecoderFactory.h"
 #include "NfImageDecoder.h"
 #include "NfImageData.h"
 #include "NfImage.h"
@@ -42,7 +43,13 @@ NfPreviewTask::~NfPreviewTask() = default;
 
 NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
-        NfImageDecoder decoder(getPhoto());
+        auto photo = getPhoto();
+        auto decoder = NfImageDecoderFactory::createDecoder(photo);
+        if (!decoder) {
+                NF_LOG_ERROR("can't create decoder for photo: " << photo.path());
+                return TaskStatus::Failed;
+        }
+
         std::unique_ptr<NfImageData> imageData;
         constexpr int minTarget = 900;
         constexpr int maxTarget = 2000;
@@ -52,17 +59,19 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
                 NF_LOG_DEBUG("load embedded image");
-                imageData = decoder.thumbnailImageData(minTarget);
+                imageData = decoder->thumbnailImageData(minTarget);
         }
 
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
                 NF_LOG_DEBUG("no suitable embedded image, load from raw");
-                imageData = decoder.rawImage();
+                imageData = decoder->fullImage();
         }
 
-        if (!imageData)
+        if (!imageData) {
+                NF_LOG_ERROR("can't extract image data for photo: " << photo.path());
                 return TaskStatus::Failed;
+        }
 
         auto* image = getImage();
         image->setData(std::move(imageData));

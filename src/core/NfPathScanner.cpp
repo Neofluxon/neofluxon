@@ -29,7 +29,7 @@ namespace NfCore {
 NfPathScanner::NfPathScanner()
         : m_recursive{true}
         , m_startScan{false}
-        , m_photoExtentions{".cr3", ".cr2", ".dng", ".raf", ".nef"}
+        , m_photoExtentions{".cr3", ".cr2", ".dng", ".raf", ".nef", ".jpg", ".jpeg", ".png"}
 {
         m_scanThread = std::jthread([this](std::stop_token token) {
                 loadPhotosThread(token);

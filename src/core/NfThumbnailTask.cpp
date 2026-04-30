@@ -22,6 +22,7 @@
  */
 
 #include "NfThumbnailTask.h"
+#include "NfImageDecoderFactory.h"
 #include "NfImageDecoder.h"
 #include "NfImageData.h"
 #include "NfImage.h"
@@ -60,7 +61,7 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
                 NF_LOG_DEBUG("no suitable embedded image, load from raw");
-                imageData = decoder->rawImage();
+                imageData = decoder->fullImage();
         }
 
         if (!imageData) {
