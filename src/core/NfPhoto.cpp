@@ -29,6 +29,7 @@ NfPhoto::NfPhoto(const std::filesystem::path &filePath)
         : m_filePath{filePath}
         , m_photoId{filePath}
 {
+        m_format = determineFormat(filePath);
 }
 
 NfPhotoId NfPhoto::id() const
@@ -39,6 +40,24 @@ NfPhotoId NfPhoto::id() const
 const std::filesystem::path& NfPhoto::path() const
 {
         return m_filePath;
+}
+
+NfPhoto::PhotoFormat format() const
+{
+        return m_format;
+}
+
+NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
+{
+        auto ext = path.extension().string();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+        if (ext == ".jpg" || ext == ".jpeg")
+                return PhotoFormat::Jpeg;
+        if (ext == ".raw" || ext == ".cr2" || ext == ".nef")
+                return PhotoFormat::Raw;
+
+        return PhotoFormat::Unknown;
 }
 
 } // namespace NfCore

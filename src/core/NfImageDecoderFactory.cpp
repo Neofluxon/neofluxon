@@ -1,5 +1,5 @@
 /**
- * File name: NfPhoto.h
+ * File name: NfImageDecoderFactory.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,37 +21,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_H
-#define NF_PHOTO_H
+#include "NfImageDecoderFactory.h"
+#include "NfPhoto.h"
+#include "NfJpegDecoder.h"
+#include "NfRawDecoder.h"
 
-#include "NfPhotoId.h"
-
-#include <filesystem>
+#include <algorithm>
 
 namespace NfCore {
 
-class NfPhoto {
- public:
-        enum class PhotoFormat {
-                Unknown,
-                Jpeg,
-                Raw,
-                Png
-        };
+std::unique_ptr<NfImageDecoder> NfImageDecoderFactory::createDecoder(const NfPhoto& photo)
+{
+        switch (photo.format()) {
+        case PhotoFormat::Jpeg:
+                return std::make_unique<NfJpegDecoder>();
+        case PhotoFormat::Raw:
+                return std::make_unique<NfRawDecoder>();
+        case PhotoFormat::Png:
+                // return std::make_unique<NfPngDecoder>();
+                break;
+        case PhotoFormat::Unknown:
+        default:
+                return nullptr;
+        }
 
-        explicit NfPhoto(const std::filesystem::path &filePath);
-        NfPhotoId id() const;
-        const std::filesystem::path& path() const;
-        PhotoFormat format() const;
-
- private:
-        PhotoFormat determineFormat(const std::filesystem::path& path);
-
-        std::filesystem::path m_filePath;
-        NfPhotoId m_photoId;
-        PhotoFormat m_format;
-};
-
+        return nullptr;
+}
 } // namespace NfCore
-
-#endif // NF_PHOTO_H

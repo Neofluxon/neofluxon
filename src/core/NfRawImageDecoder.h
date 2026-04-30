@@ -1,5 +1,5 @@
 /**
- * File name: NfImageDecoder.cpp
+ * File name: NfRawImageDecoder.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfImageDecoder.h"
+#include "NfRawImageDecoder.h"
 #include "NfImage.h"
 #include "NfLogger.h"
 
@@ -30,14 +30,14 @@
 
 namespace NfCore {
 
-NfImageDecoder::NfImageDecoder(const NfPhoto &photo)
+NfRawImageDecoder::NfRawImageDecoder(const NfPhoto &photo)
         : m_photo{photo}
 {
 }
 
-NfImageDecoder::~NfImageDecoder() = default;
+NfRawImageDecoder::~NfRawImageDecoder() = default;
 
-std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData(int targetRes) const
+std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes) const
 {
         NF_LOG_DEBUG("open file: " << m_photo.path());
 
@@ -92,7 +92,7 @@ std::unique_ptr<NfImageData> NfImageDecoder::thumbnailImageData(int targetRes) c
         return imageData;
 }
 
-std::unique_ptr<NfImageData> NfImageDecoder::previewImageData(int targetRes) const
+std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) const
 {
         NF_LOG_DEBUG("open file: " << m_photo.path());
 
@@ -147,7 +147,7 @@ std::unique_ptr<NfImageData> NfImageDecoder::previewImageData(int targetRes) con
         return imageData;
 }
 
-NfImageData::ImageFormat NfImageDecoder::libRawToNfImageFormat(int format)
+NfImageData::ImageFormat NfRawImageDecoder::libRawToNfImageFormat(int format)
 {
         switch (format) {
         case LIBRAW_THUMBNAIL_JPEG:
@@ -159,7 +159,7 @@ NfImageData::ImageFormat NfImageDecoder::libRawToNfImageFormat(int format)
         }
 }
 
-std::unique_ptr<NfImageData> NfImageDecoder::rawImage() const
+std::unique_ptr<NfImageData> NfRawImageDecoder::rawImage() const
 {
         NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
 
@@ -236,13 +236,13 @@ std::unique_ptr<NfImageData> NfImageDecoder::rawImage() const
         return imageData;
 }
 
-bool NfImageDecoder::isSupportedFormat(int format)
+bool NfRawImageDecoder::isSupportedFormat(int format)
 {
         return (format == LIBRAW_THUMBNAIL_JPEG)
                 || (format == LIBRAW_THUMBNAIL_BITMAP);
 }
 
-int NfImageDecoder::selectBestForTarget(const libraw_thumbnail_list_t& list,
+int NfRawImageDecoder::selectBestForTarget(const libraw_thumbnail_list_t& list,
                                         int targetSize)
 {
         int bestIndex = -1;

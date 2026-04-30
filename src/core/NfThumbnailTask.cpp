@@ -38,8 +38,14 @@ NfThumbnailTask::~NfThumbnailTask() = default;
 
 NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
 {
-        NfImageDecoder decoder(getPhoto());
-        std::unique_ptr<NfImageData> imageData;
+        auto photo = getPhoto();
+        auto decoder = NfImageDecoderFactory::createDecoder(photo);
+        if (!decoder) {
+                NF_LOG_ERROR("can't create decoder for photo: " << photo.path());
+                return TaskStatus::Failed;
+        }
+
+        auto std::unique_ptr<NfImageData> imageData;
         constexpr int maxTarget = 250;
         constexpr int minTarget = 120;
 
@@ -48,17 +54,19 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
                 NF_LOG_DEBUG("load embedded image");
-                imageData = decoder.thumbnailImageData(minTarget);
+                imageData = decoder->thumbnailImageData(minTarget);
         }
 
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
                 NF_LOG_DEBUG("no suitable embedded image, load from raw");
-                imageData = decoder.rawImage();
+                imageData = decoder->rawImage();
         }
 
-        if (!imageData)
+        if (!imageData) {
+                NF_LOG_ERROR("can't extract image data for photo: " << photo.path());
                 return TaskStatus::Failed;
+        }
 
         auto* image = getImage();
 
