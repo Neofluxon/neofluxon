@@ -1,5 +1,5 @@
 /**
- * File name: NfRawImageDecoder.h
+ * File name: NfImageDecoder.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,35 +21,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_RAW_IMAGE_DECODER_H
-#define NF_RAW_IMAGE_DECODER_H
-
 #include "NfImageDecoder.h"
-#include "NfImageData.h"
-
-#include <libraw/libraw.h>
-
-#include <memory>
 
 namespace NfCore {
 
-class NfPhoto;
+NfImageDecoder::NfImageDecoder(const NfPhoto &photo)
+        : m_photo{photo}
+{
+}
 
-class NfRawImageDecoder: public NfImageDecoder {
-public:
-        explicit NfRawImageDecoder(const NfPhoto &photo);
-        ~NfRawImageDecoder();
-        std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const override;
-        std::unique_ptr<NfImageData> previewImageData(int targetRes) const override;
-        std::unique_ptr<NfImageData> fullImageData() const override;
-
-private:
-        static NfImageData::ImageFormat libRawToNfImageFormat(int format);
-        static bool isSupportedFormat(int format);
-        static int selectBestForTarget(const libraw_thumbnail_list_t& list,
-                                       int targetSize);
-};
+const NfPhoto& NfImageDecoder::getPhoto() const
+{
+        return m_photo;
+}
 
 } // namespace NfCore
 
-#endif // NF_RAW_IMAGE_DECODER_H

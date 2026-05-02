@@ -42,7 +42,7 @@ const std::filesystem::path& NfPhoto::path() const
         return m_filePath;
 }
 
-NfPhoto::PhotoFormat format() const
+NfPhoto::PhotoFormat NfPhoto::format() const
 {
         return m_format;
 }
@@ -52,10 +52,17 @@ NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
         auto ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
+        if (ext == ".cr3"
+            || ext == ".cr2"
+            || ext == ".dng"
+            || ext == ".raf"
+            || ext == ".nef")
+                return PhotoFormat::Raw;
+
         if (ext == ".jpg" || ext == ".jpeg")
                 return PhotoFormat::Jpeg;
-        if (ext == ".raw" || ext == ".cr2" || ext == ".nef")
-                return PhotoFormat::Raw;
+        if (ext == ".png")
+                return PhotoFormat::Png;
 
         return PhotoFormat::Unknown;
 }

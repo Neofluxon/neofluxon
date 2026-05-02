@@ -30,7 +30,7 @@ public:
     static constexpr std::size_t DEFAULT_MAX_SIZE_BYTES = 250ULL * 1024 * 1024;
 
     explicit NfCache(/*NfDiskCache* diskCache = nullptr,*/
-                        std::size_t maxSizeBytes = DEFAULT_MAX_SIZE_BYTES);
+                     std::size_t maxSizeBytes = DEFAULT_MAX_SIZE_BYTES);
     ~NfCache();
 
     NfCache(const NfCache&) = delete;

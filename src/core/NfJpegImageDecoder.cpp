@@ -24,6 +24,10 @@
 #include "NfJpegImageDecoder.h"
 #include "NfLogger.h"
 
+#include <turbojpeg.h>
+
+#include <fstream>
+
 namespace NfCore {
 
 NfJpegImageDecoder::NfJpegImageDecoder(const NfPhoto &photo)
@@ -43,7 +47,7 @@ std::unique_ptr<NfImageData> NfJpegImageDecoder::previewImageData(int targetRes)
         return decodeScaled(targetRes);
 }
 
-std::unique_ptr<NfImageData> NfJpegImageDecoder::fullImage() const
+std::unique_ptr<NfImageData> NfJpegImageDecoder::fullImageData() const
 {
         return decodeScaled(0);
 }
@@ -105,7 +109,7 @@ std::unique_ptr<NfImageData> NfJpegImageDecoder::decodeScaled(int targetRes) con
         }
 
         imageData->setData(dstBuf.data(), dstBuf.size());
-        imageData->setFormat(NfImageFormat::ARGB32_Premultiplied);
+        imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
         imageData->setWidth(scaledWidth);
         imageData->setHeight(scaledHeight);
 

@@ -36,7 +36,7 @@ class NfImageData;
 class NfImageDecoder {
  public:
         explicit NfImageDecoder(const NfPhoto &photo);
-        ~NfImageDecoder();
+        virtual ~NfImageDecoder() = default;
         virtual std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const = 0;
         virtual std::unique_ptr<NfImageData> previewImageData(int targetRes) const = 0;
         virtual std::unique_ptr<NfImageData> fullImageData() const = 0;

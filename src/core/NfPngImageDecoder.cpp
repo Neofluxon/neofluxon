@@ -37,7 +37,7 @@ NfPngImageDecoder::~NfPngImageDecoder() = default;
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::thumbnailImageData(int targetRes) const
 {
-        auto full = fullImage();
+        auto full = fullImageData();
         if (full && targetRes > 0)
                 full->resize(targetRes);
         return full;
@@ -48,7 +48,7 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::previewImageData(int targetRes) 
         return thumbnailImageData(targetRes);
 }
 
-std::unique_ptr<NfImageData> NfPngImageDecoder::fullImage() const
+std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
 {
         auto path = getPhoto().path().string();
         auto  *fp = fopen(path.c_str(), "rb");
@@ -118,10 +118,10 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImage() const
         // Actual Decode
         png_read_image(png_ptr, row_pointers.data());
 
-        imageData->setData(std::move(data));
+        imageData->setData(data.data(), data.size());
         imageData->setWidth(width);
         imageData->setHeight(height);
-        imageData->setFormat(ImageFormat::Format_RGBA8888);
+        imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
 
         // Since PNGs have transparency, we MUST premultiply
         imageData->convertToARGB32Premultiplied();

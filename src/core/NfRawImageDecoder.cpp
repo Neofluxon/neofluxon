@@ -37,11 +37,11 @@ NfRawImageDecoder::~NfRawImageDecoder() = default;
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes) const
 {
-        NF_LOG_DEBUG("open file: " << m_photo.path());
+        NF_LOG_DEBUG("open file: " << getPhoto().path());
 
         auto rawProcessor = std::make_unique<LibRaw>();
-        if (rawProcessor->open_file(m_photo.path().string().c_str()) != LIBRAW_SUCCESS) {
-                NF_LOG_DEBUG("can't open file : " << m_photo.path());
+        if (rawProcessor->open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS) {
+                NF_LOG_DEBUG("can't open file : " << getPhoto().path());
                 return nullptr;
         }
 
@@ -83,7 +83,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
         imageData->convertToARGB32Premultiplied();
 
-        NF_LOG_DEBUG("thumbnail loaded:  " << m_photo.path());
+        NF_LOG_DEBUG("thumbnail loaded:  " << getPhoto().path());
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
 
@@ -92,11 +92,11 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) const
 {
-        NF_LOG_DEBUG("open file: " << m_photo.path());
+        NF_LOG_DEBUG("open file: " << getPhoto().path());
 
         auto rawProcessor = std::make_unique<LibRaw>();
-        if (rawProcessor->open_file(m_photo.path().string().c_str()) != LIBRAW_SUCCESS) {
-                NF_LOG_ERROR("can't open file: " << m_photo.path());
+        if (rawProcessor->open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS) {
+                NF_LOG_ERROR("can't open file: " << getPhoto().path());
                 return nullptr;
         }
 
@@ -138,20 +138,20 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
         imageData->convertToARGB32Premultiplied();
 
-        NF_LOG_DEBUG("preview loaded:  " << m_photo.path());
+        NF_LOG_DEBUG("preview loaded:  " << getPhoto().path());
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
 
         return imageData;
 }
 
-std::unique_ptr<NfImageData> NfRawImageDecoder::fullImage() const
+std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
 {
         NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
 
         LibRaw rawProcessor;
 
-        if (rawProcessor.open_file(m_photo.path().string().c_str()) != LIBRAW_SUCCESS)
+        if (rawProcessor.open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS)
                 return nullptr;
 
         //rawProcessor.imgdata.params.half_size = 1;
@@ -215,7 +215,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImage() const
 
         rawProcessor.dcraw_clear_mem(processed);
 
-        NF_LOG_INFO("thumbnail loaded:  " << m_photo.path());
+        NF_LOG_INFO("thumbnail loaded:  " << getPhoto().path());
         NF_LOG_INFO("format: " << static_cast<int>(imageData->format()));
         NF_LOG_INFO("dimentions: " << imageData->width() << "x" << imageData->height());
 

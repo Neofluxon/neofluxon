@@ -46,7 +46,7 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
                 return TaskStatus::Failed;
         }
 
-        auto std::unique_ptr<NfImageData> imageData;
+        std::unique_ptr<NfImageData> imageData;
         constexpr int maxTarget = 250;
         constexpr int minTarget = 120;
 
@@ -61,7 +61,7 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
                 NF_LOG_DEBUG("no suitable embedded image, load from raw");
-                imageData = decoder->fullImage();
+                imageData = decoder->fullImageData();
         }
 
         if (!imageData) {

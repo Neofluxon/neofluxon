@@ -65,7 +65,7 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
                 NF_LOG_DEBUG("no suitable embedded image, load from raw");
-                imageData = decoder->fullImage();
+                imageData = decoder->fullImageData();
         }
 
         if (!imageData) {

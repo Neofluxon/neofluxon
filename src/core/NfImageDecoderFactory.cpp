@@ -32,14 +32,14 @@ namespace NfCore {
 std::unique_ptr<NfImageDecoder> NfImageDecoderFactory::createDecoder(const NfPhoto& photo)
 {
         switch (photo.format()) {
-        case PhotoFormat::Jpeg:
+        case NfPhoto::PhotoFormat::Jpeg:
                 return std::make_unique<NfJpegImageDecoder>(photo);
-        case PhotoFormat::Raw:
+        case NfPhoto::PhotoFormat::Raw:
                 return std::make_unique<NfRawImageDecoder>(photo);
-        case PhotoFormat::Png:
+        case NfPhoto::PhotoFormat::Png:
                 return std::make_unique<NfPngImageDecoder>(photo);
                 break;
-        case PhotoFormat::Unknown:
+        case NfPhoto::PhotoFormat::Unknown:
         default:
                 return nullptr;
         }

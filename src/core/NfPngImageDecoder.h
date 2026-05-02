@@ -30,9 +30,10 @@
 
 namespace NfCore {
 
-class NfPhoto
+class NfPhoto;
+class NfImageData;
 
-class NfPngImageDecoder {
+class NfPngImageDecoder : public NfImageDecoder {
  public:
         explicit NfPngImageDecoder(const NfPhoto &photo);
         ~NfPngImageDecoder();
