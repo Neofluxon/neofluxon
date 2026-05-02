@@ -72,11 +72,13 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
 
         task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
+
         {
                 std::scoped_lock lock(m_queueMutex);
                 task->setSequence(m_sequence++);
         }
-        task->setResult([&](NfTask* result, NfTask::TaskStatus status) {
+
+        task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
 
@@ -114,7 +116,7 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
 
         task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
-        task->setResult([&](NfTask* result, NfTask::TaskStatus status) {
+        task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
 
