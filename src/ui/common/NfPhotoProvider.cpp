@@ -96,6 +96,30 @@ QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
         return m_thumbnailPlaceholder;
 }
 
+void NfPhotoProvider::prefetchThumbnail(const NfPhoto &photo)
+{
+        auto* pixmapImage = m_thumbnailPixmapCache.object(photo.id().value());
+        if (pixmapImage)
+                return;
+
+        auto cacheImage = m_thumbnailCache->get(photo.id());
+        if (cacheImage) {
+                auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
+                cacheImage.reset();
+
+                auto size   = NfQPixmap::estimateSizeBytes(pixmap.get());
+                pixmapImage = pixmap.release();
+
+                // Pixmap cache is called only from the GUI thread
+                m_thumbnailPixmapCache.insert(photo.id().value(),
+                                              pixmapImage,
+                                              size);
+                return;
+        }
+
+        m_photoLoader->requestThumbnail(photo, NfPhotoLoader::RequestType::Prefetch);
+}
+
 QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo) const
 {
         auto* pixmapImage = m_previewPixmapCache.object(photo.id().value());

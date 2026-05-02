@@ -61,7 +61,8 @@ const std::filesystem::path& NfPhotoLoader::getPath() const
         return m_path;
 }
 
-void NfPhotoLoader::requestThumbnail(const NfPhoto &photo)
+void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
+                                     NfPhotoLoader::RequestType requestType)
 {
         auto task = std::make_unique<NfThumbnailTask>(photo);
         {
@@ -69,7 +70,7 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo)
                 task->setGenerationId(m_generationId);
         }
 
-        task->setPriority(NfTask::Priority::Immediate);
+        task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         {
                 std::scoped_lock lock(m_queueMutex);
@@ -90,7 +91,10 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo)
 
                         auto thumbnail = thumbnailTask->takeThumbnail();
                         m_thumbnailsCache->add(thumbnail->id(), thumbnail->releaseImage());
-                        m_thumbnailsQueue.push_back(thumbnail->id());
+
+                        auto request = requestTypeToPriority(RequestType::Visible);
+                        if (thumbnailTask->priority() == static_cast<int>(request))
+                                m_thumbnailsQueue.push_back(thumbnail->id());
                 }
                 });
 
@@ -99,7 +103,8 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo)
         m_threadPool.submit(std::move(task));
 }
 
-void NfPhotoLoader::requestPreview(const NfPhoto &photo)
+void NfPhotoLoader::requestPreview(const NfPhoto &photo,
+                                   NfPhotoLoader::RequestType requestType)
 {
         auto task = std::make_unique<NfPreviewTask>(photo);
         {
@@ -107,7 +112,7 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo)
                 task->setGenerationId(m_generationId);
         }
 
-        task->setPriority(NfTask::Priority::Immediate);
+        task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setResult([&](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
@@ -146,6 +151,18 @@ std::vector<NfPhotoId> NfPhotoLoader::takePreviews()
 {
         std::scoped_lock lock(m_queueMutex);
         return std::move(m_previewsQueue);
+}
+
+NfTask::Priority NfPhotoLoader::requestTypeToPriority(RequestType type)
+{
+        switch (type) {
+        case RequestType::Visible:
+                return NfTask::Priority::Immediate;
+        case RequestType::Prefetch:
+                return NfTask::Priority::High;
+        default:
+                return NfTask::Priority::Normal;
+        }
 }
 
 } // namespace NfCore

@@ -29,6 +29,7 @@
 #include "NfForegroundThreadPool.h"
 #include "NfThumbnail.h"
 #include "NfPreview.h"
+#include "NfTask.h"
 
 #include <filesystem>
 #include <vector>
@@ -44,14 +45,21 @@ class NfCache;
 
 class NfPhotoLoader {
 public:
+        enum RequestType {
+                Visible,
+                Prefetch
+        };
+
         NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache);
         ~NfPhotoLoader();
 
         void setPath(const std::filesystem::path &path);
         const std::filesystem::path& getPath() const;
 
-        void requestThumbnail(const NfPhoto &photo);
-        void requestPreview(const NfPhoto &photo);
+        void requestThumbnail(const NfPhoto &photo,
+                              RequestType requestType = RequestType::Visible);
+        void requestPreview(const NfPhoto &photo,
+                            RequestType requestType = RequestType::Visible);
 
         std::vector<NfPhoto> takePhotos();
         std::vector<NfPhotoId> takeThumbnails();
@@ -60,10 +68,7 @@ public:
  protected:
 
  private:
-        enum class ImagePriority {
-                EmbeddedImage = 0,
-                GeneratedImage = 1
-        };
+        static NfTask::Priority requestTypeToPriority(RequestType type);
 
         std::unique_ptr<NfPathScanner> m_pathScanner;
         std::filesystem::path m_path;

@@ -64,7 +64,7 @@ public:
 
         QPixmap getThumbnail(const NfPhoto &photo) const;
         QPixmap getPreview(const NfPhoto &photo) const;
-        void reqiestPreview(const NfPhoto &photo) const;
+        void prefetchThumbnail(const NfPhoto &photo);
 
 signals:
         void photosLoaded(const std::vector<NfPhoto>& photos);

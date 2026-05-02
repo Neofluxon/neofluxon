@@ -22,10 +22,12 @@
  */
 
 #include "NfBrowserView.h"
+#include "NfBrowserModel.h"
 
 #include <QWheelEvent>
 #include <QResizeEvent>
 #include <QMouseEvent>
+#include <QScrollBar>
 
 namespace NfDesktop {
 
@@ -36,6 +38,11 @@ NfBrowserView::NfBrowserView(QWidget* parent)
 
 {
         setObjectName("NfBrowserView");
+
+        connect(verticalScrollBar(),
+                &QScrollBar::valueChanged,
+                this,
+                &NfBrowserView::onScrollChanged);
 
         setMouseTracking(true);
 
@@ -138,6 +145,29 @@ void NfBrowserView::keyPressEvent(QKeyEvent *event)
         default:
                 break;
         }
+}
+
+void NfBrowserView::onScrollChanged()
+{
+        auto* browserModel = qobject_cast<NfBrowserModel*>(model());
+        if (!browserModel)
+                return;
+
+        // Top visible item
+        QModelIndex top = indexAt(QPoint(0, 0));
+        int firstVisibleRow = top.isValid() ? top.row() : 0;
+
+        // Bottom visible item (more reliable than grid math)
+        QModelIndex bottom = indexAt(QPoint(0, viewport()->height() - 1));
+        int lastVisibleRow = bottom.isValid()
+                ? bottom.row()
+                : model()->rowCount() - 1;
+
+        int visibleCount = lastVisibleRow - firstVisibleRow + 1;
+        if (visibleCount <= 0)
+                visibleCount = 1;
+
+        browserModel->prefetchPage(firstVisibleRow, visibleCount);
 }
 
 } // namespace NfDesktop

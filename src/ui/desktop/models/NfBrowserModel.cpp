@@ -26,6 +26,7 @@
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
 #include "NfPhotoProvider.h"
+#include "core/NfLogger.h"
 
 using namespace NfUi;
 
@@ -155,6 +156,22 @@ void NfBrowserModel::onPreviewsLoaded(const std::vector<NfPhotoId> &ids)
                                 emit dataChanged(idx, idx, {ImageDataRole::PreviewRole});
                 }
         });
+}
+
+void NfBrowserModel::prefetchPage(int firstVisible, int pageSize)
+{
+        NF_LOG_DEBUG("firstVisible: " << firstVisible << ", pageSize: " << pageSize);
+
+        pageSize *= 2;
+        int start = firstVisible + pageSize;
+        int end = start + pageSize;
+
+        end = std::min(end, static_cast<int>(m_photos.size()));
+
+        NF_LOG_DEBUG("prefetch start: " << start << ", end: " << end);
+
+        for (int row = start; row < end; ++row)
+                m_photoProvider->prefetchThumbnail(m_photos[row]);
 }
 
 
