@@ -36,12 +36,12 @@ No official releases are available yet.
 - File system browsing for RAW photos
 - Display thumbnails and previews (grid layout or filmstrip + preview)
 - Keyboard navigation for previewing images
-- Supported RAW formats:
+- Supported image fromats:
     * Canon (`.cr2`, `.cr3`)
     * Nikon (`.nef`)
     * Fujifilm (`.raf`)
     * Adobe Digital Negative (`.dng`)
-    * Non-RAW formats like JPEG and PNG are not supported yet (development in progress)
+    * `JPG`, `PNG`
 
 ### Technical Overview & Licensing
 
@@ -60,6 +60,8 @@ Neofluxon is [Free Software](https://www.gnu.org/philosophy/free-sw.en.html), re
 * **LibRaw** ([https://www.libraw.org](https://www.libraw.org))
 * **libjpeg-turbo** (https://libjpeg-turbo.org/)
 * **stb** (https://github.com/nothings/stb)
+* **Zlib** (https://zlib.net/)
+* **libpng** (https://www.libpng.org/pub/png/libpng.html)
 
 ### Build Requirements
 
