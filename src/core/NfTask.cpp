@@ -25,6 +25,18 @@
 
 namespace NfCore {
 
+std::atomic<uint64_t> NfTask::s_taskIdGenerator{0};
+
+NfTask::NfTask()
+        : m_taskId{s_taskIdGenerator.fetch_add(1, std::memory_order_relaxed)}
+{
+}
+
+uint64_t NfTask::taskId() const
+{
+        return m_taskId;
+}
+
 void NfTask::setResult(NfTask::TaskResultHandler handler)
 {
         m_onComplete = std::move(handler);

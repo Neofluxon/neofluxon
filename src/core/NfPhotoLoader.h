@@ -36,6 +36,7 @@
 #include <memory>
 #include <cstdint>
 #include <functional>
+#include <unordered_set>
 
 namespace NfCore {
 
@@ -75,7 +76,7 @@ public:
         NfForegroundThreadPool m_threadPool;
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;
-        std::mutex m_queueMutex;
+        std::mutex m_mutex;
         uint64_t m_generationId;
         std::vector<NfPhotoId> m_thumbnailsQueue;
         std::vector<NfPhotoId> m_previewsQueue;

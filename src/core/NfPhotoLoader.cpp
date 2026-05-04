@@ -47,7 +47,7 @@ NfPhotoLoader::~NfPhotoLoader()
 void NfPhotoLoader::setPath(const std::filesystem::path &path)
 {
         {
-                std::scoped_lock lock(m_queueMutex);
+                std::scoped_lock lock(m_mutex);
                 m_thumbnailsQueue.clear();
                 m_generationId++;
         }
@@ -64,19 +64,12 @@ const std::filesystem::path& NfPhotoLoader::getPath() const
 void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                                      NfPhotoLoader::RequestType requestType)
 {
+        std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfThumbnailTask>(photo);
-        {
-                std::scoped_lock lock(m_queueMutex);
-                task->setGenerationId(m_generationId);
-        }
-
+        task->setGenerationId(m_generationId);
         task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
-
-        {
-                std::scoped_lock lock(m_queueMutex);
-                task->setSequence(m_sequence++);
-        }
+        task->setSequence(m_sequence++);
 
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
@@ -84,7 +77,7 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
 
                 auto* thumbnailTask = dynamic_cast<NfThumbnailTask*>(result);
                 if (thumbnailTask) {
-                        std::scoped_lock lock(m_queueMutex);
+                        std::scoped_lock lock(m_mutex);
 
                         // Check if the thumbnail belongs to the current generation.
                         // If not, ignore it.
@@ -100,20 +93,15 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                 }
                 });
 
-        NF_LOG_DEBUG("submit embedded thumbnail task");
-
         m_threadPool.submit(std::move(task));
 }
 
 void NfPhotoLoader::requestPreview(const NfPhoto &photo,
                                    NfPhotoLoader::RequestType requestType)
 {
+        std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfPreviewTask>(photo);
-        {
-                std::scoped_lock lock(m_queueMutex);
-                task->setGenerationId(m_generationId);
-        }
-
+        task->setGenerationId(m_generationId);
         task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
@@ -122,7 +110,7 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
 
                 auto* previewTask = dynamic_cast<NfPreviewTask*>(result);
                 if (previewTask) {
-                        std::scoped_lock lock(m_queueMutex);
+                        std::scoped_lock lock(m_mutex);
 
                         // Check if the preview belongs to the current generation.
                         // If not, ignore it.
@@ -148,16 +136,13 @@ std::vector<NfPhoto> NfPhotoLoader::takePhotos()
 
 std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()
 {
-        std::scoped_lock lock(m_queueMutex);
+        std::scoped_lock lock(m_mutex);
         return std::move(m_thumbnailsQueue);
 }
 
 std::vector<NfPhotoId> NfPhotoLoader::takePreviews()
 {
-        std::scoped_lock lock(m_queueMutex);
-
-        NF_LOG_DEBUG("take previews, count:  " << m_previewsQueue.size());
-
+        std::scoped_lock lock(m_mutex);
         return std::move(m_previewsQueue);
 }
 

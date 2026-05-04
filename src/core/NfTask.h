@@ -25,6 +25,7 @@
 #define NF_TASK_H
 
 #include <memory>
+#include <atomic>
 #include <functional>
 
 namespace NfCore {
@@ -45,8 +46,10 @@ public:
                 Cancelled
         };
 
+        using TaskId = uint64_t;
         using TaskResultHandler = std::function<void(NfTask*, TaskStatus)>;
         virtual ~NfTask() = default;
+        uint64_t taskId() const;
         virtual TaskStatus execute() = 0;
         void setResult(TaskResultHandler handler);
         void notifyCompletion(TaskStatus status = TaskStatus::Success);
@@ -58,12 +61,14 @@ public:
         uint64_t sequence() const { return m_sequence; }
 
 protected:
-        NfTask() = default;
+        NfTask();
 
 private:
         TaskResultHandler m_onComplete;
         int m_priority = static_cast<int>(Priority::Immediate);
         uint64_t m_sequence = 0;
+        static std::atomic<uint64_t> s_taskIdGenerator;
+        TaskId m_taskId;
 };
 
 } // namespace NfCore
