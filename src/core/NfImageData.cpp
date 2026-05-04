@@ -25,6 +25,7 @@
 
 #include <turbojpeg.h>
 #include <cstring>
+#include <cstdint>
 
 namespace NfCore {
 
@@ -176,31 +177,40 @@ bool NfImageData::convertToARGB32Premultiplied()
 
         // RGBA8888 (4 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
         if (m_format == ImageFormat::Format_RGBA8888) {
-                std::vector<unsigned char> out;
-                out.resize((size_t)m_width * m_height * 4);
+                const size_t pixelCount = (size_t)m_width * (size_t)m_height;
 
-                const unsigned char* src = m_data.data();
-                unsigned char* dst = out.data();
+                std::vector<unsigned char> out(pixelCount * 4);
 
-                for (int i = 0; i < m_width * m_height; i++) {
-                        unsigned char r = src[i * 4 + 0];
-                        unsigned char g = src[i * 4 + 1];
-                        unsigned char b = src[i * 4 + 2];
-                        unsigned char a = src[i * 4 + 3];
+                const uint8_t* src = m_data.data();
+                uint8_t* dst = out.data();
 
-                        // 1. Premultiply and 2. Swap R/B to match BGRA memory layout
-                        dst[i * 4 + 0] = (b * a) / 255; // Blue
-                        dst[i * 4 + 1] = (g * a) / 255; // Green
-                        dst[i * 4 + 2] = (r * a) / 255; // Red
-                        dst[i * 4 + 3] = a;             // Alpha
+                for (size_t i = 0; i < pixelCount; i++) {
+
+                        const size_t idx = i * 4;
+
+                        const uint8_t r = src[idx + 0];
+                        const uint8_t g = src[idx + 1];
+                        const uint8_t b = src[idx + 2];
+                        const uint8_t a = src[idx + 3];
+
+                        const uint8_t ra = (r * a) / 255;
+                        const uint8_t ga = (g * a) / 255;
+                        const uint8_t ba = (b * a) / 255;
+
+                        // Qt expects BGRA premultiplied
+                        dst[idx + 0] = ba;
+                        dst[idx + 1] = ga;
+                        dst[idx + 2] = ra;
+                        dst[idx + 3] = a;
                 }
 
                 m_data = std::move(out);
                 m_format = ImageFormat::Format_ARGB32_Premultiplied;
+
                 return true;
         }
 
-    return false;
+        return false;
 }
 
 bool NfImageData::jpegToARGBPremultiplied()

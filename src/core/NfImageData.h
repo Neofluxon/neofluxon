@@ -36,6 +36,7 @@ public:
         enum class ImageFormat : int {
                 Format_Unknown,
                 Format_JPEG,
+                Format_PNG,
                 Format_RGB888,
                 Format_RGBA8888,
                 Format_ARGB32_Premultiplied

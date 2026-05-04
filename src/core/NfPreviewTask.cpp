@@ -59,7 +59,7 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
                 NF_LOG_DEBUG("load embedded image");
-                imageData = decoder->thumbnailImageData(minTarget);
+                imageData = decoder->previewImageData(minTarget);
         }
 
         if (!imageData && (method == ExtractionMethod::FromRaw
@@ -84,6 +84,8 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
                 NF_LOG_DEBUG("fix orientation");
                 getImage()->applyOrientation();
         }
+
+        NF_LOG_DEBUG("preview loaded for : " << photo.path());
 
         return TaskStatus::Success;
 }

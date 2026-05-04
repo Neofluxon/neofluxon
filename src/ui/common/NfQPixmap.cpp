@@ -43,7 +43,8 @@ std::unique_ptr<QPixmap> NfQPixmap::convertToPixmap(const NfImage *image)
         auto pixmap = std::make_unique<QPixmap>();
         bool isLoaded = false;
 
-        if (imageData->format() == NfImageData::ImageFormat::Format_JPEG) {
+        if (imageData->format() == NfImageData::ImageFormat::Format_JPEG
+            || imageData->format() == NfImageData::ImageFormat::Format_PNG) {
                 isLoaded = pixmap->loadFromData(rawPtr, imageData->size());
         } else {
                 QImage::Format qtFmt;

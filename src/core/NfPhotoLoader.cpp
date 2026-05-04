@@ -131,6 +131,9 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
 
                         auto preview = previewTask->takePreview();
                         m_previewsCache->add(preview->id(), preview->releaseImage());
+
+                        NF_LOG_DEBUG("push preview in the queue: " << preview->id().value());
+
                         m_previewsQueue.push_back(preview->id());
                 }
         });
@@ -152,6 +155,9 @@ std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()
 std::vector<NfPhotoId> NfPhotoLoader::takePreviews()
 {
         std::scoped_lock lock(m_queueMutex);
+
+        NF_LOG_DEBUG("take previews, count:  " << m_previewsQueue.size());
+
         return std::move(m_previewsQueue);
 }
 
