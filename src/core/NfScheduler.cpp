@@ -37,6 +37,12 @@ NfScheduler::~NfScheduler()
         cancelAll();
 }
 
+void NfScheduler::setTasksAvailableCallback(TasksAvailableCallback callback)
+{
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_tasksAvailableCb = std::move(callback);
+}
+
 void NfScheduler::submit(std::unique_ptr<NfTask> task)
 {
         if (!task)
@@ -54,17 +60,13 @@ void NfScheduler::submit(std::unique_ptr<NfTask> task)
         // Index for priority ordering
         m_priorityQueue.insert(entry);
 
-        m_condition.notify_one();
+        if (m_tasksAvailableCb)
+                m_tasksAvailableCb();
 }
 
 NfTask* NfScheduler::nextTask()
 {
         std::unique_lock<std::mutex> lock(m_mutex);
-
-        // Wait until queue is not empty or we are shutting down
-        m_condition.wait(lock, [this] {
-                return !m_priorityQueue.empty() || m_shuttingDown;
-        });
 
         if (m_shuttingDown && m_priorityQueue.empty())
                 return nullptr;
@@ -133,7 +135,6 @@ void NfScheduler::cancelAll()
         m_shuttingDown = true;
         m_priorityQueue.clear();
         m_tasks.clear();
-        m_condition.notify_all();
 }
 
 size_t NfScheduler::pendingTaskCount() const

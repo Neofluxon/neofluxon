@@ -24,16 +24,11 @@
 #ifndef NF_SCHEDULER_H
 #define NF_SCHEDULER_H
 
-#include <queue>
 #include <mutex>
-#include <condition_variable>
-#include <thread>
-#include <stop_token>
-#include <vector>
-#include <atomic>
 #include <memory>
-#include <cstddef>
-#include <vector>
+#include <function>
+#include <set>
+#include <unordered_map>
 
 namespace NfCore {
 
@@ -61,12 +56,14 @@ class NfTask;
  */
 class NfScheduler {
  public:
+        using TasksAvailableCallback = std::function<void>();
+
         explicit NfScheduler();
         ~NfScheduler();
 
         NfScheduler(const NfScheduler&) = delete;
         NfScheduler& operator=(const NfScheduler&) = delete;
-
+        void setTasksAvailableCallback(TasksAvailableCallback callback);
         void submit(std::unique_ptr<NfTask> task);
         NfTask* nextTask();
         void finalizeTask(NfTask::TaskId id);
@@ -79,6 +76,7 @@ class NfScheduler {
         bool hasTask(NfTask::TaskId id) const;
 
  private:
+        TasksAvailableCallback m_tasksAvailableCb;
 
         // Ownership & Quick Lookup. Maps TaskId to task.
         std::unordered_map<NfTask::TaskId, std::unique_ptr<NfTask>> m_tasks;
@@ -106,7 +104,6 @@ class NfScheduler {
         std::set<TaskQueueEntry> m_priorityQueue;
 
         mutable std::mutex m_mutex;
-        std::condition_variable m_condition;
         bool m_shutingDown = false;
 };
 

@@ -22,13 +22,20 @@
  */
 
 #include "NfForegroundThreadPool.h"
+#include "NfScheduler.h"
 #include "NfLogger.h"
 #include "NfTask.h"
 
 namespace NfCore {
 
-NfForegroundThreadPool::NfForegroundThreadPool(size_t threadCount)
+NfForegroundThreadPool::NfForegroundThreadPool(NfScheduler *scheduler,
+                                               size_t threadCount = 0)
+        : m_scheduler{scheduler}
 {
+        m_scheduler.setTasksAvailableCallback([this]() {
+                m_conditionVariable.notify_one();
+        });
+
         if (threadCount < 1) {
                 threadCount = std::thread::hardware_concurrency();
                 if (threadCount < 1)
@@ -44,18 +51,10 @@ NfForegroundThreadPool::NfForegroundThreadPool(size_t threadCount)
 
 NfForegroundThreadPool::~NfForegroundThreadPool()
 {
+        m_scheduler.setTasksAvailableCallback({});
+
         for (auto& t : m_poolThreads)
                 t.request_stop();
-
-        m_conditionVariable.notify_all();
-}
-
-void NfForegroundThreadPool::submit(std::unique_ptr<NfTask> task)
-{
-        {
-                std::scoped_lock<std::mutex> lock(m_queueMutex);
-                m_taskQueue.push(std::move(task));
-        }
 
         m_conditionVariable.notify_all();
 }
@@ -63,35 +62,29 @@ void NfForegroundThreadPool::submit(std::unique_ptr<NfTask> task)
 void NfForegroundThreadPool::threadLoop(std::stop_token stoken)
 {
         while (true) {
-                std::unique_ptr<NfTask> task;
+                NfTask *task = nullptr;
 
                 {
-                    std::unique_lock<std::mutex> lock(m_queueMutex);
-                    m_conditionVariable.wait(lock, [this, &stoken] {
-                            return !m_taskQueue.empty() || stoken.stop_requested();
-                    });
+                        std::unique_lock<std::mutex> lock(m_mutex);
+                        m_conditionVariable.wait(lock, [this, &stoken] {
+                                return stoken.stop_requested() || m_scheduler->hasTasks();
+                        });
 
-                    if (stoken.stop_requested())
-                            break;
+                        if (stoken.stop_requested())
+                                break;
 
-                    task = std::move(const_cast<std::unique_ptr<NfTask>&>(m_taskQueue.top()));
-                    m_taskQueue.pop();
+                        task = m_scheduler.next();
                 }
 
                 if (task) {
                         auto status = task->execute();
+
                         NF_LOG_DEBUG("status: " << (int)status);
+
                         task->notifyCompletion(status);
+                        m_scheduler->finalizeTask(task->taskId());
                 }
         }
-}
-
-bool NfForegroundThreadPool::TaskCompare::operator()(const std::unique_ptr<NfTask>& a,
-                                                     const std::unique_ptr<NfTask>& b) const
-{
-        if (a->priority() != b->priority())
-                return a->priority() > b->priority();
-        return a->sequence() < b->sequence();
 }
 
 } // namespace NfCore
