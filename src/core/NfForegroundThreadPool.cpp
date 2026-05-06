@@ -29,10 +29,10 @@
 namespace NfCore {
 
 NfForegroundThreadPool::NfForegroundThreadPool(NfScheduler *scheduler,
-                                               size_t threadCount = 0)
+                                               size_t threadCount)
         : m_scheduler{scheduler}
 {
-        m_scheduler.setTasksAvailableCallback([this]() {
+        m_scheduler->setTasksAvailableCallback([this]() {
                 m_conditionVariable.notify_one();
         });
 
@@ -51,7 +51,7 @@ NfForegroundThreadPool::NfForegroundThreadPool(NfScheduler *scheduler,
 
 NfForegroundThreadPool::~NfForegroundThreadPool()
 {
-        m_scheduler.setTasksAvailableCallback({});
+        m_scheduler->setTasksAvailableCallback({});
 
         for (auto& t : m_poolThreads)
                 t.request_stop();
@@ -62,18 +62,19 @@ NfForegroundThreadPool::~NfForegroundThreadPool()
 void NfForegroundThreadPool::threadLoop(std::stop_token stoken)
 {
         while (true) {
-                NfTask *task = nullptr;
+                NfTask* task = nullptr;
 
                 {
                         std::unique_lock<std::mutex> lock(m_mutex);
                         m_conditionVariable.wait(lock, [this, &stoken] {
-                                return stoken.stop_requested() || m_scheduler->hasTasks();
+                                return stoken.stop_requested()
+                                        || m_scheduler->hasPendingTasks();
                         });
 
                         if (stoken.stop_requested())
                                 break;
 
-                        task = m_scheduler.next();
+                        task = m_scheduler->nextTask();
                 }
 
                 if (task) {

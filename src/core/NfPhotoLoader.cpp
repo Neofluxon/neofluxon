@@ -24,6 +24,8 @@
 #include "NfPhotoLoader.h"
 #include "NfCache.h"
 #include "NfPathScanner.h"
+#include "NfScheduler.h"
+#include "NfForegroundThreadPool.h"
 #include "NfImage.h"
 #include "NfThumbnailTask.h"
 #include "NfPreviewTask.h"
@@ -33,6 +35,8 @@ namespace NfCore {
 
 NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache)
         : m_pathScanner{std::make_unique<NfPathScanner>()}
+        , m_scheduler{std::make_unique<NfScheduler>()}
+        , m_threadPool{std::make_unique<NfForegroundThreadPool>(m_scheduler.get())}
         , m_thumbnailsCache{thumbnailsCache}
         , m_previewsCache{previewsCache}
         , m_generationId{0}
@@ -51,6 +55,8 @@ void NfPhotoLoader::setPath(const std::filesystem::path &path)
                 m_thumbnailsQueue.clear();
                 m_generationId++;
         }
+
+        m_scheduler->cancelAll();
 
         m_path = path;
         m_pathScanner->setPath(path);
@@ -93,7 +99,7 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                 }
                 });
 
-        m_threadPool.submit(std::move(task));
+        m_scheduler->submit(std::move(task));
 }
 
 void NfPhotoLoader::requestPreview(const NfPhoto &photo,
@@ -126,7 +132,7 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
                 }
         });
 
-        m_threadPool.submit(std::move(task));
+        m_scheduler->submit(std::move(task));
 }
 
 std::vector<NfPhoto> NfPhotoLoader::takePhotos()

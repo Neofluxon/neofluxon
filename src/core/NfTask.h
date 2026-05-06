@@ -59,6 +59,7 @@ public:
         int priority() const;
         void setSequence(uint64_t s) { m_sequence = s; }
         uint64_t sequence() const { return m_sequence; }
+        void cancel() {}
 
 protected:
         NfTask();

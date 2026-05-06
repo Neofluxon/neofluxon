@@ -28,13 +28,19 @@
 namespace NfCore {
 
 NfScheduler::NfScheduler()
-        : m_shuttingDown{false}
 {
 }
 
 NfScheduler::~NfScheduler()
 {
         cancelAll();
+
+        // Wait for worker threads to call finalizeTask()
+        // for already-running tasks.
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_conditionVariable.wait(lock, [this] {
+                return m_runningTasks.empty();
+        });
 }
 
 void NfScheduler::setTasksAvailableCallback(TasksAvailableCallback callback)
@@ -49,14 +55,12 @@ void NfScheduler::submit(std::unique_ptr<NfTask> task)
                 return;
 
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_shuttingDown)
-                return;
 
-        NfTask::TaskId id = task->id();
-        QueueEntry entry{task->priority(), task->rawPriority(), id};
+        auto id = task->taskId();
+        TaskQueueEntry entry{task->priority(), id};
 
         // Store ownership
-        m_tasks[id] = std::move(task);
+        m_pendingTasks[id] = std::move(task);
         // Index for priority ordering
         m_priorityQueue.insert(entry);
 
@@ -68,7 +72,7 @@ NfTask* NfScheduler::nextTask()
 {
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        if (m_shuttingDown && m_priorityQueue.empty())
+        if (m_priorityQueue.empty())
                 return nullptr;
 
         // Extract the highest priority entry
@@ -76,65 +80,59 @@ NfTask* NfScheduler::nextTask()
         NfTask::TaskId id = it->id;
         m_priorityQueue.erase(it);
 
-        // Return the raw pointer. Ownership remains in m_tasks.
-        return m_tasks[id].get();
+        m_runningTasks.insert({id, std::move(m_pendingTasks[id])});
+        m_pendingTasks.erase(id);
+
+        return m_runningTasks[id].get();
 }
 
-void NfScheduler::finalizeTask(NfTask::TaskId id)
+bool NfScheduler::updateTaskPriority(NfTask::TaskId id, NfTask::Priority priority)
 {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_tasks.erase(id);
+        return updateTaskPriority(id, static_cast<int>(priority));
 }
 
-void NfScheduler::updateTaskPriority(NfTask::TaskId id, NfTask::Priority priority)
+bool NfScheduler::updateTaskPriority(NfTask::TaskId id, int priority)
 {
+        bool updated = false;
+
         std::lock_guard<std::mutex> lock(m_mutex);
+        auto it = m_pendingTasks.find(id);
+        if (it != m_pendingTasks.end()) {
+                m_priorityQueue.erase({it->second->priority(), id});
+                it->second->setPriority(priority);
+                m_priorityQueue.insert({it->second->priority(), id});
+                updated = true;
+        }
 
-        auto it = m_tasks.find(id);
-        if (it == m_tasks.end())
-                return;
+        it = m_runningTasks.find(id);
+        if (it != m_runningTasks.end()) {
+                it->second->setPriority(priority);
+                updated = true;
+        }
 
-        // Remove old entry from the priority index
-        m_priorityQueue.erase({it->second->priority(), it->second->rawPriority(), id});
-
-        // Update the task data
-        it->second->setPriority(priority);
-
-        // Re-insert with new priority
-        m_priorityQueue.insert({priority, it->second->rawPriority(), id});
-}
-
-void NfScheduler::updateTaskPriority(NfTask::TaskId id, int priority)
-{
-        std::lock_guard<std::mutex> lock(m_mutex);
-
-        auto it = m_tasks.find(id);
-        if (it == m_tasks.end())
-                return;
-
-        m_priorityQueue.erase({it->second->priority(), it->second->rawPriority(), id});
-        it->second->setRawPriority(priority);
-        m_priorityQueue.insert({it->second->priority(), priority, id});
+        return true;
 }
 
 void NfScheduler::cancelTask(NfTask::TaskId id)
 {
         std::lock_guard<std::mutex> lock(m_mutex);
 
-        auto it = m_tasks.find(id);
-        if (it == m_tasks.end())
+        auto it = m_pendingTasks.find(id);
+        if (it == m_pendingTasks.end())
                 return;
 
-        m_priorityQueue.erase({it->second->priority(), it->second->rawPriority(), id});
-        m_tasks.erase(it);
+        m_priorityQueue.erase({it->second->priority(), id});
+        m_pendingTasks.erase(it);
 }
 
 void NfScheduler::cancelAll()
 {
         std::lock_guard<std::mutex> lock(m_mutex);
-        m_shuttingDown = true;
+        m_pendingTasks.clear();
         m_priorityQueue.clear();
-        m_tasks.clear();
+
+        for (auto &task: m_pendingTasks)
+                task.second->cancel();
 }
 
 size_t NfScheduler::pendingTaskCount() const
@@ -143,10 +141,24 @@ size_t NfScheduler::pendingTaskCount() const
         return m_priorityQueue.size();
 }
 
-bool NfScheduler::hasTask(NfTask::TaskId id) const
+bool NfScheduler::hasPendingTasks() const
+{
+        return pendingTaskCount() > 0;
+}
+
+bool NfScheduler::isTaskPending(NfTask::TaskId id) const
 {
         std::lock_guard<std::mutex> lock(m_mutex);
-        return m_tasks.find(id) != m_tasks.end();
+        return m_pendingTasks.find(id) != m_pendingTasks.end();
+}
+
+void NfScheduler::finalizeTask(NfTask::TaskId id)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_runningTasks.erase(id);
+
+    if (m_runningTasks.empty())
+            m_conditionVariable.notify_all();
 }
 
 } // namespace NfCore

@@ -24,15 +24,16 @@
 #ifndef NF_SCHEDULER_H
 #define NF_SCHEDULER_H
 
+#include "NfTask.h"
+
 #include <mutex>
 #include <memory>
-#include <function>
+#include <functional>
 #include <set>
 #include <unordered_map>
+#include <condition_variable>
 
 namespace NfCore {
-
-class NfTask;
 
 /**
  * The NfScheduler acts as the central "brain" for task management, separate from the
@@ -44,19 +45,19 @@ class NfTask;
  *
  * Time Complexity Guarantees
  *
- * | Operation             | Complexity  | Technical Reason                                     |
- * |-----------------------|-------------|------------------------------------------------------|
- * | submit()              | O(log n)    | Map insertion (O(1)) + Set insertion (O(log n)).     |
- * | nextTask()            | O(log n)    | Get begin() (O(1)) + Set removal (O(log n)).         |
- * | cancelTask()          | O(log n)    | Map lookup (O(1)) + Set arbitrary removal (O(log n)).|
- * | updateTaskPriority()  | O(log n)    | Set erase + Set re-insert (2 * O(log n)).            |
- * | finalizeTask()        | O(1)        | Direct removal from the ownership map.               |
- * | hasTask()             | O(1)        | Hash map lookup.                                     |
+ * | Operation           | Complexity
+ * |---------------------|---------------------------------------------------------------|
+ * | submit()            | O(log n) Map insertion (O(1)) + Set insertion (O(log n)).     |
+ * | nextTask()          | O(log n) Get begin() (O(1)) + Set removal (O(log n)).         |
+ * | cancelTask()        | O(log n) Map lookup (O(1)) + Set arbitrary removal (O(log n)).|
+ * | updateTaskPriority()| O(log n) Set erase + Set re-insert (2 * O(log n)).            |
+ * | finalizeTask()      | O(1)     Direct removal from the ownership map.               |
+ * | hasTask()           | O(1)     Hash map lookup.                                     |
  *
  */
 class NfScheduler {
  public:
-        using TasksAvailableCallback = std::function<void>();
+        using TasksAvailableCallback = std::function<void()>;
 
         explicit NfScheduler();
         ~NfScheduler();
@@ -66,36 +67,35 @@ class NfScheduler {
         void setTasksAvailableCallback(TasksAvailableCallback callback);
         void submit(std::unique_ptr<NfTask> task);
         NfTask* nextTask();
-        void finalizeTask(NfTask::TaskId id);
-        void updateTaskPriority(NfTask::TaskId id, NfTask::Priority priority);
-        void updateTaskPriority(NfTask::TaskId id, int priority);
+        bool updateTaskPriority(NfTask::TaskId id, NfTask::Priority priority);
+        bool updateTaskPriority(NfTask::TaskId id, int priority);
         void cancelTask(NfTask::TaskId id);
         void cancelAll();
 
         size_t pendingTaskCount() const;
-        bool hasTask(NfTask::TaskId id) const;
+        bool hasPendingTasks() const;
+        bool isTaskPending(NfTask::TaskId id) const;
+        void finalizeTask(NfTask::TaskId id);
 
  private:
         TasksAvailableCallback m_tasksAvailableCb;
 
         // Ownership & Quick Lookup. Maps TaskId to task.
-        std::unordered_map<NfTask::TaskId, std::unique_ptr<NfTask>> m_tasks;
+        std::unordered_map<NfTask::TaskId, std::unique_ptr<NfTask>> m_pendingTasks;
+        std::unordered_map<NfTask::TaskId, std::unique_ptr<NfTask>> m_runningTasks;
 
         // The Priority Index (The "Active" Queue)
         // We store TaskId and Priority pairs.
         // This allows us to sort by priority and then by TaskId (to stay deterministic).
         struct TaskQueueEntry {
-                NfTask::Priority priority;
-                int rawPriority; // If using the int overload
+                int priority;
                 NfTask::TaskId id;
 
                 // Custom comparator for the set/queue
-                bool operator<(const QueueEntry& other) const {
+                bool operator<(const TaskQueueEntry& other) const {
                         if (priority != other.priority)
-                                return priority > other.priority;
-                        if (rawPriority != other.rawPriority)
-                                return rawPriority > other.rawPriority;
-                        return id < other.id;
+                                return priority < other.priority;
+                        return id > other.id;
                 }
         };
 
@@ -104,7 +104,7 @@ class NfScheduler {
         std::set<TaskQueueEntry> m_priorityQueue;
 
         mutable std::mutex m_mutex;
-        bool m_shutingDown = false;
+        std::condition_variable m_conditionVariable;
 };
 
 } // namespace NfCore
