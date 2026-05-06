@@ -34,7 +34,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace NfCore {
 
@@ -82,6 +82,7 @@ public:
         std::vector<NfPhotoId> m_thumbnailsQueue;
         std::vector<NfPhotoId> m_previewsQueue;
         uint64_t m_sequence = 0;
+        std::unordered_map <NfPhotoId, NfTask::TaskId> m_pendingThumbnailTasks;
 };
 
 } // namespace NfCore
