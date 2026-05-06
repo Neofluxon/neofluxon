@@ -26,7 +26,6 @@
 
 #include "NfPhoto.h"
 #include "NfPhotoId.h"
-#include "NfForegroundThreadPool.h"
 #include "NfThumbnail.h"
 #include "NfPreview.h"
 #include "NfTask.h"
@@ -35,12 +34,13 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
-#include <functional>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace NfCore {
 
 class NfPathScanner;
+class NfScheduler;
+class NfForegroundThreadPool;
 class NfImage;
 class NfCache;
 
@@ -73,7 +73,8 @@ public:
 
         std::unique_ptr<NfPathScanner> m_pathScanner;
         std::filesystem::path m_path;
-        NfForegroundThreadPool m_threadPool;
+        std::unique_ptr<NfScheduler> m_scheduler;
+        std::unique_ptr<NfForegroundThreadPool> m_threadPool;
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;
         std::mutex m_mutex;
@@ -81,6 +82,7 @@ public:
         std::vector<NfPhotoId> m_thumbnailsQueue;
         std::vector<NfPhotoId> m_previewsQueue;
         uint64_t m_sequence = 0;
+        std::unordered_map <NfPhotoId, NfTask::TaskId> m_pendingThumbnailTasks;
 };
 
 } // namespace NfCore

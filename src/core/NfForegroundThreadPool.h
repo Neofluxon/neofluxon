@@ -37,33 +37,25 @@
 
 namespace NfCore {
 
-class NfTask;
+class NfScheduler;
 
 class NfForegroundThreadPool {
 public:
-        explicit NfForegroundThreadPool(size_t threadCount = 0);
+        explicit NfForegroundThreadPool(NfScheduler *scheduler,
+                                        size_t threadCount = 0);
         ~NfForegroundThreadPool();
         NfForegroundThreadPool(const NfForegroundThreadPool&) = delete;
         NfForegroundThreadPool& operator=(const NfForegroundThreadPool&) = delete;
         NfForegroundThreadPool(NfForegroundThreadPool&&) = delete;
         NfForegroundThreadPool& operator=(NfForegroundThreadPool&&) = delete;
 
-        void submit(std::unique_ptr<NfTask> task);
-
 private:
         void threadLoop(std::stop_token stoken);
 
-        struct TaskCompare {
-                bool operator()(const std::unique_ptr<NfTask>& a,
-                                const std::unique_ptr<NfTask>& b) const;
-        };
-
+        NfScheduler *m_scheduler;
         std::vector<std::jthread> m_poolThreads;
-        mutable std::mutex m_queueMutex;
+        mutable std::mutex m_mutex;
         std::condition_variable_any m_conditionVariable;
-        std::priority_queue<std::unique_ptr<NfTask>,
-                            std::vector<std::unique_ptr<NfTask>>,
-                            TaskCompare> m_taskQueue;
 };
 
 } // namespace NfCore

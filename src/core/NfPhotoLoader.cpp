@@ -24,6 +24,8 @@
 #include "NfPhotoLoader.h"
 #include "NfCache.h"
 #include "NfPathScanner.h"
+#include "NfScheduler.h"
+#include "NfForegroundThreadPool.h"
 #include "NfImage.h"
 #include "NfThumbnailTask.h"
 #include "NfPreviewTask.h"
@@ -33,6 +35,8 @@ namespace NfCore {
 
 NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache)
         : m_pathScanner{std::make_unique<NfPathScanner>()}
+        , m_scheduler{std::make_unique<NfScheduler>()}
+        , m_threadPool{std::make_unique<NfForegroundThreadPool>(m_scheduler.get())}
         , m_thumbnailsCache{thumbnailsCache}
         , m_previewsCache{previewsCache}
         , m_generationId{0}
@@ -52,6 +56,9 @@ void NfPhotoLoader::setPath(const std::filesystem::path &path)
                 m_generationId++;
         }
 
+        m_scheduler->cancelAll();
+        m_pendingThumbnailTasks.clear();
+
         m_path = path;
         m_pathScanner->setPath(path);
 }
@@ -65,12 +72,19 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                                      NfPhotoLoader::RequestType requestType)
 {
         std::scoped_lock lock(m_mutex);
+        auto priority = requestTypeToPriority(requestType);
+
+        auto it = m_pendingThumbnailTasks.find(photo.id());
+        if (it != m_pendingThumbnailTasks.end()) {
+                m_scheduler->updateTaskPriority(it->second, priority);
+                return;
+        }
+
         auto task = std::make_unique<NfThumbnailTask>(photo);
         task->setGenerationId(m_generationId);
-        task->setPriority(requestTypeToPriority(requestType));
+        task->setPriority(priority);
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setSequence(m_sequence++);
-
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
@@ -90,10 +104,13 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
                         auto request = requestTypeToPriority(RequestType::Visible);
                         if (thumbnailTask->priority() == static_cast<int>(request))
                                 m_thumbnailsQueue.push_back(thumbnail->id());
+
+                        m_pendingThumbnailTasks.erase(thumbnail->id());
                 }
                 });
 
-        m_threadPool.submit(std::move(task));
+        m_pendingThumbnailTasks.insert({photo.id(), task->taskId()});
+        m_scheduler->submit(std::move(task));
 }
 
 void NfPhotoLoader::requestPreview(const NfPhoto &photo,
@@ -126,7 +143,7 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
                 }
         });
 
-        m_threadPool.submit(std::move(task));
+        m_scheduler->submit(std::move(task));
 }
 
 std::vector<NfPhoto> NfPhotoLoader::takePhotos()
