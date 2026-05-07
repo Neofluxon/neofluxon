@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=0.0.6
+Name=Neofluxon
+GenericName=Photography workflow software
+Comment=Photography workflow software
+Exec=neofluxon
+Icon=neofluxon
+Categories=Photography;Graphics;
+Terminal=false
+StartupNotify=false
+NoDisplay=false
+Keywords=photography;raw;photo;workflow;
