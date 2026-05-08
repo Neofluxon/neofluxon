@@ -12,13 +12,54 @@ else()
     message(FATAL_ERROR "stb_image_resize2.h not found! Install libstb-dev.")
 endif()
 
-file(GLOB CORE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-)
+set(CORE_SOURCES
+        NeofluxonCore.cpp
+        NfCache.cpp
+        NfForegroundThreadPool.cpp
+        NfImage.cpp
+        NfImageData.cpp
+        NfImageDecoder.cpp
+        NfImageDecoderFactory.cpp
+        NfImageTask.cpp
+        NfJpegImageDecoder.cpp
+        NfLogger.cpp
+        NfPathScanner.cpp
+        NfPhoto.cpp
+        NfPhotoId.cpp
+        NfPhotoLoader.cpp
+        NfPngImageDecoder.cpp
+        NfPreview.cpp
+        NfPreviewTask.cpp
+        NfRawImageDecoder.cpp
+        NfScheduler.cpp
+        NfTask.cpp
+        NfThumbnail.cpp
+        NfThumbnailTask.cpp)
 
-file(GLOB CORE_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
-)
+set(CORE_HEADERS
+        NeofluxonCore.h
+        Neofluxon.h
+        NfCache.h
+        NfForegroundThreadPool.h
+        NfImageData.h
+        NfImageDecoderFactory.h
+        NfImageDecoder.h
+        NfImage.h
+        NfImageTask.h
+        NfJpegImageDecoder.h
+        NfLogger.h
+        NfPathScanner.h
+        NfPhoto.h
+        NfPhotoId.h
+        NfPhotoLoader.h
+        NfPngImageDecoder.h
+        NfPreview.h
+        NfPreviewTask.h
+        NfRawImageDecoder.h
+        NfScheduler.h
+        NfTask.h
+        NfThumbnail.h
+        NfThumbnailTask.h)
 
 add_library(NfCore STATIC
     ${CORE_SOURCES}
