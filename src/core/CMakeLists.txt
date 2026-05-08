@@ -34,7 +34,8 @@ set(CORE_SOURCES
         NfScheduler.cpp
         NfTask.cpp
         NfThumbnail.cpp
-        NfThumbnailTask.cpp)
+        NfThumbnailTask.cpp
+        library/NfLibraryDatabase.cpp)
 
 set(CORE_HEADERS
         NeofluxonCore.h
@@ -59,7 +60,8 @@ set(CORE_HEADERS
         NfScheduler.h
         NfTask.h
         NfThumbnail.h
-        NfThumbnailTask.h)
+        NfThumbnailTask.h
+        library/NfLibraryDatabase.h)
 
 add_library(NfCore STATIC
     ${CORE_SOURCES}
