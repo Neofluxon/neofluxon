@@ -23,6 +23,7 @@
 
 #include "NfLibraryTreeView.h"
 #include "NfLibraryTreeModel.h"
+#include "NfLibraryContext.h"
 
 #include <QHeaderView>
 #include <QAbstractItemModel>
@@ -30,9 +31,9 @@
 
 namespace NfDesktop {
 
-NfLibraryTreeView::NfLibraryTreeView(QWidget* parent)
+NfLibraryTreeView::NfLibraryTreeView(const NfLibraryContext& ctx, QWidget* parent)
         : QTreeView(parent)
-        , m_model{new NfLibraryTreeModel(this)}
+        , m_model{new NfLibraryTreeModel(ctx, this)}
 {
         setupView();
         setupBehavior();

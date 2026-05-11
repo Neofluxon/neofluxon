@@ -28,6 +28,14 @@
 
 #include <memory>
 
+namespace NfCore {
+class NfLibrary;
+}
+
+namespace NfUi {
+class NfLibraryContext;
+}
+
 namespace NfDesktop {
 
 class NfLibraryTreeItem;
@@ -36,7 +44,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         Q_OBJECT
 
  public:
-        explicit NfLibraryTreeModel(QObject* parent = nullptr);
+        explicit NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx, QObject* parent = nullptr);
         ~NfLibraryTreeModel() override;
 
  public:
@@ -53,6 +61,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
         void buildTree();
 
+        NfCore::NfLibrary* m_library;
         std::unique_ptr<NfLibraryTreeItem> m_root;
 };
 

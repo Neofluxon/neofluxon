@@ -28,13 +28,14 @@
 
 namespace NfDesktop {
 
+class NfLibraryContext;
 class NfLibraryTreeModel;
 
 class NfLibraryTreeView : public QTreeView {
     Q_OBJECT
 
  public:
-        explicit NfLibraryTreeView(QWidget* parent = nullptr);
+        explicit NfLibraryTreeView(const NfLibraryContext &ctx, QWidget* parent = nullptr);
         ~NfLibraryTreeView() override = default;
 
  protected:

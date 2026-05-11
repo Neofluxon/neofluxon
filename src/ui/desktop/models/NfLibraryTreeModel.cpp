@@ -23,11 +23,19 @@
 
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
+#include "NfLibraryContext.h"
+#include "core/NfLibraryManager.h"
+#include "core/NfLibrary.h"
+#include "core/NfLibraryRepresentation.h"
+#include "core/NfLibraryTreeNode.h"
+
+using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeModel::NfLibraryTreeModel(QObject* parent)
+NfLibraryTreeModel::NfLibraryTreeModel(const NfLibraryContext& ctx, QObject* parent)
         : QAbstractItemModel(parent)
+        , m_library{ctx->getLibraryManager()}
 {
         buildTree();
 }
@@ -110,55 +118,60 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::buildTree()
 {
-        m_root = std::make_unique<NfLibraryTreeItem>("", NfLibraryTreeItem::Type::Node);
+        m_root = std::make_unique<NfLibraryTreeItem>(
+                                                     "",
+                                                     NfLibraryTreeItem::Type::Node);
 
-        // Library
-        auto library = std::make_unique<NfLibraryTreeItem>(tr("My Library"),
-                                                           NfLibraryTreeItem::Type::Library,
-                                                           m_root.get());
+        const auto libraries = m_library->libraries();
 
-        // DateTime
-        auto datetime = std::make_unique<NfLibraryTreeItem>(tr("DateTime"),
-                                                            NfLibraryTreeItem::Type::Representation,
-                                                            library.get());
-        datetime->setRepresentationType(NfLibraryTreeItem::RepresentationType::DateTime);
-        datetime->appendChild(std::make_unique<NfLibraryTreeItem>("2026",
-                                                                  NfLibraryTreeItem::Type::Node,
-                                                                datetime.get()));
+        for (const auto& library : libraries) {
 
-        // Canonical
-        auto canonical = std::make_unique<NfLibraryTreeItem>(tr("Canonical"),
-                                                             NfLibraryTreeItem::Type::Representation,
-                                                             library.get());
-        canonical->setRepresentationType(NfLibraryTreeItem::RepresentationType::Canonical);
-        canonical->appendChild(std::make_unique<NfLibraryTreeItem>(
-                                                                   "/Photos/Wedding",
-                                                                   NfLibraryTreeItem::Type::Node,
-                                                                   canonical.get()));
-        // Equipment
-        auto equipment = std::make_unique<NfLibraryTreeItem>(tr("Equipment"),
-                                                             NfLibraryTreeItem::Type::Representation,
-                                                             library.get());
-        equipment->setRepresentationType(NfLibraryTreeItem::RepresentationType::Equipment);
-        equipment->appendChild(std::make_unique<NfLibraryTreeItem>(
-                                                        "Canon EOS R6",
-                                                        NfLibraryTreeItem::Type::Node,
-                                                        equipment.get()));
+                auto libraryItem =
+                        populateLibrary(library, m_root.get());
 
-        // Collections
-        auto collections = std::make_unique<NfLibraryTreeItem>(tr("Collections"),
-                                                               NfLibraryTreeItem::Type::Representation,
-                                                               library.get());
-        collections->setRepresentationType(NfLibraryTreeItem::RepresentationType::Collections);
-        collections->appendChild(std::make_unique<NfLibraryTreeItem>("Favorites",
-                                                                     NfLibraryTreeItem::Type::Node,
-                                                                     collections.get()));
+                m_root->appendChild(std::move(libraryItem));
+        }
+}
 
-        library->appendChild(std::move(datetime));
-        library->appendChild(std::move(canonical));
-        library->appendChild(std::move(equipment));
-        library->appendChild(std::move(collections));
-        m_root->appendChild(std::move(library));
+std::unique_ptr<NfLibraryTreeItem>
+NfLibraryTreeModel::populateLibrary(NfLibrary* library,
+                                    NfLibraryTreeItem* parent)
+{
+        auto libraryItem = std::make_unique<NfLibraryTreeItem>(library->name(),
+                                                               NfLibraryTreeItem::Type::Library,
+                                                               parent);
+
+        for (const auto& rep : library->representations()) {
+                auto repItem = populateRepresentation(rep, libraryItem.get());
+                libraryItem->appendChild(std::move(repItem));
+        }
+
+        return libraryItem;
+}
+
+std::unique_ptr<NfLibraryTreeItem>
+NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
+                                           NfLibraryTreeItem* parent)
+{
+        auto repItem = std::make_unique<NfLibraryTreeItem>(rep->name(),
+                                                           NfLibraryTreeItem::Type::Representation,
+                                                           parent);
+        populateChildNodes(rep->getTree()->children(),
+                           repItem.get());
+        return repItem;
+}
+
+void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode*>& children,
+                                            NfLibraryTreeItem* parentItem)
+{
+        for (const auto* child : children) {
+                auto node = std::make_unique<NfLibraryTreeItem>(child->name(),
+                                                                NfLibraryTreeItem::Type::Node,
+                                                                parentItem);
+                if (!child->children().empty())
+                        populateChildNodes(child->children(), node.get());
+                parentItem->appendChild(std::move(node));
+        }
 }
 
 } // namespace NfDesktop
