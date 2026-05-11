@@ -27,6 +27,8 @@
 #include "NfUiFolderModeState.h"
 #include "NfMainMenu.h"
 #include "NfPathBrowser.h"
+#include "NfLibraryTreeView.h"
+#include "core/NfLogger.h"
 
 #include <QVBoxLayout>
 #include <QStackedWidget>
@@ -37,7 +39,7 @@ namespace NfDesktop {
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
         , m_pathBrowser{new NfPathBrowser(this)}
-        , m_libraryBrowser{new QWidget(this)/*NfLibraryBrowser(this)*/}
+        , m_libraryTree{new NfLibraryTreeView(this)}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);
@@ -46,8 +48,8 @@ namespace NfDesktop {
         auto mainMenu = new NfMainMenu(this);
         panelLayout->addWidget(mainMenu);
 
-        m_stack->addWidget(m_libraryBrowser);
         m_stack->addWidget(m_pathBrowser);
+        m_stack->addWidget(m_libraryTree);
 
         panelLayout->addWidget(m_stack);
 
@@ -104,7 +106,9 @@ void NfLeftPanel::showPathBrowser()
 
 void NfLeftPanel::showLibraryBrowser()
 {
-        m_stack->setCurrentWidget(m_libraryBrowser);
+        NF_LOG_INFO("showlibrary");
+        m_stack->setCurrentWidget(m_libraryTree);
+        m_libraryTree->show();
 }
 
 } // namespace NfDesktop

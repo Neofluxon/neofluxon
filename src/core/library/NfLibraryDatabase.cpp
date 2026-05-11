@@ -95,8 +95,7 @@ bool NfLibraryDatabase::initializeSchema()
             FOREIGN KEY (lens_id) REFERENCES equipment(id)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_ts ON metadata(timestamp);
-    )";
+        CREATE INDEX IF NOT EXISTS idx_ts ON metadata(timestamp);)";
 
         return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
 }

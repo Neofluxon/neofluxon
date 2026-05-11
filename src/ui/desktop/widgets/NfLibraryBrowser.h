@@ -1,5 +1,5 @@
 /**
- * File name: NfLeftPanel.h
+ * File name: NfLibraryBrowser.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,42 +21,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LEFT_PANEL_H
-#define NF_LEFT_PANEL_H
+#ifndef NF_LIBRARY_BROWSER_H
+#define NF_LIBRARY_BROWSER_H
 
-#include "NfPanel.h"
+#include <QWidget>
 
-class QStackedWidget;
+#include <filesystem>
 
-namespace NfUi {
-struct NfContext;
-}
-
-using namespace NfUi;
+class QTreeView;
+class QFileSystemModel;
 
 namespace NfDesktop {
 
-class NfPathBrowser;
-class NfLibraryTreeView;
-
-class NfLeftPanel : public NfPanel {
-  Q_OBJECT
+class NfLibraryBrowser : public QWidget
+{
+    Q_OBJECT
 
 public:
-        explicit NfLeftPanel(NfContext *ctx, QWidget *parent = nullptr);
-        virtual ~NfLeftPanel() = default;
+    explicit NfLibraryBrowser(QWidget* parent = nullptr);
 
-protected slots:
-        void showLibraryBrowser();
-        void showPathBrowser();
+signals:
+    void folderSelected(const std::filesystem::path& path);
 
 private:
-        NfContext *m_context;
-        NfPathBrowser* m_pathBrowser;
-        NfLibraryTreeView* m_libraryTree;
-        QStackedWidget* m_stack;
+    QFileSystemModel* m_model;
+    QTreeView* m_treeView;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_LEFT_PANEL_H
+#endif // NF_LIBRARY_BROWSER_H
