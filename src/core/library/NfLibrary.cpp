@@ -28,8 +28,13 @@
 
 namespace NfCore {
 
-NfLibrary::NfLibrary()
+NfLibrary::NfLibrary(NfLibraryDatabase *db, int id)
+        : m_id{id}
 {
+        auto rec = db->getLibraryRecord(id));
+        m_name = rec->name;
+        for (const auto& repId: rec->representationsIds())
+                m_representations.push_back(std::make_unique<NfRepresentation>(db, repId));
 }
 
 NfLibrary::~NfLibrary()
@@ -38,7 +43,7 @@ NfLibrary::~NfLibrary()
 
 void NfLibrary::setName(const std::string& name)
 {
-        m_name = name;
+        //m_name = name;
 }
 
 const std::string& NfLibrary::name() const
@@ -48,22 +53,23 @@ const std::string& NfLibrary::name() const
 
 NfLibraryRepresentation* NfLibrary::addRepresentation()
 {
-        auto representation = std::make_unique<NfLibraryRepresentation>();
+        /*auto representation = std::make_unique<NfLibraryRepresentation>();
         auto* ptr = representation.get();
         m_representations.push_back(std::move(representation));
 
-        return ptr;
+        return nullptr ptr;*/
+        return nullptr;
 }
 
 void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
 {
-        auto it = std::remove_if(m_representations.begin(),
+        /*auto it = std::remove_if(m_representations.begin(),
                                  m_representations.end(),
                                  [representation](const auto& item) {
                                          return item.get() == representation;
         });
 
-        m_representations.erase(it, m_representations.end());
+        m_representations.erase(it, m_representations.end());*/
 }
 
 const std::vector<std::unique_ptr<NfLibraryRepresentation>>&

@@ -45,6 +45,8 @@
 struct NfCamera { int64_t id; std::string make; std::string model; };
 struct NfLens   { int64_t id; std::string make; std::string model; };
 
+class NfRepresentationTreeRecord;
+
 class NfLibraryDatabase {
 public:
         explicit NfLibraryDatabase(const std::filesystem::path& dbPath);
@@ -52,6 +54,8 @@ public:
 
         bool open();
         bool initializeSchema();
+
+        std::unique_ptr<NfRepresentationTreeRecord> getRepresentationRecord(int id);
 
         // [WHERE] Canonical Folder Roots
         int64_t addFolder(const std::string& absolutePath);

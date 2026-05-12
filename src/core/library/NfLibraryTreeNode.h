@@ -32,6 +32,12 @@ namespace NfCore {
 
 class NfLibraryTreeNode {
 public:
+        enum class NodeType {
+                Datetime,
+                Folder,
+                Camera,
+                Lens,
+                Collection };
         NfLibraryTreeNode();
         explicit NfLibraryTreeNode(const std::string& name);
         ~NfLibraryTreeNode();
@@ -43,6 +49,7 @@ public:
 
 private:
         std::string m_name;
+        std::map<std::string, std::variant<int, double, std::string>> metadata;
         std::vector<std::unique_ptr<NfLibraryTreeNode>> m_children;
 };
 

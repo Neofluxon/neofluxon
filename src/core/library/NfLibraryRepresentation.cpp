@@ -26,12 +26,13 @@
 
 namespace NfCore {
 
-NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db)
-        : m_tree(std::make_unique<NfLibraryTreeNode>())
-        , m_database{db}
-        , m_name{m_database->}
+NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db, int id)
+        : m_database{db}
+        , m_id{id}
 {
-        m_name 
+        auto rec = db->getRepresentationRecord(id);
+        m_name = rec->name;
+        loadTree(rec->representationTreeRecord);
 }
 
 NfLibraryRepresentation::~NfLibraryRepresentation()

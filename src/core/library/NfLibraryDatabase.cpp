@@ -57,6 +57,65 @@ void NfLibraryDatabase::endTransaction()
         sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
 }
 
+std::unique_ptr<NfRepresentationTreeRecord> NfLibraryDatabase::getRepresentationRecord(int id)
+{
+    //Fetch metadata (id, name, type)
+        auto row = queryOne("SELECT name, type FROM representations WHERE id = ?", id);
+        if (!row)
+                return nullptr;
+
+    std::string name = row->getString("name");
+    
+    // Cast the integer column directly to your Enum
+    NfRepresentationType type = static_cast<NfRepresentationType>(row->getInt("type"));
+    
+    auto record = std::make_unique<NfRepresentationTreeRecord>(id, name, type);
+
+    // 2. Switch on the integer-based enum
+    switch (type) {
+        case NfRepresentationType::DateTime: {
+            auto results = executeQuery("SELECT DISTINCT date(captured_at) FROM photos");
+            while (results.next()) {
+                record->addPathToMemoryTree(results.getString(0), "-");
+            }
+            break;
+        }
+
+        case NfRepresentationType::Canonical: {
+            auto results = executeQuery("SELECT DISTINCT file_path FROM photos");
+            while (results.next()) {
+                record->addPathToMemoryTree(results.getString(0), "/");
+            }
+            break;
+        }
+
+        case NfRepresentationType::Equipment: {
+            // Collapse unique combinations of hardware
+            auto results = executeQuery("SELECT DISTINCT camera_make, camera_model, lens FROM photos");
+            while (results.next()) {
+                auto* make = record->getRoot()->getOrCreateChild(results.getString(0));
+                auto* model = make->getOrCreateChild(results.getString(1));
+                model->getOrCreateChild(results.getString(2));
+            }
+            break;
+        }
+
+        case NfRepresentationType::Collections: {
+            // Join to get names of collections that actually have photos
+            auto results = executeQuery(
+                "SELECT DISTINCT c.name FROM collections c "
+                "JOIN collection_photos_map m ON c.id = m.collection_id"
+            );
+            while (results.next()) {
+                record->addPathToMemoryTree(results.getString(0), "/");
+            }
+            break;
+        }
+    }
+
+    return record;
+}
+
 bool NfLibraryDatabase::initializeSchema()
 {
         const char* sql = R"(
