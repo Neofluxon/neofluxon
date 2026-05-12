@@ -118,8 +118,7 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::buildTree()
 {
-        m_root = std::make_unique<NfLibraryTreeItem>(
-                                                     "",
+        m_root = std::make_unique<NfLibraryTreeItem>("",
                                                      NfLibraryTreeItem::Type::Node);
 
         const auto libraries = m_library->libraries();
