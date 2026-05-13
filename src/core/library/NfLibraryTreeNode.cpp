@@ -45,6 +45,16 @@ void NfLibraryTreeNode::setName(const std::string& name)
         m_name = name;
 }
 
+const std::string& NfLibraryTreeNode::type() const
+{
+        return m_type;
+}
+
+void NfLibraryTreeNode::setType(const std::string& t)
+{
+        m_type = t;
+}
+
 const std::string& NfLibraryTreeNode::name() const
 {
         return m_name;
@@ -68,7 +78,7 @@ void NfLibraryTreeNode::removeChild(NfLibraryTreeNode* child)
                                          return item.get() == child;
                                  });
 
-    m_children.erase(it, m_children.end());
+        m_children.erase(it, m_children.end());
 }
 
 const std::vector<std::unique_ptr<NfLibraryTreeNode>>&

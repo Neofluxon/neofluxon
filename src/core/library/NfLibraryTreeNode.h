@@ -33,21 +33,46 @@ namespace NfCore {
 class NfLibraryTreeNode {
 public:
         enum class NodeType {
-                Datetime,
-                Folder,
+                Unknown,
+
+                // Structural
+                Root,
+                Folder,         // Physical disk location
+                Collection,     // Virtual grouping (user-defined)
+
+                // Temporal
+                DateYear,
+                DateMonth,
+                DateDay,
+
+                // Hardware Identity
                 Camera,
                 Lens,
-                Collection };
-        NfLibraryTreeNode();
-        explicit NfLibraryTreeNode(const std::string& name);
+
+                // Geographic Hierarchy
+                LocationCountry,
+                LocationRegion,
+                LocationCity,
+                // Specific parks, monuments, etc.
+                LocationPointOfInterest,
+
+                // People & Metadata
+                Person,
+                Keyword
+        };
+
+        explicit NfLibraryTreeNode(const std::string& name, NodeType t{});
         ~NfLibraryTreeNode();
         void setName(const std::string& name);
         const std::string& name() const;
+        void setType(NodeType t);
+        NodeType type() const;
         NfLibraryTreeNode* addChild();
         void removeChild(NfLibraryTreeNode* child);
         const std::vector<std::unique_ptr<NfLibraryTreeNode>>& children() const;
 
 private:
+        NodeType m_type;
         std::string m_name;
         std::map<std::string, std::variant<int, double, std::string>> metadata;
         std::vector<std::unique_ptr<NfLibraryTreeNode>> m_children;

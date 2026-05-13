@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryDatabase.h"
+#include "NfSourceRecords.h"
 #include <iostream>
 
 NfLibraryDatabase::NfLibraryDatabase(const std::filesystem::path& dbPath)
@@ -57,63 +58,172 @@ void NfLibraryDatabase::endTransaction()
         sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
 }
 
-std::unique_ptr<NfRepresentationTreeRecord> NfLibraryDatabase::getRepresentationRecord(int id)
+std::unique_ptr<NfRepresentationRecord> NfLibraryDatabase::getRepresentationRecord(int id)
 {
-    //Fetch metadata (id, name, type)
-        auto row = queryOne("SELECT name, type FROM representations WHERE id = ?", id);
-        if (!row)
+        sqlite3_stmt* stmt;
+        const char* sql = "SELECT name, type FROM representations WHERE id = ?";
+
+        if (sqlite3_prepare_v2(db_handle, sql, -1, &stmt, nullptr) != SQLITE_OK)
                 return nullptr;
 
-    std::string name = row->getString("name");
-    
-    // Cast the integer column directly to your Enum
-    NfRepresentationType type = static_cast<NfRepresentationType>(row->getInt("type"));
-    
-    auto record = std::make_unique<NfRepresentationTreeRecord>(id, name, type);
+        sqlite3_bind_int(stmt, 1, id);
+        int rc = sqlite3_step(stmt);
 
-    // 2. Switch on the integer-based enum
-    switch (type) {
-        case NfRepresentationType::DateTime: {
-            auto results = executeQuery("SELECT DISTINCT date(captured_at) FROM photos");
-            while (results.next()) {
-                record->addPathToMemoryTree(results.getString(0), "-");
-            }
-            break;
+        std::unique_ptr<NfRepresentationRecord> record;
+        if (rc == SQLITE_ROW) {
+                record = std::make_unique<NfRepresentationTreeRecord>();
+                record->id = id;
+
+                const unsigned char* rawName = sqlite3_column_text(stmt, 0);
+                int rawType = sqlite3_column_int(stmt, 1);
+
+                record->name = reinterpret_cast<const char*>(rawName);
+                record->type = rawType;
         }
 
-        case NfRepresentationType::Canonical: {
-            auto results = executeQuery("SELECT DISTINCT file_path FROM photos");
-            while (results.next()) {
-                record->addPathToMemoryTree(results.getString(0), "/");
-            }
-            break;
-        }
+        sqlite3_finalize(stmt);
 
-        case NfRepresentationType::Equipment: {
-            // Collapse unique combinations of hardware
-            auto results = executeQuery("SELECT DISTINCT camera_make, camera_model, lens FROM photos");
-            while (results.next()) {
-                auto* make = record->getRoot()->getOrCreateChild(results.getString(0));
-                auto* model = make->getOrCreateChild(results.getString(1));
-                model->getOrCreateChild(results.getString(2));
-            }
-            break;
-        }
+        populateSourceData(record);
 
-        case NfRepresentationType::Collections: {
-            // Join to get names of collections that actually have photos
-            auto results = executeQuery(
-                "SELECT DISTINCT c.name FROM collections c "
-                "JOIN collection_photos_map m ON c.id = m.collection_id"
-            );
-            while (results.next()) {
-                record->addPathToMemoryTree(results.getString(0), "/");
-            }
-            break;
+        return record;
+}
+
+void NfLibraryDatabase::populateSourceData(const std::unique_ptr<NfRepresentationRecord> &record)
+{
+        switch (record->type) {
+        case NfRepresentationType::DateTime:
+                record->sourceData = std::make_unique<NfDatetimeSourceRecord>();
+                loadDateTimeSource(record->sourceData);
+                break;
+        case NfRepresentationType::Canonical:
+                record->sourceData = std::make_unique<NfCanonicalSourceRecord>();
+                loadCanonicalSource(record->sourceData);
+                break;
+        case NfRepresentationType::Equipment:
+                record->sourceData = std::make_unique<NfEquipmentSourceRecord>();
+                loadEquipmentSource(record->sourceData);
+                break;
+        case NfRepresentationType::Collections:
+                record->sourceData = std::make_unique<NfCollectionsSourceRecord>();
+                loadCollectionsSource(record->sourceData);
+                break;
+    }
+}
+
+void NfLibraryDatabase::loadDateTimeSource(std::unique_ptr<NfSourceRecord>& source)
+{
+        auto* record = static_cast<NfDatetimeSourceRecord*>(source.get());
+        const char* sql = "SELECT DISTINCT datetime_taken "
+                "FROM images "
+                "WHERE datetime_taken IS NOT NULL;";
+
+        sqlite3_stmt* stmt;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW)
+                        record->entries.push_back({ sqlite3_column_int64(stmt, 0) });
         }
+        sqlite3_finalize(stmt);
+}
+
+void NfLibraryDatabase::loadCanonicalSource(std::unique_ptr<NfSourceData>& source)
+{
+    auto* record = static_cast<NfCanonicalSourceRecord*>(source.get());
+
+    // We join images and folders to find only folders that actually contain images
+    const char* sql =
+        "SELECT DISTINCT f.id, f.path "
+        "FROM folders f "
+        "INNER JOIN images i ON f.id = i.folder_id "
+        "ORDER BY f.path ASC;";
+
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            int id = sqlite3_column_int(stmt, 0);
+            const char* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+            // Storing the ID and Path pair
+            record->folders.push_back({ id, path ? path : "" });
+        }
+    } else {
+        // Log error: sqlite3_errmsg(m_db)
     }
 
-    return record;
+    sqlite3_finalize(stmt);
+}
+
+void NfLibraryDatabase::loadEquipmentSource(std::unique_ptr<NfSourceData>& source)
+{
+        auto* record = static_cast<NfEquipmentSourceRecord*>(source.get());
+        sqlite3_stmt* stmt;
+
+        // 1. Load only Cameras that have associated images
+        const char* sqlCameras =
+                "SELECT DISTINCT c.id, c.maker, c.model "
+                "FROM cameras c "
+                "INNER JOIN images i ON c.id = i.camera_id "
+                "ORDER BY c.maker ASC, c.model ASC;";
+
+        if (sqlite3_prepare_v2(m_db, sqlCameras, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char* maker = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+                        const char* model = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+
+                        record->cameras.push_back({
+                                        id,
+                                        maker ? maker : "",
+                                        model ? model : ""
+                                });
+                }
+        }
+        sqlite3_finalize(stmt);
+
+        // 2. Load only Lenses that have associated images
+        const char* sqlLenses =
+                "SELECT DISTINCT l.id, l.name "
+                "FROM lenses l "
+                "INNER JOIN images i ON l.id = i.lens_id "
+                "ORDER BY l.name ASC;";
+
+        if (sqlite3_prepare_v2(m_db, sqlLenses, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+
+                        record->lenses.push_back({
+                                        id,
+                                        name ? name : ""
+                                });
+                }
+        }
+        sqlite3_finalize(stmt);
+}
+
+void NfLibraryDatabase::loadCollectionsSource(std::unique_ptr<NfSourceData>& source)
+{
+        auto* record = static_cast<NfCollectionsSourceRecord*>(source.get());
+
+        // Join collections with image_collections (or images) to find non-empty sets
+        // Assuming a many-to-many relationship table 'image_collections'
+        const char* sql =
+                "SELECT DISTINCT c.id, c.name "
+                "FROM collections c "
+                "INNER JOIN image_collections ic ON c.id = ic.collection_id "
+                "ORDER BY c.name ASC;";
+
+        sqlite3_stmt* stmt;
+
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+
+                        record->collections.push_back({ id, name ? name : "" });
+                }
+        }
+
+        sqlite3_finalize(stmt);
 }
 
 bool NfLibraryDatabase::initializeSchema()
@@ -123,99 +233,56 @@ bool NfLibraryDatabase::initializeSchema()
         PRAGMA synchronous = NORMAL;
         PRAGMA foreign_keys = ON;
 
-        CREATE TABLE IF NOT EXISTS folders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            path TEXT UNIQUE NOT NULL
+        CREATE TABLE IF NOT EXISTS cameras (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            maker   TEXT,
+            model   TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS equipment (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            type TEXT CHECK(type IN ('CAMERA', 'LENS')),
-            make TEXT,
-            model TEXT UNIQUE
+        CREATE TABLE IF NOT EXISTS lenses (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            name    TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS folders (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            path    TEXT UNIQUE NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS images (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            folder_id INTEGER,
-            file_name TEXT,
-            relative_path TEXT,
-            FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            folder_id       INTEGER NOT NULL,
+            file_name       TEXT NOT NULL,
+            lens_id         INTEGER,
+            camera_id       INTEGER,
+            datetime_taken  INTEGER,
+            FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
+            FOREIGN KEY (camera_id) REFERENCES cameras(id) ON DELETE SET NULL,
+            FOREIGN KEY (lens_id)   REFERENCES lenses(id)  ON DELETE SET NULL
         );
 
-        CREATE TABLE IF NOT EXISTS metadata (
-            image_id INTEGER PRIMARY KEY,
-            timestamp INTEGER,
-            rating INTEGER DEFAULT 0,
-            camera_id INTEGER,
-            lens_id INTEGER,
-            FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE,
-            FOREIGN KEY (camera_id) REFERENCES equipment(id),
-            FOREIGN KEY (lens_id) REFERENCES equipment(id)
+        -- Virtual grouping of images (e.g., "Best of Orchard 2026")
+        CREATE TABLE IF NOT EXISTS collections (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            name        TEXT NOT NULL UNIQUE,
+            description TEXT,
+            created_at  INTEGER
         );
 
-        CREATE INDEX IF NOT EXISTS idx_ts ON metadata(timestamp);)";
+        -- Link table for many-to-many relationship
+        CREATE TABLE IF NOT EXISTS collection_images (
+            collection_id INTEGER,
+            image_id      INTEGER,
+            position      INTEGER, -- Optional: to allow custom sorting within a collection
+            PRIMARY KEY (collection_id, image_id),
+            FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+            FOREIGN KEY (image_id)      REFERENCES images(id)      ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_images_folder ON images(folder_id);
+        CREATE INDEX IF NOT EXISTS idx_images_datetime ON images(datetime_taken);
+        CREATE INDEX IF NOT EXISTS idx_coll_img_id ON collection_images(image_id);)";
 
         return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
 }
 
-int64_t NfLibraryDatabase::getOrCreateEquipment(const std::string& type,
-                                                const std::string& make,
-                                                const std::string& model)
-{
-        std::string sql = "INSERT OR IGNORE INTO equipment (type, make, model) VALUES (?, ?, ?);";
-        sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr);
-        sqlite3_bind_text(stmt, 1, type.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 2, make.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 3, model.c_str(), -1, SQLITE_STATIC);
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
-
-        // Now get the ID (either the new one or the existing one)
-        sql = "SELECT id FROM equipment WHERE model = ?;";
-        sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr);
-        sqlite3_bind_text(stmt, 1, model.c_str(), -1, SQLITE_STATIC);
-        int64_t id = 0;
-        if (sqlite3_step(stmt) == SQLITE_ROW)
-                id = sqlite3_column_int64(stmt, 0);
-        sqlite3_finalize(stmt);
-
-        return id;
-}
-
-bool NfLibraryDatabase::addImage(int64_t folderId,
-                                 const NfImageEntry& entry,
-                                 int64_t cameraId,
-                                 int64_t lensId)
-{
-        sqlite3_stmt* stmt;
-
-        // 1. Insert into images table
-        const char* imgSql = "INSERT INTO images (folder_id, file_name, relative_path) VALUES (?, ?, ?);";
-        sqlite3_prepare_v2(m_db, imgSql, -1, &stmt, nullptr);
-        sqlite3_bind_int64(stmt, 1, folderId);
-        sqlite3_bind_text(stmt, 2, entry.fileName.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 3, entry.relativePath.c_str(), -1, SQLITE_STATIC);
-
-        if (sqlite3_step(stmt) != SQLITE_DONE) {
-                sqlite3_finalize(stmt);
-                return false;
-        }
-        int64_t lastId = sqlite3_last_insert_rowid(m_db);
-        sqlite3_finalize(stmt);
-
-        // 2. Insert into metadata table
-        const char* metaSql = "INSERT INTO metadata (image_id, timestamp, rating, camera_id, lens_id) VALUES (?, ?, ?, ?, ?);";
-        sqlite3_prepare_v2(m_db, metaSql, -1, &stmt, nullptr);
-        sqlite3_bind_int64(stmt, 1, lastId);
-        sqlite3_bind_int64(stmt, 2, entry.timestamp);
-        sqlite3_bind_int(stmt, 3, entry.rating);
-        sqlite3_bind_int64(stmt, 4, cameraId);
-        sqlite3_bind_int64(stmt, 5, lensId);
-
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
-
-        return true;
-}
