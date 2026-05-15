@@ -24,12 +24,16 @@
 #ifndef NEOFLUXON_CORE_H
 #define NEOFLUXON_CORE_H
 
+#include "NfThreadAllocationManager.h"
+
 #include <memory>
 
 namespace NfCore {
 
 class NfPhotoLoader;
 class NfCache;
+class NfScheduler;
+class NfThreadPool;
 
 class NeofluxonCore {
 public:
@@ -47,6 +51,11 @@ public:
 private:
         std::unique_ptr<NfCache> m_thumbnailCache;
         std::unique_ptr<NfCache> m_previewCache;
+        NfThreadAllocationManager m_threadAllocationManager;
+        std::unique_ptr<NfScheduler> m_foregroundScheduler;
+        std::unique_ptr<NfThreadPool> m_foregroundThreadPool;
+        std::unique_ptr<NfScheduler> m_backgroundScheduler;
+        std::unique_ptr<NfThreadPool> m_backgroundThreadPool;
         std::unique_ptr<NfPhotoLoader> m_photoLoader;
 };
 

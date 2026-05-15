@@ -1,5 +1,5 @@
 /**
- * File name: NfForegroundThreadPool.h
+ * File name: NfThreadPool.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -39,15 +39,15 @@ namespace NfCore {
 
 class NfScheduler;
 
-class NfForegroundThreadPool {
+class NfThreadPool {
 public:
-        explicit NfForegroundThreadPool(NfScheduler *scheduler,
-                                        size_t threadCount = 0);
-        ~NfForegroundThreadPool();
-        NfForegroundThreadPool(const NfForegroundThreadPool&) = delete;
-        NfForegroundThreadPool& operator=(const NfForegroundThreadPool&) = delete;
-        NfForegroundThreadPool(NfForegroundThreadPool&&) = delete;
-        NfForegroundThreadPool& operator=(NfForegroundThreadPool&&) = delete;
+        explicit NfThreadPool(NfScheduler *scheduler,
+                              size_t threadCount = 0);
+        ~NfThreadPool();
+        NfThreadPool(const NfThreadPool&) = delete;
+        NfThreadPool& operator=(const NfThreadPool&) = delete;
+        NfThreadPool(NfThreadPool&&) = delete;
+        NfThreadPool& operator=(NfThreadPool&&) = delete;
 
 private:
         void threadLoop(std::stop_token stoken);

@@ -40,7 +40,6 @@ namespace NfCore {
 
 class NfPathScanner;
 class NfScheduler;
-class NfForegroundThreadPool;
 class NfImage;
 class NfCache;
 
@@ -51,7 +50,9 @@ public:
                 Prefetch
         };
 
-        NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache);
+        NfPhotoLoader(NfCache *thumbnailsCache,
+                      NfCache *previewsCache,
+                      NfScheduler *scheduler);
         ~NfPhotoLoader();
 
         void setPath(const std::filesystem::path &path);
@@ -73,8 +74,7 @@ public:
 
         std::unique_ptr<NfPathScanner> m_pathScanner;
         std::filesystem::path m_path;
-        std::unique_ptr<NfScheduler> m_scheduler;
-        std::unique_ptr<NfForegroundThreadPool> m_threadPool;
+        NfScheduler* m_scheduler;
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;
         std::mutex m_mutex;

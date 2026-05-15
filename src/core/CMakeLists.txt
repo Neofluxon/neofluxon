@@ -12,37 +12,12 @@ else()
     message(FATAL_ERROR "stb_image_resize2.h not found! Install libstb-dev.")
 endif()
 
-set(CORE_SOURCES
-        NeofluxonCore.cpp
-        NfCache.cpp
-        NfForegroundThreadPool.cpp
-        NfImage.cpp
-        NfImageData.cpp
-        NfImageDecoder.cpp
-        NfImageDecoderFactory.cpp
-        NfImageTask.cpp
-        NfJpegImageDecoder.cpp
-        NfLogger.cpp
-        NfPathScanner.cpp
-        NfPhoto.cpp
-        NfPhotoId.cpp
-        NfPhotoLoader.cpp
-        NfPngImageDecoder.cpp
-        NfPreview.cpp
-        NfPreviewTask.cpp
-        NfRawImageDecoder.cpp
-        NfScheduler.cpp
-        NfTask.cpp
-        NfThumbnail.cpp
-        NfThumbnailTask.cpp
-        #library/NfLibraryDatabase.cpp
-        )
-
 set(CORE_HEADERS
+        NfThreadAllocationManager.h
         NeofluxonCore.h
         Neofluxon.h
         NfCache.h
-        NfForegroundThreadPool.h
+        NfThreadPool.h
         NfImageData.h
         NfImageDecoderFactory.h
         NfImageDecoder.h
@@ -63,6 +38,33 @@ set(CORE_HEADERS
         NfThumbnail.h
         NfThumbnailTask.h
         #library/NfLibraryDatabase.h
+        )
+
+set(CORE_SOURCES
+        NfThreadAllocationManager.cpp
+        NeofluxonCore.cpp
+        NfCache.cpp
+        NfThreadPool.cpp
+        NfImage.cpp
+        NfImageData.cpp
+        NfImageDecoder.cpp
+        NfImageDecoderFactory.cpp
+        NfImageTask.cpp
+        NfJpegImageDecoder.cpp
+        NfLogger.cpp
+        NfPathScanner.cpp
+        NfPhoto.cpp
+        NfPhotoId.cpp
+        NfPhotoLoader.cpp
+        NfPngImageDecoder.cpp
+        NfPreview.cpp
+        NfPreviewTask.cpp
+        NfRawImageDecoder.cpp
+        NfScheduler.cpp
+        NfTask.cpp
+        NfThumbnail.cpp
+        NfThumbnailTask.cpp
+        #library/NfLibraryDatabase.cpp
         )
 
 add_library(NfCore STATIC

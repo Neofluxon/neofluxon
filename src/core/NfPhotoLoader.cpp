@@ -25,7 +25,6 @@
 #include "NfCache.h"
 #include "NfPathScanner.h"
 #include "NfScheduler.h"
-#include "NfForegroundThreadPool.h"
 #include "NfImage.h"
 #include "NfThumbnailTask.h"
 #include "NfPreviewTask.h"
@@ -33,10 +32,11 @@
 
 namespace NfCore {
 
-NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache, NfCache *previewsCache)
+NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache,
+                             NfCache *previewsCache,
+                             NfScheduler* scheduler)
         : m_pathScanner{std::make_unique<NfPathScanner>()}
-        , m_scheduler{std::make_unique<NfScheduler>()}
-        , m_threadPool{std::make_unique<NfForegroundThreadPool>(m_scheduler.get())}
+        , m_scheduler{scheduler}
         , m_thumbnailsCache{thumbnailsCache}
         , m_previewsCache{previewsCache}
         , m_generationId{0}

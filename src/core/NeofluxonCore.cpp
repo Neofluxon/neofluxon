@@ -24,6 +24,8 @@
 #include "NeofluxonCore.h"
 #include "NfPhotoLoader.h"
 #include "NfCache.h"
+#include "NfScheduler.h"
+#include "NfThreadPool.h"
 #include "NfLogger.h"
 
 namespace NfCore {
@@ -31,8 +33,15 @@ namespace NfCore {
 NeofluxonCore::NeofluxonCore()
         : m_thumbnailCache{std::make_unique<NfCache>(2 * NfCache::DEFAULT_MAX_SIZE_BYTES)}
         , m_previewCache{std::make_unique<NfCache>()}
+        , m_foregroundScheduler{std::make_unique<NfScheduler>()}
+        , m_foregroundThreadPool{std::make_unique<NfThreadPool>(m_foregroundScheduler.get(),
+                                                                m_threadAllocationManager.getForegroundThreadCount())}
+        , m_backgroundScheduler{std::make_unique<NfScheduler>()}
+        , m_backgroundThreadPool{std::make_unique<NfThreadPool>(m_backgroundScheduler.get(),
+                                                                m_threadAllocationManager.getBackgroundThreadCount())}
         , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache.get(),
-                                                        m_previewCache.get())}
+                                                        m_previewCache.get()),
+                                                        m_foregroundScheduler.get()}
 {
         NF_LOG_DEBUG("called");
 }
