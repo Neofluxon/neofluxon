@@ -1,5 +1,5 @@
 /**
- * File name: NfPhotoProvider.h
+ * File name: NfLibraryAdapter.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,15 +21,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_PROVIDER_H
-#define NF_PHOTO_PROVIDER_H
+#ifndef NF_LIBRARY_ADAPTER_H
+#define NF_LIBRARY_ADAPTER_H
 
 #include "core/NfPhoto.h"
 #include "core/NfPhotoId.h"
 
 #include <QObject>
-#include <QPixmap>
-#include <QCache>
 
 #include <filesystem>
 #include <vector>
@@ -50,17 +48,16 @@ Q_DECLARE_METATYPE(std::vector<NfPhotoId>)
 
 namespace NfUi {
 
-class NfPhotoProvider : public QObject
+class NfLibraryAdapter : public QObject
 {
         Q_OBJECT
 
 public:
-        explicit NfPhotoProvider(NeofluxonCore *core,
-                                 QObject* parent = nullptr);
-        ~NfPhotoProvider();
+        explicit NfLibraryAdapter(NeofluxonCore *core,
+                                  QObject* parent = nullptr);
+        ~NfLibraryAdapter();
+        void loadLibraryFromPath();
 
-        void setPath(const std::filesystem::path& path);
-        const std::filesystem::path& getPath() const;
 
         QPixmap getThumbnail(const NfPhoto &photo) const;
         QPixmap getPreview(const NfPhoto &photo) const;
@@ -92,3 +89,4 @@ private:
 } // namespace NfUi
 
 #endif // NF_PHOTO_PROVIDER_H
+
