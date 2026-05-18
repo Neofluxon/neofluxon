@@ -5,6 +5,7 @@ set(WIDGETS_HEADERS
     NfLeftPanel.h
     NfMainMenu.h
     NfPanel.h
+    NfFolderActionDelegate.h
     NfPathBrowser.h
     NfSettingsDialog.h
     NfFolderView.h
@@ -19,6 +20,7 @@ set(WIDGETS_SOURCES
     NfLeftPanel.cpp
     NfMainMenu.cpp
     NfPanel.cpp
+    NfFolderActionDelegate.cpp
     NfPathBrowser.cpp
     NfSettingsDialog.cpp
     NfFolderView.cpp

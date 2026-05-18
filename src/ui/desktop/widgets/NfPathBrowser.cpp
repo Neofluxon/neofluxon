@@ -22,6 +22,8 @@
  */
 
 #include "NfPathBrowser.h"
+#include "NfFolderActionDelegate.h"
+#include "core/NfLogger.h"
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -71,6 +73,15 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
         layout->addWidget(m_treeView);
 
         layout->setContentsMargins(0, 0, 0, 0);
+
+        auto folderDelegate = new NfFolderActionDelegate(this);
+        m_treeView->setItemDelegate(folderDelegate);
+
+        QObject::connect(folderDelegate,
+                         &NfFolderActionDelegate::importRequested,
+                         this, [this](const QString& folderPath) {
+                                 NF_LOG_DEBUG("import folder: " << folderPath.toStdString());
+                         });
 
         QObject::connect(m_treeView, &QTreeView::doubleClicked,
                          this, [this](const QModelIndex& index)

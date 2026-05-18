@@ -3,5 +3,6 @@
   <file>thumb_w160.jpg</file>
   <file>style-cool-teal-desktop.qcss</file>
   <file>logo.png</file>
+  <file>icons/plus.svg</file>
 </qresource>
 </RCC>
