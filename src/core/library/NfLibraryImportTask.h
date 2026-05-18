@@ -30,7 +30,8 @@ namespace NfCore {
 
 class NfLibraryImportTask : public NfTask {
 public:
-        NfLibraryImportTask();
+        NfLibraryImportTask(const std::filesystem::path &folderPath,
+                            NfLibrary* library);
         NfLibraryImportTask(NfLibraryImportTask&&) noexcept = default;
         NfLibraryImportTask& operator=(NfLibraryImportTask&&) noexcept = default;
         NfLibraryImportTask(const NfLibraryImportTask&) = delete;
@@ -41,4 +42,4 @@ public:
 
 } // namespace NfCore
 
-#endif // NF_THUMBNAIL_TASK_H
+#endif // NF_LIBRARY_IMPORT_TASK_H

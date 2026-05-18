@@ -22,17 +22,33 @@
  */
 
 #include "NfLibraryImportTask.h"
+#include "NfLibrary.h"
+#include "NfPhotoDirectoryIterator.h"
 
 namespace NfCore {
 
-NfLibraryImportTask::NfLibraryImportTask()
+NfLibraryFolderImport::NfLibraryFolderImport(const std::filesystem::path &folderPath,
+                                             NfLibrary* library)
+        : m_path{path},
+          m_library{library}
 {
 }
 
-NfLibraryImportTask::~NfThumbnailTask() = default;
+NfLibraryFolderImport::~NfLibraryFolderImport() = default;
 
-TaskStatus NfLibraryImportTask::execute() override
+TaskStatus NfLibraryFolderImport::execute()
 {
+        NfPhotoDirectoryIterator iterator;
+        iterator.setPath(path());
+
+        while (auto photo = iterator.next()) {
+                if (isCancelled())
+                        return TaskStatus::Cancelled;
+
+                m_library->addPhoto(photo);
+        }
+
+        return TaskStatus::Done;
 }
 
 } // namespace NfCore
