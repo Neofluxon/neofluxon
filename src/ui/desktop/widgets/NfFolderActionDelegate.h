@@ -34,26 +34,33 @@ namespace NfDesktop {
 
 class NfFolderActionDelegate : public QStyledItemDelegate
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
-        explicit NfFolderActionDelegate(QObject* parent = nullptr);
-        void paint(QPainter* painter,
-                   const QStyleOptionViewItem& option,
-                   const QModelIndex& index) const override;
-        bool editorEvent(QEvent* event,
-                         QAbstractItemModel* model,
-                         const QStyleOptionViewItem& option,
-                         const QModelIndex& index);
+    explicit NfFolderActionDelegate(QObject* parent = nullptr);
+
+    void paint(QPainter* painter, 
+               const QStyleOptionViewItem& option, 
+               const QModelIndex& index) const override;
+
+    bool eventFilter(QObject* object, QEvent* event) override;
+
+    bool editorEvent(QEvent* event, 
+                     QAbstractItemModel* model, 
+                     const QStyleOptionViewItem& option, 
+                     const QModelIndex& index) override;
 
 signals:
-        void importRequested(const QString& folderPath);
+    void importRequested(const QString& path);
 
 private:
-        QRect getButtonRect(const QStyleOptionViewItem& option) const;
+    QRect getButtonRect(const QStyleOptionViewItem& option) const;
 
-        const int m_btnWidth;
-        const int m_btnPadding = 6;
-        QIcon m_plusIcon;
+    QIcon m_plusIcon;
+    int m_btnWidth;
+    int m_btnPadding = 4; // Make sure padding is initialized
+    
+    QModelIndex m_hoveredIndex;
+    bool m_buttonHovered = false;
 };
 
 } // namespace NfDesktop

@@ -24,24 +24,32 @@
 #include "NfFolderActionDelegate.h"
 #include "core/NfLogger.h"
 
-#include <QPainter>
+#include <QAbstractItemView>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QFileSystemModel>
-#include <QFile>
 
 namespace NfDesktop {
 
 NfFolderActionDelegate::NfFolderActionDelegate(QObject* parent)
         : QStyledItemDelegate(parent)
-        , m_plusIcon(":/icons/plus.png")
-        , m_btnWidth{8}
+        , m_plusIcon(":/icons/plus.svg")
+        , m_btnWidth{24}
+        , m_btnPadding{4}
 {
+        auto* view = qobject_cast<QAbstractItemView*>(parent);
+        if (view) {
+                view->viewport()->setMouseTracking(true);
+                view->viewport()->installEventFilter(this);
+        }
 }
 
-QRect NfFolderActionDelegate::getButtonRect(const QStyleOptionViewItem& option) const
+QRect NfFolderActionDelegate::getButtonRect(
+        const QStyleOptionViewItem& option) const
 {
         int x = option.rect.right() - m_btnWidth - m_btnPadding;
         int y = option.rect.top() + (option.rect.height() - m_btnWidth) / 2;
+
         return QRect(x, y, m_btnWidth, m_btnWidth);
 }
 
@@ -52,62 +60,112 @@ void NfFolderActionDelegate::paint(QPainter* painter,
         QStyleOptionViewItem opt = option;
         initStyleOption(&opt, index);
 
-        // Prevent the text from overlapping the button placement area on selection
-        if (opt.state & QStyle::State_Selected)
-                opt.rect.setRight(opt.rect.right() - (m_btnWidth + m_btnPadding * 2));
+        opt.rect.setRight(opt.rect.right() - (m_btnWidth + m_btnPadding * 2));
 
-        // Draw the standard file system icon and folder label first
         QStyledItemDelegate::paint(painter, opt, index);
 
-        // Contextual Action: Render the cached asset
-        // icon only when the row is selected.
-        if (option.state & QStyle::State_Selected) {
-                painter->save();
-                painter->setRenderHint(QPainter::Antialiasing);
+        if (!index.isValid())
+                return;
 
-                auto btnRect = getButtonRect(option);
+        bool isSelected = (option.state & QStyle::State_Selected);
+        bool isRowHovered = (index == m_hoveredIndex);
 
-                // Draw background base for the icon
-                painter->setPen(Qt::NoPen);
-                painter->setBrush(option.palette.accent());
-                painter->drawRoundedRect(btnRect, 4, 4);
+        if (!isSelected)
+                return;
 
-                // Add slight padding so the icon graphic sits
-                // comfortably inside the button boundaries
-                auto iconRect = btnRect.adjusted(4, 4, -4, -4);
-                m_plusIcon.paint(painter,
-                                 iconRect,
-                                 Qt::AlignCenter,
-                                 QIcon::Normal,
-                                 QIcon::On);
-                //                NF_LOG_DEBUG("called");
+        // Determine if the mouse cursor is directly interacting with the button coordinates
+        bool btnHovered = (isRowHovered && m_buttonHovered);
 
-                painter->restore();
-        }
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        QRect btnRect = getButtonRect(option);
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(btnHovered ? option.palette.highlight()
+                                     : option.palette.accent());
+
+        painter->drawRoundedRect(btnRect, 4, 4);
+
+        QRect iconRect = btnRect.adjusted(4, 4, -4, -4);
+        m_plusIcon.paint(painter,
+                         iconRect,
+                         Qt::AlignCenter,
+                         btnHovered ? QIcon::Active
+                                    : QIcon::Normal,
+                         QIcon::On);
+
+        painter->restore();
 }
 
-bool NfFolderActionDelegate::editorEvent(QEvent* event,
-                                         QAbstractItemModel* model,
-                                         const QStyleOptionViewItem& option,
-                                         const QModelIndex& index)
+bool NfFolderActionDelegate::eventFilter(QObject* object,
+                                         QEvent* event)
 {
-        if (event->type() != QEvent::MouseButtonPress
-            && event->type() != QEvent::MouseButtonRelease) {
-                return QStyledItemDelegate::editorEvent(event,
-                                                        model,
-                                                        option,
-                                                        index);
+        auto* view = qobject_cast<QAbstractItemView*>(parent());
+        if (!view || object != view->viewport())
+                return false;
+
+        if (event->type() == QEvent::MouseMove) {
+                auto* mouseEvent = static_cast<QMouseEvent*>(event);
+                QModelIndex index = view->indexAt(mouseEvent->pos());
+
+                QModelIndex oldIndex = m_hoveredIndex;
+                bool oldButtonHovered = m_buttonHovered;
+
+                m_hoveredIndex = index;
+                m_buttonHovered = false;
+
+                if (index.isValid()) {
+                        QStyleOptionViewItem opt;
+                        opt.rect = view->visualRect(index);
+                        QRect btnRect = getButtonRect(opt);
+
+                        m_buttonHovered = btnRect.contains(mouseEvent->pos());
+                }
+
+                // FIX: Redraw if row changes OR if mouse enters/leaves the plus icon bounds
+                if (oldIndex != m_hoveredIndex || oldButtonHovered != m_buttonHovered) {
+                        if (oldIndex.isValid())
+                                view->update(oldIndex);
+
+                        if (m_hoveredIndex.isValid())
+                                view->update(m_hoveredIndex);
+                }
+
+                return false;
         }
 
-        if (option.state & QStyle::State_Selected) {
+        if (event->type() == QEvent::Leave) {
+                QModelIndex old = m_hoveredIndex;
+
+                m_hoveredIndex = QModelIndex();
+                m_buttonHovered = false;
+
+                if (old.isValid())
+                        view->update(old);
+
+                return false;
+        }
+
+        return false;
+}
+
+bool NfFolderActionDelegate::editorEvent(
+        QEvent* event,
+        QAbstractItemModel* model,
+        const QStyleOptionViewItem& option,
+        const QModelIndex& index)
+{
+        if (event->type() == QEvent::MouseButtonRelease) {
                 auto* mouseEvent = static_cast<QMouseEvent*>(event);
+
                 if (mouseEvent->button() == Qt::LeftButton
                     && getButtonRect(option).contains(mouseEvent->pos())) {
-                        if (event->type() == QEvent::MouseButtonRelease) {
-                                auto fsModel = qobject_cast<const QFileSystemModel*>(model);
-                                if (fsModel)
-                                        emit importRequested(fsModel->filePath(index));
-                        }
+
+                        auto* fsModel = qobject_cast<QFileSystemModel*>(model);
+                        if (fsModel)
+                                emit importRequested(fsModel->filePath(index));
+
                         return true;
                 }
         }

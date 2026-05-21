@@ -4,5 +4,6 @@
   <file>style-cool-teal-desktop.qcss</file>
   <file>logo.png</file>
   <file>icons/plus.svg</file>
+  <file>icons/plus.png</file>
 </qresource>
 </RCC>

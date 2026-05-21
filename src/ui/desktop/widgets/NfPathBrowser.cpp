@@ -56,6 +56,8 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
         m_treeView->setHeaderHidden(true);
         m_treeView->setRootIsDecorated(true);
         m_treeView->setModel(m_model);
+        m_treeView->viewport()->setAttribute(Qt::WA_Hover);
+        m_treeView->viewport()->setMouseTracking(true);
 
         // Optional: hide unnecessary columns
         m_treeView->setColumnHidden(1, true); // Size
