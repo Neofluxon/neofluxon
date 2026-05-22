@@ -23,11 +23,14 @@
 
 #include "NfLibraryManager.h"
 #include "NfLibrary.h"
+#include "NfLibraryImportTask.h"
+#include "NfLogger.h"
 
 namespace NfCore {
 
-NfLibraryManager::NfLibraryManager()
-        : m_database(std::make_unique<NfLibraryDatabase>())
+NfLibraryManager::NfLibraryManager(NfScheduler *scheduler)
+        : m_scheduler
+        , m_database(std::make_unique<NfLibraryDatabase>())
 {
         for (const auto& id : m_database->libraries())
                 m_libraries.push_back(std::make_unique<NfLibrary>(m_database, id));
@@ -45,10 +48,19 @@ NfLibraryManager::libraries() const
 
 NfLibrary* NfLibraryManager::getLibrary(NfLibraryId id) const
 {
+        auto it = std::find_if(libraries.begin(),
+                               libraries.end(),
+                               [id](const auto & library) {
+                                       return library->id() == id;
+                               });
+
+        return (it != libraries.end()) ? it->get() : nullptr;
 }
 
 void NfLibraryManager::importPath(const std::filesystem::path& path, NfLibraryId id)
 {
+        NF_LOG_DEBUG("import path: " << path);
+
         std::scoped_lock lock(m_mutex);
         auto library = getLibrary(id);
         if (!library)
@@ -61,10 +73,12 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, NfLibraryId
 
                 auto* importTask = dynamic_cast<NfLibraryImportTask*>(result);
                 if (importTask) {
+                        NF_LOG_DEBUG("library import finished");
                         // TOTO...
                 }
                 });
 
+        NF_LOG_DEBUG("import task submitted for : " << path);
         m_scheduler->submit(std::move(task));
 }
 

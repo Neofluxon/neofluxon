@@ -28,8 +28,9 @@
 
 namespace NfCore {
 
-NfLibrary::NfLibrary(NfLibraryDatabase *db, int id)
-        : m_id{id}
+NfLibrary::NfLibrary(NfLibraryDatabase *db, uint64_t id)
+        : m_db{db}
+        , m_id{id}
 {
         auto rec = db->getLibraryRecord(id));
         m_name = rec->name;
@@ -70,6 +71,10 @@ void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
         });
 
         m_representations.erase(it, m_representations.end());*/
+}
+
+void NfLibrary::addPhoto(const NfPhoto& photo)
+{
 }
 
 const std::vector<std::unique_ptr<NfLibraryRepresentation>>&

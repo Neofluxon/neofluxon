@@ -33,13 +33,14 @@ class NfLibrary;
 
 class NfLibraryManager {
 public:
-        NfLibraryManager();
+        NfLibraryManager(NfScheduler *scheduler);
         ~NfLibraryManager();
         const std::vector<std::unique_ptr<NfLibrary>>& libraries() const;
         void importPath(const std::filesystem::path& path, NfLibraryId id);
         NfLibrary* getLibrary(NfLibraryId id) const;
 
 private:
+        NfScheduler* m_scheduler;
         std::vector<std::unique_ptr<NfLibrary>> m_libraries;
 };
 

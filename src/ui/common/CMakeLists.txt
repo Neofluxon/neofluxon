@@ -7,6 +7,7 @@ set(COMMON_HEADERS
     state/NfUiShootsModeState.h
     state/NfUiState.h
     NfPhotoProvider.h
+    NfLibraryAdapter.h
 )
 
 set(COMMON_SOURCES
@@ -16,6 +17,7 @@ set(COMMON_SOURCES
     state/NfUiShootsModeState.cpp
     state/NfUiState.cpp
     NfPhotoProvider.cpp
+    NfLibraryAdapter.cpp
 )
 
 add_library(NfCommonUi STATIC

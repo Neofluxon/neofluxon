@@ -22,13 +22,13 @@
  */
 
 #include "NfLibraryAdapter.h"
-#include "core/NfLibrary.h"
+#include "core/NfLibraryManager.h"
 
 using namespace NfCore;
 
 namespace NfUi {
 
-NfLibraryAdapter::NfLibraryAdapter(NfLibrary *library,
+NfLibraryAdapter::NfLibraryAdapter(NfLibraryManager *library,
                                    QObject* parent)
         : QObject(parent)
         , m_library{library}
@@ -40,9 +40,9 @@ NfLibraryAdapter::~NfLibraryAdapter()
         NF_LOG_DEBUG("called");
 }
 
-void NfLibraryAdapter::importPath(const std::filesystem::path &path)
+void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t libraryId)
 {
-        m_library->importPath(path);
+        m_library->importPath(path, libraryId);
 }
 
 } // namespace NfUi

@@ -29,10 +29,8 @@
 #include <filesystem>
 
 namespace NfCore {
-class NfLibrary;
+class NfLibraryManager;
 }
-
-using namespace NfCore;
 
 namespace NfUi {
 
@@ -41,13 +39,13 @@ class NfLibraryAdapter : public QObject
         Q_OBJECT
 
 public:
-        explicit NfLibraryAdapter(NfLibrary *library,
+        explicit NfLibraryAdapter(NfCore::NfLibraryManager *library,
                                   QObject* parent = nullptr);
         ~NfLibraryAdapter();
-        void importPath(const std::filesystem::path &path);
+        void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
 
 private:
-        NfLibrary *m_library;
+        NfCore::NfLibraryManager *m_library;
 };
 
 } // namespace NfUi

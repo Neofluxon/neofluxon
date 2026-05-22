@@ -23,6 +23,7 @@
 
 #include "NeofluxonCore.h"
 #include "NfPhotoLoader.h"
+#include "NfLibraryManager.h"
 #include "NfCache.h"
 #include "NfScheduler.h"
 #include "NfThreadPool.h"
@@ -42,6 +43,7 @@ NeofluxonCore::NeofluxonCore()
         , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache.get(),
                                                         m_previewCache.get()),
                                                         m_foregroundScheduler.get()}
+        , m_libraryManager{std::make_unique<NfLibraryManager>(m_backgroundScheduler)}
 {
         NF_LOG_DEBUG("called");
 }
@@ -54,6 +56,11 @@ NeofluxonCore::~NeofluxonCore()
 NfPhotoLoader* NeofluxonCore::photoLoader() const
 {
         return m_photoLoader.get();
+}
+
+NfLibraryManager* NeofluxonCore::libraryManger() const
+{
+        return m_libraryManager.get();
 }
 
 NfCache* NeofluxonCore::thumbnailCache() const
