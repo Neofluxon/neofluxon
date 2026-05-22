@@ -1,5 +1,5 @@
 /**
- * File name: NfForegroundThreadPool.cpp
+ * File name: NfThreadPool.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,14 +21,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfForegroundThreadPool.h"
+#include "NfThreadPool.h"
 #include "NfScheduler.h"
 #include "NfLogger.h"
 #include "NfTask.h"
 
 namespace NfCore {
 
-NfForegroundThreadPool::NfForegroundThreadPool(NfScheduler *scheduler,
+NfThreadPool::NfThreadPool(NfScheduler *scheduler,
                                                size_t threadCount)
         : m_scheduler{scheduler}
 {
@@ -49,7 +49,7 @@ NfForegroundThreadPool::NfForegroundThreadPool(NfScheduler *scheduler,
         }
 }
 
-NfForegroundThreadPool::~NfForegroundThreadPool()
+NfThreadPool::~NfThreadPool()
 {
         m_scheduler->setTasksAvailableCallback({});
 
@@ -59,7 +59,7 @@ NfForegroundThreadPool::~NfForegroundThreadPool()
         m_conditionVariable.notify_all();
 }
 
-void NfForegroundThreadPool::threadLoop(std::stop_token stoken)
+void NfThreadPool::threadLoop(std::stop_token stoken)
 {
         while (true) {
                 NfTask* task = nullptr;

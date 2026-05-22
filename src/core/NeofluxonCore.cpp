@@ -41,9 +41,9 @@ NeofluxonCore::NeofluxonCore()
         , m_backgroundThreadPool{std::make_unique<NfThreadPool>(m_backgroundScheduler.get(),
                                                                 m_threadAllocationManager.getBackgroundThreadCount())}
         , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache.get(),
-                                                        m_previewCache.get()),
-                                                        m_foregroundScheduler.get()}
-        , m_libraryManager{std::make_unique<NfLibraryManager>(m_backgroundScheduler)}
+                                                        m_previewCache.get(),
+                                                        m_foregroundScheduler.get())}
+        , m_libraryManager{std::make_unique<NfLibraryManager>(m_backgroundScheduler.get())}
 {
         NF_LOG_DEBUG("called");
 }

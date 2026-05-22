@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FOREGROUND_THREAD_POOL_H
-#define NF_FOREGROUND_THREAD_POOL_H
+#ifndef NF_THREAD_POOL_H
+#define NF_THREAD_POOL_H
 
 #include <queue>
 #include <mutex>
@@ -60,4 +60,4 @@ private:
 
 } // namespace NfCore
 
-#endif // NF_FOREGROUND_THREAD_POOL_H
+#endif // NF_THREAD_POOL_H

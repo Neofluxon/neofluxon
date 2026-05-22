@@ -34,6 +34,7 @@ class NfPhotoLoader;
 class NfCache;
 class NfScheduler;
 class NfThreadPool;
+class NfLibraryManager;
 
 class NeofluxonCore {
 public:
@@ -58,7 +59,7 @@ private:
         std::unique_ptr<NfScheduler> m_backgroundScheduler;
         std::unique_ptr<NfThreadPool> m_backgroundThreadPool;
         std::unique_ptr<NfPhotoLoader> m_photoLoader;
-        std::unqiue_ptr<NfLibraryManager> m_libraryManager;
+        std::unique_ptr<NfLibraryManager> m_libraryManager;
 };
 
 } // namespace NfCore

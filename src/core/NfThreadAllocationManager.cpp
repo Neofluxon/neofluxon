@@ -22,6 +22,7 @@
  */
 
 #include "NfThreadAllocationManager.h"
+#include "NfLogger.h"
 
 #include <thread>
 #include <algorithm>

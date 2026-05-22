@@ -36,8 +36,8 @@ public:
         NfLibraryManager(NfScheduler *scheduler);
         ~NfLibraryManager();
         const std::vector<std::unique_ptr<NfLibrary>>& libraries() const;
-        void importPath(const std::filesystem::path& path, NfLibraryId id);
-        NfLibrary* getLibrary(NfLibraryId id) const;
+        void importPath(const std::filesystem::path& path, uint64_t id);
+        NfLibrary* getLibrary(uint64_t id) const;
 
 private:
         NfScheduler* m_scheduler;
