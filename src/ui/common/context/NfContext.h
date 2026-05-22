@@ -35,16 +35,19 @@ using namespace NfCore;
 namespace NfUi {
 
 class NfUiState;
+class NfLibraryAdapter;
 
 struct NfContext {
         NeofluxonCore* const neofluxonCore;
         NfUiState* const uiState;
+        NfLibraryAdapter* library;
         NeofluxonCore* core() const {return neofluxonCore; }
 
         NfContext(NeofluxonCore* core,
                   NfUiState* state)
                 : neofluxonCore{core}
-                , uiState{state} {}
+                , uiState{state}
+                , library{nullptr} {}
 };
 
 } // namespace NfUi

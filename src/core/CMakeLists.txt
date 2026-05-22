@@ -37,7 +37,12 @@ set(CORE_HEADERS
         NfTask.h
         NfThumbnail.h
         NfThumbnailTask.h
-        #library/NfLibraryDatabase.h
+        library/NfLibrary.h
+        library/NfLibraryDatabase.h
+        library/NfLibraryImportTask.h
+        library/NfLibraryManager.h
+        library/NfLibraryRepresentation.h
+        #library/NfLibraryTreeNode.h
         )
 
 set(CORE_SOURCES
@@ -64,7 +69,12 @@ set(CORE_SOURCES
         NfTask.cpp
         NfThumbnail.cpp
         NfThumbnailTask.cpp
-        #library/NfLibraryDatabase.cpp
+        library/NfLibrary.cpp
+        library/NfLibraryDatabase.cpp
+        library/NfLibraryImportTask.cpp
+        library/NfLibraryManager.cpp
+        library/NfLibraryRepresentation.cpp
+        #library/NfLibraryTreeNode.cpp
         )
 
 add_library(NfCore STATIC

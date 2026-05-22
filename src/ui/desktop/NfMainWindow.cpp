@@ -45,7 +45,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
 {
         setWindowTitle("Neofluxon");
 
-        m_context->setLibrary(new NfLibraryAdapter(this));
+        m_context->library = new NfLibraryAdapter(this);
 
         resize(1400, 800);
         setGeometry(200, 200, 1400, 800);
