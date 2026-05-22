@@ -96,6 +96,10 @@ namespace NfDesktop {
                          &NfPathBrowser::folderSelected,
                          m_context->uiState->folderModeState(),
                          &NfUiFolderModeState::setPath);
+        QObject::connect(m_pathBrowser,
+                         &NfPathBrowser::importRequested,
+                         this,
+                         &NfLeftPanel::showImportWidget);
 
         updateMode(m_context->uiState->mode());
 }
@@ -110,6 +114,11 @@ void NfLeftPanel::showLibraryBrowser()
         NF_LOG_INFO("showlibrary");
         m_stack->setCurrentWidget(m_libraryTree);
         m_libraryTree->show();
+}
+
+void NfLeftPanel::showImportWidget(std::filesystem::path &path)
+{
+        m_context->library()->importFolder(path);
 }
 
 } // namespace NfDesktop
