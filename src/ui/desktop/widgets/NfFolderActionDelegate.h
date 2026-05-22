@@ -24,6 +24,8 @@
 #ifndef NF_FOLDER_ACTION_DELEGATE_H
 #define NF_FOLDER_ACTION_DELEGATE_H
 
+#include <filesystem>
+
 #include <QStyledItemDelegate>
 #include <QIcon>
 
@@ -38,19 +40,19 @@ class NfFolderActionDelegate : public QStyledItemDelegate
 public:
     explicit NfFolderActionDelegate(QObject* parent = nullptr);
 
-    void paint(QPainter* painter, 
-               const QStyleOptionViewItem& option, 
+    void paint(QPainter* painter,
+               const QStyleOptionViewItem& option,
                const QModelIndex& index) const override;
 
     bool eventFilter(QObject* object, QEvent* event) override;
 
-    bool editorEvent(QEvent* event, 
-                     QAbstractItemModel* model, 
-                     const QStyleOptionViewItem& option, 
+    bool editorEvent(QEvent* event,
+                     QAbstractItemModel* model,
+                     const QStyleOptionViewItem& option,
                      const QModelIndex& index) override;
 
 signals:
-    void importRequested(const QString& path);
+    void importRequested(const std::filesystem::path& path);
 
 private:
     QRect getButtonRect(const QStyleOptionViewItem& option) const;
@@ -58,7 +60,7 @@ private:
     QIcon m_plusIcon;
     int m_btnWidth;
     int m_btnPadding = 4; // Make sure padding is initialized
-    
+
     QModelIndex m_hoveredIndex;
     bool m_buttonHovered = false;
 };

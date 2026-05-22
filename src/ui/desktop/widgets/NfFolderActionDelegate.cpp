@@ -161,10 +161,9 @@ bool NfFolderActionDelegate::editorEvent(
 
                 if (mouseEvent->button() == Qt::LeftButton
                     && getButtonRect(option).contains(mouseEvent->pos())) {
-
                         auto* fsModel = qobject_cast<QFileSystemModel*>(model);
                         if (fsModel)
-                                emit importRequested(fsModel->filePath(index));
+                                emit importRequested(fsModel->filePath(index).toStdWString());
 
                         return true;
                 }

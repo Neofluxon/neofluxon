@@ -111,8 +111,9 @@ void NfLeftPanel::showLibraryBrowser()
         m_stack->setCurrentWidget(m_libraryBrowser);
 }
 
-void NfLeftPanel::showImportWidget()
+void NfLeftPanel::showImportWidget(std::filesystem::path &path)
 {
+        m_context->library()->importFolder(path);
 }
 
 } // namespace NfDesktop

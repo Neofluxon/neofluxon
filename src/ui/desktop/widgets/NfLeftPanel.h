@@ -26,6 +26,8 @@
 
 #include "NfPanel.h"
 
+#include <filesystem>
+
 class QStackedWidget;
 
 namespace NfUi {
@@ -48,6 +50,7 @@ public:
 protected slots:
         void showLibraryBrowser();
         void showPathBrowser();
+        void showImportWidget(std::filesystem::path &path);
 
 private:
         NfContext *m_context;
