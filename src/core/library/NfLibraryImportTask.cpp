@@ -29,8 +29,8 @@ namespace NfCore {
 
 NfLibraryFolderImport::NfLibraryFolderImport(const std::filesystem::path &folderPath,
                                              NfLibrary* library)
-        : m_path{path},
-          m_library{library}
+        : m_path{path}
+        , m_library{library}
 {
 }
 

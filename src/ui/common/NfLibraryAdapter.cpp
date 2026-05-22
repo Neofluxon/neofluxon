@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryManager.h
+ * File name: NfLibraryAdapter.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,28 +21,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_MANAGER_H
-#define NF_LIBRARY_MANAGER_H
+#include "NfLibraryAdapter.h"
+#include "core/NfLibrary.h"
 
-#include <vector>
-#include <memory>
+using namespace NfCore;
 
-namespace NfCore {
+namespace NfUi {
 
-class NfLibrary;
+NfLibraryAdapter::NfLibraryAdapter(NfLibrary *library,
+                                   QObject* parent)
+        : QObject(parent)
+        , m_library{library}
+{
+}
 
-class NfLibraryManager {
-public:
-        NfLibraryManager();
-        ~NfLibraryManager();
-        const std::vector<std::unique_ptr<NfLibrary>>& libraries() const;
-        void importPath(const std::filesystem::path& path, NfLibraryId id);
-        NfLibrary* getLibrary(NfLibraryId id) const;
+NfLibraryAdapter::~NfLibraryAdapter()
+{
+        NF_LOG_DEBUG("called");
+}
 
-private:
-        std::vector<std::unique_ptr<NfLibrary>> m_libraries;
-};
+void NfLibraryAdapter::importPath(const std::filesystem::path &path)
+{
+        m_library->importPath(path);
+}
 
-#endif // NF_LIBRARY_MANAGER_H
-
-} // namespace NfCore
+} // namespace NfUi

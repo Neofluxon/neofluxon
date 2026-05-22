@@ -39,7 +39,7 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-        NfMainWindow::NfMainWindow(NfContext *ctx)
+NfMainWindow::NfMainWindow(NfContext *ctx)
         : QMainWindow()
         , m_context{ctx}
 {

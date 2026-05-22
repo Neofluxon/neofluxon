@@ -24,27 +24,15 @@
 #ifndef NF_LIBRARY_ADAPTER_H
 #define NF_LIBRARY_ADAPTER_H
 
-#include "core/NfPhoto.h"
-#include "core/NfPhotoId.h"
-
 #include <QObject>
 
 #include <filesystem>
-#include <vector>
-#include <cstdint>
 
 namespace NfCore {
-class NeofluxonCore;
-class NfPhotoLoader;
-class NfCache;
+class NfLibrary;
 }
 
 using namespace NfCore;
-
-Q_DECLARE_METATYPE(NfPhoto)
-Q_DECLARE_METATYPE(NfPhotoId)
-Q_DECLARE_METATYPE(std::vector<NfPhoto>)
-Q_DECLARE_METATYPE(std::vector<NfPhotoId>)
 
 namespace NfUi {
 
@@ -53,40 +41,16 @@ class NfLibraryAdapter : public QObject
         Q_OBJECT
 
 public:
-        explicit NfLibraryAdapter(NeofluxonCore *core,
+        explicit NfLibraryAdapter(NfLibrary *library,
                                   QObject* parent = nullptr);
         ~NfLibraryAdapter();
-        void loadLibraryFromPath();
-
-
-        QPixmap getThumbnail(const NfPhoto &photo) const;
-        QPixmap getPreview(const NfPhoto &photo) const;
-        void prefetchThumbnail(const NfPhoto &photo);
-
-signals:
-        void photosLoaded(const std::vector<NfPhoto>& photos);
-        void thumbnailsLoaded(const std::vector<NfPhotoId>& ids);
-        void previewsLoaded(const std::vector<NfPhotoId>& ids);
-
-private slots:
-        void onTimeout();
+        void importPath(const std::filesystem::path &path);
 
 private:
-        void processNewPhotos();
-        void processThumbnails();
-        void processPreviews();
-
-        NfPhotoLoader *m_photoLoader;
-        NfCache *m_thumbnailCache;
-        NfCache *m_previewCache;
-        mutable QCache<uint64_t, QPixmap> m_thumbnailPixmapCache;
-        mutable QCache<uint64_t, QPixmap>m_previewPixmapCache;
-        std::filesystem::path m_path;
-        QPixmap m_thumbnailPlaceholder;
-        QPixmap m_previewPlaceholder;
+        NfLibrary *m_library;
 };
 
 } // namespace NfUi
 
-#endif // NF_PHOTO_PROVIDER_H
+#endif // NF_LIBRARY_ADAPTER_H
 

@@ -43,4 +43,29 @@ NfLibraryManager::libraries() const
         return m_libraries;
 }
 
+NfLibrary* NfLibraryManager::getLibrary(NfLibraryId id) const
+{
+}
+
+void NfLibraryManager::importPath(const std::filesystem::path& path, NfLibraryId id)
+{
+        std::scoped_lock lock(m_mutex);
+        auto library = getLibrary(id);
+        if (!library)
+                return;
+
+        auto task = std::make_unique<NfLibraryImportTask>(path, library);
+        task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
+                if (status != NfTask::TaskStatus::Success)
+                        return;
+
+                auto* importTask = dynamic_cast<NfLibraryImportTask*>(result);
+                if (importTask) {
+                        // TOTO...
+                }
+                });
+
+        m_scheduler->submit(std::move(task));
+}
+
 } // namespace NfCore
