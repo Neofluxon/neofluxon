@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryImportTask.h
+ * File name: NfLibraryFolderImportTask.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -26,18 +26,26 @@
 
 #include "NfTask.h"
 
+#include <filesystem>
+
 namespace NfCore {
 
-class NfLibraryImportTask : public NfTask {
+class NfLibrary;
+
+class NfLibraryFolderImportTask : public NfTask {
 public:
-        NfLibraryImportTask(const std::filesystem::path &folderPath,
+        NfLibraryFolderImportTask(const std::filesystem::path &folderPath,
                             NfLibrary* library);
-        NfLibraryImportTask(NfLibraryImportTask&&) noexcept = default;
-        NfLibraryImportTask& operator=(NfLibraryImportTask&&) noexcept = default;
-        NfLibraryImportTask(const NfLibraryImportTask&) = delete;
-        NfLibraryImportTask& operator=(const NfLibraryImportTask&) = delete;
-        ~NfLibraryImportTask();
-        TaskStatus execute() override;
+        NfLibraryFolderImportTask(NfLibraryFolderImportTask&&) noexcept = default;
+        NfLibraryFolderImportTask& operator=(NfLibraryFolderImportTask&&) noexcept = default;
+        NfLibraryFolderImportTask(const NfLibraryFolderImportTask&) = delete;
+        NfLibraryFolderImportTask& operator=(const NfLibraryFolderImportTask&) = delete;
+        ~NfLibraryFolderImportTask();
+        NfTask::TaskStatus execute() override;
+
+private:
+        std::filesystem::path m_path;
+        NfLibrary *m_library;
 };
 
 } // namespace NfCore

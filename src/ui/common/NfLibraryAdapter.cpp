@@ -22,7 +22,8 @@
  */
 
 #include "NfLibraryAdapter.h"
-#include "core/NfLibraryManager.h"
+#include "core/library/NfLibraryManager.h"
+#include "core/NfLogger.h"
 
 using namespace NfCore;
 

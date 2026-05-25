@@ -28,6 +28,9 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <memory>
+
+namespace NfCore {
 
 /**
  * General Library structure
@@ -45,7 +48,9 @@
 struct NfCamera { int64_t id; std::string make; std::string model; };
 struct NfLens   { int64_t id; std::string make; std::string model; };
 
-class NfRepresentationTreeRecord;
+class NfRepresentationRecord;
+class NfSourceRecord;
+class NfSourceData;
 
 class NfLibraryDatabase {
 public:
@@ -53,9 +58,11 @@ public:
         ~NfLibraryDatabase();
 
         bool open();
+        void close();
         bool initializeSchema();
 
-        std::unique_ptr<NfRepresentationTreeRecord> getRepresentationRecord(int id);
+        std::vector<uint64_t> libraries() const;
+        std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int id);
 
         // [WHERE] Canonical Folder Roots
         int64_t addFolder(const std::string& absolutePath);
@@ -78,13 +85,22 @@ public:
                          int64_t cameraId,
                          int64_t lensId);
 
-    // --- Transactions (For 100k+ speed) ---
-        void begin();
-        void commit();
+        void beginTransaction();
+        void endTransaction();
+
+protected:
+        void loadDateTimeSource(std::unique_ptr<NfSourceRecord>& source);
+        void populateSourceData(const std::unique_ptr<NfRepresentationRecord> &record);
+        void loadCanonicalSource(std::unique_ptr<NfSourceData>& source);
+        void loadEquipmentSource(std::unique_ptr<NfSourceData>& source);
+        void loadCollectionsSource(std::unique_ptr<NfSourceData>& source);
+
 
 private:
         sqlite3* m_db = nullptr;
         std::filesystem::path m_dbPath;
 };
+
+} // namespace NfCore
 
 #endif // NF_LIBRARY_DATABASE_H

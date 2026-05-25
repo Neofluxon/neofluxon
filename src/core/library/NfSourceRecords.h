@@ -35,6 +35,10 @@ struct NfSourceRecord {
         virtual ~NfSourceRecord() = default;
 };
 
+struct NfRepresentationRecord : public NfSourceRecord {
+        //std::vector<NfDatetimeEntry> entries;
+};
+
 // Represents the Year/Month/Day tree data
 struct NfDatetimeEntry {
         int64_t timestamp;

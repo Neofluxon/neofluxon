@@ -2,6 +2,7 @@ find_package(OpenMP REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 pkg_check_modules(JPEG_TURBO REQUIRED libturbojpeg)
 find_path(STB_INCLUDE_DIR stb_image_resize2.h PATH_SUFFIXES stb)
@@ -39,7 +40,7 @@ set(CORE_HEADERS
         NfThumbnailTask.h
         library/NfLibrary.h
         library/NfLibraryDatabase.h
-        library/NfLibraryImportTask.h
+        library/NfLibraryFolderImportTask.h
         library/NfLibraryManager.h
         library/NfLibraryRepresentation.h
         #library/NfLibraryTreeNode.h
@@ -71,7 +72,7 @@ set(CORE_SOURCES
         NfThumbnailTask.cpp
         library/NfLibrary.cpp
         library/NfLibraryDatabase.cpp
-        library/NfLibraryImportTask.cpp
+        library/NfLibraryFolderImportTask.cpp
         library/NfLibraryManager.cpp
         library/NfLibraryRepresentation.cpp
         #library/NfLibraryTreeNode.cpp
@@ -85,12 +86,14 @@ add_library(NfCore STATIC
 add_library(${PROJECT_NAME}::CoreLibrary ALIAS NfCore)
 
 target_include_directories(NfCore PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/library
     ${CMAKE_CURRENT_SOURCE_DIR}/..
-    library
     ${JPEG_TURBO_INCLUDE_DIRS}
     ${STB_INCLUDE_DIR}
     ${PNG_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    ${SQLite3_INCLUDE_DIRS}
 )
 
 target_link_libraries(NfCore PRIVATE
@@ -99,4 +102,5 @@ target_link_libraries(NfCore PRIVATE
         ${JPEG_TURBO_LIBRARIES}
         ${PNG_LIBRARIES}
         ${ZLIB_LIBRARIES}
+        SQLite::SQLite3
 )

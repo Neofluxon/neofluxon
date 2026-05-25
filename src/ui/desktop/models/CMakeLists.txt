@@ -2,15 +2,15 @@
 set(MODEL_HEADERS
     NfBrowserModel.h
     NfFolderModel.h
-    NfLibraryTreeItem.h
-    NfLibraryTreeModel.h
+#    NfLibraryTreeItem.h
+#    NfLibraryTreeModel.h
 )
 
 set(MODEL_SOURCES
     NfBrowserModel.cpp
     NfFolderModel.cpp
-    NfLibraryTreeItem.cpp
-    NfLibraryTreeModel.cpp
+#    NfLibraryTreeItem.cpp
+#    NfLibraryTreeModel.cpp
 )
 
 add_library(NfDesktopModels STATIC

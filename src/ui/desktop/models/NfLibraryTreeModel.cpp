@@ -23,7 +23,7 @@
 
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
-#include "NfLibraryContext.h"
+#include "NfContext.h"
 #include "core/NfLibraryManager.h"
 #include "core/NfLibrary.h"
 #include "core/NfLibraryRepresentation.h"
@@ -33,9 +33,9 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeModel::NfLibraryTreeModel(const NfLibraryContext& ctx, QObject* parent)
+NfLibraryTreeModel::NfLibraryTreeModel(const NfContext& ctx, QObject* parent)
         : QAbstractItemModel(parent)
-        , m_library{ctx->getLibraryManager()}
+        , m_library{ctx->library}
 {
         buildTree();
 }
@@ -118,7 +118,7 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::buildTree()
 {
-        m_root = std::make_unique<NfLibraryTreeItem>("",
+        /*m_root = std::make_unique<NfLibraryTreeItem>("",
                                                      NfLibraryTreeItem::Type::Node);
 
         const auto libraries = m_library->libraries();
@@ -129,7 +129,7 @@ void NfLibraryTreeModel::buildTree()
                         populateLibrary(library, m_root.get());
 
                 m_root->appendChild(std::move(libraryItem));
-        }
+                }*/
 }
 
 std::unique_ptr<NfLibraryTreeItem>

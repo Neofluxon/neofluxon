@@ -31,6 +31,10 @@
 
 namespace NfCore {
 
+class NfLibraryDatabase;
+class NfLibraryRepresentation;
+class NfPhoto;
+
 class NfLibraryRepresentation;
 
 class NfLibrary {

@@ -23,6 +23,7 @@
 
 #include "NfLibrary.h"
 #include "NfLibraryRepresentation.h"
+#include "NfLibraryDatabase.h"
 
 #include <algorithm>
 
@@ -32,14 +33,19 @@ NfLibrary::NfLibrary(NfLibraryDatabase *db, uint64_t id)
         : m_db{db}
         , m_id{id}
 {
-        auto rec = db->getLibraryRecord(id));
-        m_name = rec->name;
-        for (const auto& repId: rec->representationsIds())
-                m_representations.push_back(std::make_unique<NfRepresentation>(db, repId));
+        //auto rec = m_db->getLibraryRecord(id);
+        //m_name = rec->name;
+        //for (const auto& repId: rec->representationsIds())
+        //        m_representations.push_back(std::make_unique<NfRepresentation>(db, repId));
 }
 
 NfLibrary::~NfLibrary()
 {
+}
+
+uint64_t NfLibrary::id() const
+{
+        return m_id;
 }
 
 void NfLibrary::setName(const std::string& name)

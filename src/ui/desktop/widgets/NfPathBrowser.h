@@ -42,6 +42,7 @@ public:
 
 signals:
     void folderSelected(const std::filesystem::path& path);
+    void importRequested(const std::filesystem::path& path);
 
 private:
     QFileSystemModel* m_model;

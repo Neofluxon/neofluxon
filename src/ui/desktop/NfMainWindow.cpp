@@ -22,11 +22,13 @@
  */
 
 #include "NfMainWindow.h"
+#include "NfContext.h"
 #include "NfTopBar.h"
 #include "NfPanel.h"
 #include "NfLeftPanel.h"
 #include "NfStyledWidget.h"
 #include "NfCentralWidget.h"
+#include "NfLibraryAdapter.h"
 #include "core/NeofluxonCore.h"
 
 #include <QFrame>
@@ -45,7 +47,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
 {
         setWindowTitle("Neofluxon");
 
-        m_context->library = new NfLibraryAdapter(this);
+        m_context->library = new NfLibraryAdapter(m_context->core()->libraryManger(), this);
 
         resize(1400, 800);
         setGeometry(200, 200, 1400, 800);

@@ -21,34 +21,34 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfLibraryImportTask.h"
+#include "NfLibraryFolderImportTask.h"
 #include "NfLibrary.h"
 #include "NfPhotoDirectoryIterator.h"
 
 namespace NfCore {
 
-NfLibraryFolderImport::NfLibraryFolderImport(const std::filesystem::path &folderPath,
-                                             NfLibrary* library)
-        : m_path{path}
+NfLibraryFolderImportTask::NfLibraryFolderImportTask(const std::filesystem::path &folderPath,
+                                                     NfLibrary* library)
+        : m_path{folderPath}
         , m_library{library}
 {
 }
 
-NfLibraryFolderImport::~NfLibraryFolderImport() = default;
+NfLibraryFolderImportTask::~NfLibraryFolderImportTask() = default;
 
-TaskStatus NfLibraryFolderImport::execute()
+NfTask::TaskStatus NfLibraryFolderImportTask::execute()
 {
-        NfPhotoDirectoryIterator iterator;
-        iterator.setPath(path());
+        /*NfPhotoDirectoryIterator iterator;
+        iterator.setPath(m_path);
 
         while (auto photo = iterator.next()) {
                 if (isCancelled())
                         return TaskStatus::Cancelled;
 
                 m_library->addPhoto(photo);
-        }
+                }*/
 
-        return TaskStatus::Done;
+        return TaskStatus::Success;
 }
 
 } // namespace NfCore

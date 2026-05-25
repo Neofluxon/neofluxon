@@ -23,11 +23,11 @@
 
 #include "NfLeftPanel.h"
 #include "NfContext.h"
-#include "NfLibraryContext.h"
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
 #include "NfMainMenu.h"
 #include "NfPathBrowser.h"
+#include "NfLibraryAdapter.h"
 #include "NfLibraryTreeView.h"
 #include "core/NfLogger.h"
 
@@ -40,7 +40,7 @@ namespace NfDesktop {
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
         , m_pathBrowser{new NfPathBrowser(this)}
-        , m_libraryTree{new NfLibraryTreeView(NfLibraryContext(ctx), this)}
+          //, m_libraryTree{new NfLibraryTreeView(NfLibraryContext(ctx), this)}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);
@@ -50,7 +50,7 @@ namespace NfDesktop {
         panelLayout->addWidget(mainMenu);
 
         m_stack->addWidget(m_pathBrowser);
-        m_stack->addWidget(m_libraryTree);
+        //m_stack->addWidget(m_libraryTree);
 
         panelLayout->addWidget(m_stack);
 
@@ -112,14 +112,14 @@ void NfLeftPanel::showPathBrowser()
 void NfLeftPanel::showLibraryBrowser()
 {
         NF_LOG_INFO("showlibrary");
-        m_stack->setCurrentWidget(m_libraryTree);
-        m_libraryTree->show();
+        //m_stack->setCurrentWidget(m_libraryTree);
+        //m_libraryTree->show();
 }
 
-void NfLeftPanel::showImportWidget(std::filesystem::path &path)
+void NfLeftPanel::showImportWidget(const std::filesystem::path &path)
 {
         if (m_context->library)
-                m_context->library->importFolder(path);
+                m_context->library->importPath(path);
 }
 
 } // namespace NfDesktop

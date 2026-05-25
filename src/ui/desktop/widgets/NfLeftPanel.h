@@ -51,7 +51,7 @@ public:
 protected slots:
         void showLibraryBrowser();
         void showPathBrowser();
-        void showImportWidget(std::filesystem::path &path);
+        void showImportWidget(const std::filesystem::path &path);
 
 private:
         NfContext *m_context;

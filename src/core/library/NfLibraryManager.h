@@ -26,10 +26,14 @@
 
 #include <vector>
 #include <memory>
+#include <filesystem>
+#include <mutex>
 
 namespace NfCore {
 
 class NfLibrary;
+class NfScheduler;
+class NfLibraryDatabase;
 
 class NfLibraryManager {
 public:
@@ -41,6 +45,8 @@ public:
 
 private:
         NfScheduler* m_scheduler;
+        std::unique_ptr<NfLibraryDatabase> m_database;
+        std::mutex m_mutex;
         std::vector<std::unique_ptr<NfLibrary>> m_libraries;
 };
 

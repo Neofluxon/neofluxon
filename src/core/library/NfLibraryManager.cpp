@@ -22,18 +22,20 @@
  */
 
 #include "NfLibraryManager.h"
+#include "NfLibraryDatabase.h"
 #include "NfLibrary.h"
-#include "NfLibraryImportTask.h"
+#include "NfLibraryFolderImportTask.h"
+#include "NfScheduler.h"
 #include "NfLogger.h"
 
 namespace NfCore {
 
 NfLibraryManager::NfLibraryManager(NfScheduler *scheduler)
-        : m_scheduler
-        , m_database(std::make_unique<NfLibraryDatabase>())
+        : m_scheduler{scheduler}
+        , m_database{std::make_unique<NfLibraryDatabase>("./neofluxon.db")}
 {
         for (const auto& id : m_database->libraries())
-                m_libraries.push_back(std::make_unique<NfLibrary>(m_database, id));
+                m_libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
 }
 
 NfLibraryManager::~NfLibraryManager()
@@ -46,18 +48,18 @@ NfLibraryManager::libraries() const
         return m_libraries;
 }
 
-NfLibrary* NfLibraryManager::getLibrary(NfLibraryId id) const
+NfLibrary* NfLibraryManager::getLibrary(uint64_t id) const
 {
-        auto it = std::find_if(libraries.begin(),
-                               libraries.end(),
+        auto it = std::find_if(m_libraries.begin(),
+                               m_libraries.end(),
                                [id](const auto & library) {
                                        return library->id() == id;
                                });
 
-        return (it != libraries.end()) ? it->get() : nullptr;
+        return (it != m_libraries.end()) ? it->get() : nullptr;
 }
 
-void NfLibraryManager::importPath(const std::filesystem::path& path, NfLibraryId id)
+void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id)
 {
         NF_LOG_DEBUG("import path: " << path);
 
@@ -66,12 +68,12 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, NfLibraryId
         if (!library)
                 return;
 
-        auto task = std::make_unique<NfLibraryImportTask>(path, library);
+        auto task = std::make_unique<NfLibraryFolderImportTask>(path, library);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
 
-                auto* importTask = dynamic_cast<NfLibraryImportTask*>(result);
+                auto* importTask = dynamic_cast<NfLibraryFolderImportTask*>(result);
                 if (importTask) {
                         NF_LOG_DEBUG("library import finished");
                         // TOTO...

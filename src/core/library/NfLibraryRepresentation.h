@@ -29,19 +29,20 @@
 
 namespace NfCore {
 
-class NfLibraryTreeNode;
+        //class NfLibraryTreeNode;
+class NfLibraryDatabase;
 
 class NfLibraryRepresentation {
 public:
-        NfLibraryRepresentation();
+        NfLibraryRepresentation(NfLibraryDatabase *db, uint64_t id);
         ~NfLibraryRepresentation();
         void setName(const std::string& name);
         const std::string& name() const;
-        NfLibraryTreeNode* getTree() const;
+        //NfLibraryTreeNode* getTree() const;
 
 private:
         std::string m_name;
-        std::unique_ptr<NfLibraryTreeNode> m_tree;
+        //        std::unique_ptr<NfLibraryTreeNode> m_tree;
 };
 
 } // namespace NfCore

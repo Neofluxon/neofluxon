@@ -33,7 +33,7 @@ class NfLibrary;
 }
 
 namespace NfUi {
-class NfLibraryContext;
+class NfContext;
 }
 
 namespace NfDesktop {
@@ -44,7 +44,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         Q_OBJECT
 
  public:
-        explicit NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx, QObject* parent = nullptr);
+        explicit NfLibraryTreeModel(const NfUi::NfContext& ctx, QObject* parent = nullptr);
         ~NfLibraryTreeModel() override;
 
  public:

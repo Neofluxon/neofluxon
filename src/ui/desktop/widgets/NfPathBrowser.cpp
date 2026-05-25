@@ -23,6 +23,7 @@
 
 #include "NfPathBrowser.h"
 #include "NfFolderActionDelegate.h"
+#include "NfLibraryAdapter.h"
 #include "core/NfLogger.h"
 
 #include <QVBoxLayout>
@@ -30,6 +31,8 @@
 #include <QTreeView>
 #include <QFileSystemModel>
 #include <QDir>
+
+using namespace NfUi;
 
 namespace NfDesktop {
 
@@ -81,8 +84,9 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
 
         QObject::connect(folderDelegate,
                          &NfFolderActionDelegate::importRequested,
-                         this, [this](const QString& folderPath) {
-                                 NF_LOG_DEBUG("import folder: " << folderPath.toStdString());
+                         this, [this](const std::filesystem::path& folderPath) {
+                                 NF_LOG_DEBUG("import folder: " << folderPath);
+                                 emit importRequested(folderPath);
                          });
 
         QObject::connect(m_treeView, &QTreeView::doubleClicked,
