@@ -1,5 +1,5 @@
 /**
- * File name: NfPhoto.h
+ * File name: NfPhotoMetadataExtractor.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_H
-#define NF_PHOTO_H
-
-#include "NfPhotoId.h"
-
-#include <filesystem>
-#include <string>
+#ifndef NF_PHOTO_METADATA_EXTRACTOR
+#define NF_PHOTO_METADATA_EXTRACTOR
 
 namespace NfCore {
 
-class NfPhoto {
+#include "NfPhotoIndexInfo.h"
+#include "NfPhotoMetadata.h"
+
+class NfPhotoMetadataExtractor {
  public:
-        enum class PhotoFormat {
-                Unknown,
-                Jpeg,
-                Raw,
-                Png
-        };
+        explicit NfPhotoMetadataExtractor(const std::filesystem::path& path);
+        NfPhotoIndexInfo indexInfo() const;
+        NfPhotoMetadata fullMetadata() const;
 
-        explicit NfPhoto(const std::filesystem::path &filePath);
-        NfPhotoId id() const;
-        const std::filesystem::path& path() const;
-        std::string name() const;
-        PhotoFormat format() const;
-        std::optional<std::chrono::system_clock::time_point> dateTaken() const;
-
- private:
-        PhotoFormat determineFormat(const std::filesystem::path& path);
-
-        std::filesystem::path m_filePath;
-        NfPhotoId m_photoId;
-        PhotoFormat m_format;
+  private:
+        std::filesystem::path m_path;
 };
 
-} // namespace NfCore
+}; // namespace NfCore
 
-#endif // NF_PHOTO_H
+#endif // NF_PHOTO_METADATA_EXTRACTOR

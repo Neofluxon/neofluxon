@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 namespace NfCore {
 
@@ -54,6 +55,17 @@ class NfSourceData;
 
 class NfLibraryDatabase {
 public:
+        class Transaction {
+        public:
+                Transaction(NfLibraryDatabase* db);
+                ~Transaction();
+                void commit();
+
+        private:
+                struct sqlite3* m_db;
+                bool m_committed = false;
+        };
+
         explicit NfLibraryDatabase(const std::filesystem::path& dbPath);
         ~NfLibraryDatabase();
 
@@ -61,11 +73,16 @@ public:
         void close();
         bool initializeSchema();
 
+        int64_t addFolder(const std::string& absolutePath);
+        int64_t addImage(int64_t folderId,
+                         const std::string& fileName,
+                         int64_t timestamp,
+                         int64_t cameraId,
+                         int64_t lensId);
+
         std::vector<uint64_t> libraries() const;
         std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int id);
 
-        // [WHERE] Canonical Folder Roots
-        int64_t addFolder(const std::string& absolutePath);
 
         // [HOW] Equipment (Returns ID of existing or new)
         int64_t getOrCreateEquipment(const std::string& type,
@@ -78,15 +95,6 @@ public:
 
         // [THE CORE] Adding the Image and its Metadata
         // This connects Folder, Equipment, and the File together
-        int64_t addImage(int64_t folderId,
-                         const std::string& fileName,
-                         const std::string& relPath,
-                         int64_t timestamp,
-                         int64_t cameraId,
-                         int64_t lensId);
-
-        void beginTransaction();
-        void endTransaction();
 
 protected:
         void loadDateTimeSource(std::unique_ptr<NfSourceRecord>& source);
@@ -97,7 +105,8 @@ protected:
 
 
 private:
-        sqlite3* m_db = nullptr;
+        std::unique_lock<std::mutex> m_lock;
+        struct sqlite3* m_db = nullptr;
         std::filesystem::path m_dbPath;
 };
 

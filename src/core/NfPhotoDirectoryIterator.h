@@ -24,6 +24,8 @@
 #ifndef NF_PHOTO_DIRECTORY_ITERATOR_H
 #define NF_PHOTO_DIRECTORY_ITERATOR_H
 
+#include "NfPhoto.h"
+
 #include <filesystem>
 #include <optional>
 #include <string>

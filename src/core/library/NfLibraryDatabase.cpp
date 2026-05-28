@@ -28,6 +28,26 @@
 
 namespace NfCore {
 
+NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db)
+        : m_db{db}
+{
+        sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
+}
+
+NfLibraryDatabase::Transaction::~Transaction()
+{
+        if (!m_committed)
+                sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+}
+
+void NfLibraryDatabase::Transaction::commit()
+{
+        if (!m_committed) {
+                sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
+                m_committed = true;
+        }
+}
+
 NfLibraryDatabase::NfLibraryDatabase(const std::filesystem::path& dbPath)
         : m_dbPath{dbPath}
 {
@@ -49,16 +69,6 @@ void NfLibraryDatabase::close()
                 sqlite3_close(m_db);
                 m_db = nullptr;
         }
-}
-
-void NfLibraryDatabase::beginTransaction()
-{
-        sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
-}
-
-void NfLibraryDatabase::endTransaction()
-{
-        sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
 }
 
 std::vector<uint64_t> NfLibraryDatabase::libraries() const
@@ -236,7 +246,7 @@ void NfLibraryDatabase::loadCollectionsSource(std::unique_ptr<NfSourceData>& sou
 
 bool NfLibraryDatabase::initializeSchema()
 {
-        /*const char* sql = R"(
+        const char* sql = R"(
         PRAGMA journal_mode = WAL;
         PRAGMA synchronous = NORMAL;
         PRAGMA foreign_keys = ON;
@@ -290,8 +300,84 @@ bool NfLibraryDatabase::initializeSchema()
         CREATE INDEX IF NOT EXISTS idx_images_folder ON images(folder_id);
         CREATE INDEX IF NOT EXISTS idx_images_datetime ON images(datetime_taken);
         CREATE INDEX IF NOT EXISTS idx_coll_img_id ON collection_images(image_id);)";
-        */
-        return false;//sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
+
+        return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
+}
+
+int64_t NfLibraryDatabase::addFolder(const std::string& absolutePath)
+{
+        const char* sql = "INSERT OR IGNORE INTO folders (path) VALUES (?);";
+        sqlite3_stmt* stmt = nullptr;
+
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        // Bind text parameters: -1 automatically computes string length,
+        // SQLITE_TRANSIENT tells SQLite to make its own internal copy of the string data.
+        sqlite3_bind_text(stmt, 1, absolutePath.c_str(), -1, SQLITE_TRANSIENT);
+
+        int rc = sqlite3_step(stmt);
+        int64_t resultId = -1;
+
+        if (rc == SQLITE_DONE) {
+                // Check if a row was actually inserted
+                if (sqlite3_changes(m_db) > 0) {
+                        resultId = sqlite3_last_insert_rowid(m_db);
+                } else {
+                        // Folder already existed. Let's fetch its existing ID.
+                        sqlite3_finalize(stmt);
+
+                        const char* selectSql = "SELECT id FROM folders WHERE path = ?;";
+                        if (sqlite3_prepare_v2(m_db, selectSql, -1, &stmt, nullptr) == SQLITE_OK) {
+                                sqlite3_bind_text(stmt, 1, absolutePath.c_str(), -1, SQLITE_TRANSIENT);
+                                if (sqlite3_step(stmt) == SQLITE_ROW) {
+                                        resultId = sqlite3_column_int64(stmt, 0);
+                                }
+                        }
+                }
+        }
+
+        sqlite3_finalize(stmt);
+
+        return resultId;
+}
+
+int64_t NfLibraryDatabase::addImage(int64_t folderId,
+                                    const std::string& fileName,
+                                    int64_t timestamp,
+                                    int64_t cameraId,
+                                    int64_t lensId)
+{
+        const char* sql = R"(
+        INSERT INTO images (folder_id, file_name, datetime_taken, camera_id, lens_id)
+        VALUES (?, ?, ?, ?, ?);)";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        // Bind parameters (1-indexed mapping to the '?' placeholders)
+        sqlite3_bind_int64(stmt, 1, folderId);
+        sqlite3_bind_text(stmt, 2, fileName.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(stmt, 3, timestamp);
+
+        if (cameraId > 0)
+                sqlite3_bind_int64(stmt, 4, cameraId);
+        else
+                sqlite3_bind_null(stmt, 4);
+
+        if (lensId > 0)
+                sqlite3_bind_int64(stmt, 5, lensId);
+        else
+                sqlite3_bind_null(stmt, 5);
+
+        int64_t resultId = -1;
+        if (sqlite3_step(stmt) == SQLITE_DONE)
+                resultId = sqlite3_last_insert_rowid(m_db);
+
+        sqlite3_finalize(stmt);
+
+        return resultId;
 }
 
 } // namespace NfCore

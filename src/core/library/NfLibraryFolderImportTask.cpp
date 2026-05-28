@@ -24,6 +24,9 @@
 #include "NfLibraryFolderImportTask.h"
 #include "NfLibrary.h"
 #include "NfPhotoDirectoryIterator.h"
+#include "NfPhotoMetadataExtractor.h"
+#include "NfPhotoIndexInfo.h"
+#include "NfLogger.h"
 
 namespace NfCore {
 
@@ -38,15 +41,22 @@ NfLibraryFolderImportTask::~NfLibraryFolderImportTask() = default;
 
 NfTask::TaskStatus NfLibraryFolderImportTask::execute()
 {
-        /*NfPhotoDirectoryIterator iterator;
+        NF_LOG_DEBUG("scan folder: " << m_path);
+
+        NfPhotoDirectoryIterator iterator;
         iterator.setPath(m_path);
+
+        NfPhotoMetadataExtractor extractor;
 
         while (auto photo = iterator.next()) {
                 if (isCancelled())
                         return TaskStatus::Cancelled;
 
-                m_library->addPhoto(photo);
-                }*/
+                auto info = extractor.extract(photo->path());
+                m_library->addPhoto(*photo, info);
+        }
+
+        NF_LOG_DEBUG("scan folder finished: " << m_path);
 
         return TaskStatus::Success;
 }

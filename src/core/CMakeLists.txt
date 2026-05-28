@@ -29,6 +29,7 @@ set(CORE_HEADERS
         NfPathScanner.h
         NfPhoto.h
         NfPhotoId.h
+        NfPhotoDirectoryIterator.h
         NfPhotoLoader.h
         NfPngImageDecoder.h
         NfPreview.h
@@ -61,6 +62,7 @@ set(CORE_SOURCES
         NfPathScanner.cpp
         NfPhoto.cpp
         NfPhotoId.cpp
+        NfPhotoDirectoryIterator.cpp
         NfPhotoLoader.cpp
         NfPngImageDecoder.cpp
         NfPreview.cpp

@@ -1,5 +1,5 @@
 /**
- * File name: NfPhoto.h
+ * File name: NfPhotoMetadataExtractor.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_H
-#define NF_PHOTO_H
-
-#include "NfPhotoId.h"
-
-#include <filesystem>
-#include <string>
+#ifndef NF_PHOTO_SUMMARY_H
+#define NF_PHOTO_SUMMARY_H
 
 namespace NfCore {
 
-class NfPhoto {
- public:
-        enum class PhotoFormat {
-                Unknown,
-                Jpeg,
-                Raw,
-                Png
-        };
-
-        explicit NfPhoto(const std::filesystem::path &filePath);
-        NfPhotoId id() const;
-        const std::filesystem::path& path() const;
-        std::string name() const;
-        PhotoFormat format() const;
-        std::optional<std::chrono::system_clock::time_point> dateTaken() const;
-
- private:
-        PhotoFormat determineFormat(const std::filesystem::path& path);
-
-        std::filesystem::path m_filePath;
-        NfPhotoId m_photoId;
-        PhotoFormat m_format;
+struct NfPhotoSummary
+{
+    std::optional<std::chrono::system_clock::time_point> dateTaken;
+    std::string cameraMaker;
+    std::string cameraModel;
+    std::optional<std::string> lens;
+    int iso = -1;
+    double aperture = 0.0;
+    double shutterSpeed = 0.0;
+    double focalLength = 0.0;
+    int rating = 0;
+    bool hasExif = false;
 };
 
 } // namespace NfCore
 
-#endif // NF_PHOTO_H
+#endif // NF_PHOTO_SUMMARY_H

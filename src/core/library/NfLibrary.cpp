@@ -24,6 +24,8 @@
 #include "NfLibrary.h"
 #include "NfLibraryRepresentation.h"
 #include "NfLibraryDatabase.h"
+#include "NfPhoto.h"
+#include "NfLogger.h"
 
 #include <algorithm>
 
@@ -81,6 +83,22 @@ void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
 
 void NfLibrary::addPhoto(const NfPhoto& photo)
 {
+        NF_LOG_DEBUG("added: " << photo.path());
+
+        NfLibraryDatabase::Transaction tx(m_db);
+
+        auto folderId = m_db->addFolder(photo.path());
+        if (folderId < 0)
+                return;
+
+        auto id = m_db->addImage(folderId,
+                                 photo.name(),
+                                 0, 0,
+                                 photo.dateTaken());
+        if (id < 0)
+                return;
+
+        tx.commit();
 }
 
 const std::vector<std::unique_ptr<NfLibraryRepresentation>>&

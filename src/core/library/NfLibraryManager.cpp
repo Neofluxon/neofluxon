@@ -34,6 +34,8 @@ NfLibraryManager::NfLibraryManager(NfScheduler *scheduler)
         : m_scheduler{scheduler}
         , m_database{std::make_unique<NfLibraryDatabase>("./neofluxon.db")}
 {
+        m_database->initializeSchema();
+
         for (const auto& id : m_database->libraries())
                 m_libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
 }

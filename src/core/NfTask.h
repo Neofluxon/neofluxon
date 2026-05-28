@@ -60,6 +60,7 @@ public:
         void setSequence(uint64_t s) { m_sequence = s; }
         uint64_t sequence() const { return m_sequence; }
         virtual void cancel() {}
+        virtual bool isCancelled() const { return false; }
 
 protected:
         NfTask();

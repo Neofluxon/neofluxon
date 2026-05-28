@@ -51,16 +51,12 @@ void NfPhotoDirectoryIterator::setPath(const std::filesystem::path& path,
         m_recursive = recursive;
         try {
                 if (m_recursive) {
-                        m_recursiveIterator =
-                                fs::recursive_directory_iterator(m_path);
-                        m_recursiveEnd =
-                                fs::recursive_directory_iterator();
+                        m_recursiveIterator = fs::recursive_directory_iterator(m_path);
+                        m_recursiveEnd = fs::recursive_directory_iterator();
 
                 } else {
-                        m_dirIterator =
-                                fs::directory_iterator(m_path);
-                        m_dirEnd =
-                                fs::directory_iterator();
+                        m_dirIterator = fs::directory_iterator(m_path);
+                        m_dirEnd = fs::directory_iterator();
                 }
         }
         catch (const fs::filesystem_error&) {
@@ -122,21 +118,15 @@ std::optional<NfPhoto> NfPhotoDirectoryIterator::next()
 
         try {
                 while (true) {
-
                         fs::path path;
                         if (m_recursive) {
-                                if (m_recursiveIterator ==
-                                    m_recursiveEnd)
+                                if (m_recursiveIterator == m_recursiveEnd)
                                         return std::nullopt;
-
                                 path = m_recursiveIterator->path();
                                 ++m_recursiveIterator;
                         } else {
-
-                                if (m_dirIterator ==
-                                    m_dirEnd)
+                                if (m_dirIterator == m_dirEnd)
                                         return std::nullopt;
-
                                 path = m_dirIterator->path();
                                 ++m_dirIterator;
                         }
