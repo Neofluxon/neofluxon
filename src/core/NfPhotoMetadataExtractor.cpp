@@ -33,19 +33,15 @@ NfPhotoMetadataExtractor::NfPhotoMetadataExtractor(const NfPhoto& photo)
 {
 }
 
-// ---------------- INDEX INFO ----------------
-
 NfPhotoIndexInfo NfPhotoMetadataExtractor::indexInfo() const
 {
         NfPhotoIndexInfo info;
 
-        // FAST FALLBACK: filesystem timestamp (always available)
         try {
                 auto ftime = std::filesystem::last_write_time(m_photo.path());
                 info.dateTaken = std::chrono::clock_cast<std::chrono::system_clock>(ftime);
         }
         catch (...) {
-                // ignore
         }
 
         // Later optimization:

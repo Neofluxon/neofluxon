@@ -27,8 +27,10 @@ set(CORE_HEADERS
         NfJpegImageDecoder.h
         NfLogger.h
         NfPathScanner.h
-        NfPhoto.h
         NfPhotoId.h
+        NfPhoto.h
+        NfPhotoSummary.h
+        NfPhotoMetadataExtractor.h
         NfPhotoDirectoryIterator.h
         NfPhotoLoader.h
         NfPngImageDecoder.h
@@ -60,8 +62,10 @@ set(CORE_SOURCES
         NfJpegImageDecoder.cpp
         NfLogger.cpp
         NfPathScanner.cpp
-        NfPhoto.cpp
         NfPhotoId.cpp
+        NfPhoto.cpp
+        NfPhotoSummary.cpp
+        NfPhotoMetadataExtractor.cpp
         NfPhotoDirectoryIterator.cpp
         NfPhotoLoader.cpp
         NfPngImageDecoder.cpp

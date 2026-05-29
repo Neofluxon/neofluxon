@@ -91,10 +91,26 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         if (folderId < 0)
                 return;
 
+        auto info = NfPhotoMetadataExtractor(photo).symmaryInfo();
+
+        int cameraId = -1;
+        if (!info.cameraMaker.empty()) {
+                cameraId = m_db->addCamera(info.cameraMaker, info.cameraModel);
+                if (cameraId < 0)
+                        return;
+        }
+
+        int lensId = -1;
+        if (!info.lens.empty()) {
+                lensId = m_db->addLens(info.lens);
+                if (lensId < 0)
+                        return;
+        }
+
         auto id = m_db->addImage(folderId,
-                                 photo.name(),
-                                 0, 0,
-                                 photo.dateTaken());
+                                 photo.name,
+                                 cameraId, lensId,
+                                 info.dateTaken);
         if (id < 0)
                 return;
 
