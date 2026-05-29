@@ -66,4 +66,4 @@ Neofluxon is [Free Software](https://www.gnu.org/philosophy/free-sw.en.html), re
 ### Build Requirements
 
 * **CMake** ≥ 3.25
-* **C++23**
+* **C++26**
