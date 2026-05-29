@@ -81,46 +81,68 @@ void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
         m_representations.erase(it, m_representations.end());*/
 }
 
-void NfLibrary::addPhoto(const NfPhoto& photo)
-{
-        NF_LOG_DEBUG("added: " << photo.path());
-
-        NfLibraryDatabase::Transaction tx(m_db);
-
-        auto folderId = m_db->addFolder(photo.path());
-        if (folderId < 0)
-                return;
-
-        auto info = NfPhotoMetadataExtractor(photo).symmaryInfo();
-
-        int cameraId = -1;
-        if (!info.cameraMaker.empty()) {
-                cameraId = m_db->addCamera(info.cameraMaker, info.cameraModel);
-                if (cameraId < 0)
-                        return;
-        }
-
-        int lensId = -1;
-        if (!info.lens.empty()) {
-                lensId = m_db->addLens(info.lens);
-                if (lensId < 0)
-                        return;
-        }
-
-        auto id = m_db->addImage(folderId,
-                                 photo.name,
-                                 cameraId, lensId,
-                                 info.dateTaken);
-        if (id < 0)
-                return;
-
-        tx.commit();
-}
-
 const std::vector<std::unique_ptr<NfLibraryRepresentation>>&
 NfLibrary::representations() const
 {
         return m_representations;
+}
+
+void NfLibrary::addPhoto(const NfPhoto& photo)
+{
+        NF_LOG_DEBUG("add photo: " << photo.path());
+
+        auto info = NfPhotoMetadataExtractor(photo).summaryInfo();
+
+        NfLibraryDatabase::Transaction tx(m_db);
+
+        auto folderId = m_db->addFolder(photo.path());
+        if (folderId < 0) {
+                NF_LOG_ERROR("Failed to add folder: " << photo.path());
+                return;
+        }
+
+        int cameraId = storeCamera(info.cameraMaker, info.cameraModel);
+        int lensId   = storeLens(info.lens);
+
+        if (cameraId == -2 || lensId == -2)
+                return;
+
+        auto id = m_db->addImage(folderId, photo.name, cameraId, lensId, info.dateTaken);
+        if (id < 0) {
+                NF_LOG_ERROR("Failed to finalize image entry: " << photo.name);
+                return;
+        }
+
+    tx.commit();
+}
+
+int NfLibrary::storeCamera(const std::string& maker, const std::string& model)
+{
+        if (maker.empty())
+                return -1;
+
+        int cameraId = m_db->addCamera(maker, model);
+        if (cameraId < 0) {
+                NF_LOG_ERROR("Database error writing camera details: "
+                             << maker << " " << model);
+                return -2;
+        }
+
+        return cameraId;
+}
+
+int NfLibrary::storeLens(const std::string& lensName)
+{
+        if (lensName.empty())
+                return -1;
+
+        int lensId = m_db->addLens(lensName);
+        if (lensId < 0) {
+                NF_LOG_ERROR("Database error writing lens details: " << lensName);
+                return -2;
+        }
+
+        return lensId;
 }
 
 } // namespace NfCore

@@ -24,10 +24,10 @@
 #ifndef NF_LIBRARY_H
 #define NF_LIBRARY_H
 
-#include <memory>
 #include <string>
 #include <vector>
-#include <filesystem>
+#include <memory>
+#include <string_view>
 
 namespace NfCore {
 
@@ -41,15 +41,21 @@ class NfLibrary {
 public:
         explicit NfLibrary(NfLibraryDatabase *db, uint64_t id);
         ~NfLibrary();
+
         uint64_t id() const;
-        void setName(const std::string& name);
-        const std::string& name() const;
+        void setName(std::string_view& name);
+        const std::string& name() const noexcept;
+
         NfLibraryRepresentation* addRepresentation();
         void removeRepresentation(NfLibraryRepresentation* representation);
-        const std::vector<std::unique_ptr<NfLibraryRepresentation>>& representations() const;
-        void addPhoto(const NfPhoto& photo);
+        const std::vector<std::unique_ptr<NfLibraryRepresentation>>& representations() const noexcept;
+
+        bool addPhoto(const NfPhoto& photo);
 
 private:
+        int storeCamera(const std::string& maker, const std::string& model);
+        int storeLens(const std::string& lensName);
+
         NfLibraryDatabase *m_db;
         uint64_t m_id;
         std::string m_name;
