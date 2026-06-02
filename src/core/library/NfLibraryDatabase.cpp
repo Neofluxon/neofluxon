@@ -312,8 +312,6 @@ int64_t NfLibraryDatabase::addFolder(const std::string& absolutePath)
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
                 return -1;
 
-        // Bind text parameters: -1 automatically computes string length,
-        // SQLITE_TRANSIENT tells SQLite to make its own internal copy of the string data.
         sqlite3_bind_text(stmt, 1, absolutePath.c_str(), -1, SQLITE_TRANSIENT);
 
         int rc = sqlite3_step(stmt);
@@ -370,6 +368,81 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
                 sqlite3_bind_int64(stmt, 5, lensId);
         else
                 sqlite3_bind_null(stmt, 5);
+
+        int64_t resultId = -1;
+        if (sqlite3_step(stmt) == SQLITE_DONE)
+                resultId = sqlite3_last_insert_rowid(m_db);
+
+        sqlite3_finalize(stmt);
+
+        return resultId;
+}
+
+int64_t NfLibraryDatabase::addCamera(std::string_view maker,
+                                     std::string_view model)
+{
+        const char* selectSql = "SELECT id FROM cameras WHERE maker = ? AND model = ?;";
+        sqlite3_stmt* stmt = nullptr;
+
+        if (sqlite3_prepare_v2(m_db, selectSql, -1, &stmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_text(stmt,
+                                  1, maker.data(), static_cast<int>(maker.size()),
+                                  SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt,
+                                  2, model.data(), static_cast<int>(model.size()),
+                                  SQLITE_TRANSIENT);
+
+                if (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int64_t existingId = sqlite3_column_int64(stmt, 0);
+                        sqlite3_finalize(stmt);
+                        return existingId;
+                }
+        }
+        sqlite3_finalize(stmt);
+
+        const char* insertSql = "INSERT INTO cameras (maker, model) VALUES (?, ?);";
+        if (sqlite3_prepare_v2(m_db, insertSql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        sqlite3_bind_text(stmt, 1, maker.data(),
+                          static_cast<int>(maker.size()), SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, model.data(),
+                          static_cast<int>(model.size()), SQLITE_TRANSIENT);
+
+        int64_t resultId = -1;
+        if (sqlite3_step(stmt) == SQLITE_DONE)
+                resultId = sqlite3_last_insert_rowid(m_db);
+
+        sqlite3_finalize(stmt);
+
+        return resultId;
+}
+
+int64_t NfLibraryDatabase::addLens(std::string_view lens)
+{
+        const char* selectSql = "SELECT id FROM lenses WHERE name = ?;";
+        sqlite3_stmt* stmt = nullptr;
+
+        if (sqlite3_prepare_v2(m_db, selectSql, -1, &stmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_text(stmt,
+                                  1, lens.data(), static_cast<int>(lens.size()),
+                                  SQLITE_TRANSIENT);
+
+                if (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int64_t existingId = sqlite3_column_int64(stmt, 0);
+                        sqlite3_finalize(stmt);
+                        return existingId;
+                }
+        }
+        sqlite3_finalize(stmt);
+
+        const char* insertSql = "INSERT INTO lenses (name) VALUES (?);";
+        if (sqlite3_prepare_v2(m_db, insertSql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        sqlite3_bind_text(stmt, 1, lens.data(),
+                          static_cast<int>(lens.size()),
+                          SQLITE_TRANSIENT);
 
         int64_t resultId = -1;
         if (sqlite3_step(stmt) == SQLITE_DONE)

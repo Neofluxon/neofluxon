@@ -107,21 +107,26 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         if (cameraId == -2 || lensId == -2)
                 return;
 
-        auto id = m_db->addImage(folderId, photo.name, cameraId, lensId, info.dateTaken);
+        auto id = m_db->addImage(folderId,
+                                 photo.name,
+                                 cameraId,
+                                 lensId,
+                                 info.dateTaken);
         if (id < 0) {
                 NF_LOG_ERROR("Failed to finalize image entry: " << photo.name);
                 return;
         }
 
-    tx.commit();
+        tx.commit();
 }
 
-int NfLibrary::storeCamera(const std::string& maker, const std::string& model)
+int64_t NfLibrary::storeCamera(const std::string& maker,
+                               const std::string& model)
 {
         if (maker.empty())
                 return -1;
 
-        int cameraId = m_db->addCamera(maker, model);
+        auto cameraId = m_db->addCamera(maker, model);
         if (cameraId < 0) {
                 NF_LOG_ERROR("Database error writing camera details: "
                              << maker << " " << model);
@@ -131,12 +136,12 @@ int NfLibrary::storeCamera(const std::string& maker, const std::string& model)
         return cameraId;
 }
 
-int NfLibrary::storeLens(const std::string& lensName)
+int64_t NfLibrary::storeLens(const std::string& lensName)
 {
         if (lensName.empty())
                 return -1;
 
-        int lensId = m_db->addLens(lensName);
+        auto lensId = m_db->addLens(lensName);
         if (lensId < 0) {
                 NF_LOG_ERROR("Database error writing lens details: " << lensName);
                 return -2;

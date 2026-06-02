@@ -24,19 +24,22 @@
 #ifndef NF_PHOTO_METADATA_EXTRACTOR
 #define NF_PHOTO_METADATA_EXTRACTOR
 
+#include "NfPhotoSummary.h"
+#include "NfPhoto.h"
+//#include "NfPhotoMetadata.h"
+
 namespace NfCore {
 
-#include "NfPhotoIndexInfo.h"
-#include "NfPhotoMetadata.h"
+class NfPhoto;
 
 class NfPhotoMetadataExtractor {
  public:
-        explicit NfPhotoMetadataExtractor(const std::filesystem::path& path);
-        NfPhotoIndexInfo indexInfo() const;
-        NfPhotoMetadata fullMetadata() const;
+        explicit NfPhotoMetadataExtractor(const NfPhoto& photo);
+        NfPhotoSummary indexInfo() const;
+        //NfPhotoMetadata fullMetadata() const;
 
   private:
-        std::filesystem::path m_path;
+        NfPhoto m_photo;
 };
 
 }; // namespace NfCore

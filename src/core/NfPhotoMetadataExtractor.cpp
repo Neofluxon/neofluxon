@@ -23,8 +23,8 @@
 
 #include "NfPhotoMetadataExtractor.h"
 
-#include <filesystem>
 #include <chrono>
+#include <filesystem>
 
 namespace NfCore {
 
@@ -33,9 +33,9 @@ NfPhotoMetadataExtractor::NfPhotoMetadataExtractor(const NfPhoto& photo)
 {
 }
 
-NfPhotoIndexInfo NfPhotoMetadataExtractor::indexInfo() const
+NfPhotoSummary NfPhotoMetadataExtractor::indexInfo() const
 {
-        NfPhotoIndexInfo info;
+        NfPhotoSummary info;
 
         try {
                 auto ftime = std::filesystem::last_write_time(m_photo.path());
@@ -53,14 +53,14 @@ NfPhotoIndexInfo NfPhotoMetadataExtractor::indexInfo() const
 
 // ---------------- FULL METADATA ----------------
 
-NfPhotoMetadata NfPhotoMetadataExtractor::fullMetadata() const
-{
-        NfPhotoMetadata meta;
+//NfPhotoMetadata NfPhotoMetadataExtractor::fullMetadata() const
+//{
+//        NfPhotoMetadata meta;
 
-        switch (m_photo.format()) {
-        case NfPhoto::PhotoFormat::Jpeg:
-        case NfPhoto::PhotoFormat::Png:
-        {
+//        switch (m_photo.format()) {
+//        case NfPhoto::PhotoFormat::Jpeg:
+//        case NfPhoto::PhotoFormat::Png:
+//        {
             // EXIF-based extraction (e.g. Exiv2)
             /*
             read EXIF:
@@ -72,10 +72,10 @@ NfPhotoMetadata NfPhotoMetadataExtractor::fullMetadata() const
             - focal length
             - DateTimeOriginal
             */
-            break;
-        }
-        case NfPhoto::PhotoFormat::Raw:
-        {
+        //            break;
+        //        }
+        //        case NfPhoto::PhotoFormat::Raw:
+        //        {
             // RAW extraction (e.g. LibRaw)
             /*
             LibRaw raw;
@@ -87,13 +87,14 @@ NfPhotoMetadata NfPhotoMetadataExtractor::fullMetadata() const
             - sensor metadata
             - timestamps
             */
-            break;
-        }
-        default:
-            break;
-        }
+        //            break;
+        //        }
+        //        default:
+        //            break;
+        //        }
 
-        return meta;
-}
+        //        return meta;
+        //}
 
 } // namespace NfCore
+

@@ -62,4 +62,3 @@ NfTask::TaskStatus NfLibraryFolderImportTask::execute()
 }
 
 } // namespace NfCore
-

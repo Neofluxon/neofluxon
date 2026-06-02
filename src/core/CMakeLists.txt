@@ -64,7 +64,6 @@ set(CORE_SOURCES
         NfPathScanner.cpp
         NfPhotoId.cpp
         NfPhoto.cpp
-        NfPhotoSummary.cpp
         NfPhotoMetadataExtractor.cpp
         NfPhotoDirectoryIterator.cpp
         NfPhotoLoader.cpp

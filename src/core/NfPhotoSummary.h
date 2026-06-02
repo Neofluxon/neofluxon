@@ -24,20 +24,22 @@
 #ifndef NF_PHOTO_SUMMARY_H
 #define NF_PHOTO_SUMMARY_H
 
+#include <chrono>
+
 namespace NfCore {
 
 struct NfPhotoSummary
 {
-    std::optional<std::chrono::system_clock::time_point> dateTaken;
-    std::string cameraMaker;
-    std::string cameraModel;
-    std::optional<std::string> lens;
-    int iso = -1;
-    double aperture = 0.0;
-    double shutterSpeed = 0.0;
-    double focalLength = 0.0;
-    int rating = 0;
-    bool hasExif = false;
+        std::chrono::system_clock::time_point dateTaken;
+        std::string cameraMaker;
+        std::string cameraModel;
+        std::string lens;
+        int iso = -1;
+        double aperture = 0.0;
+        double shutterSpeed = 0.0;
+        double focalLength = 0.0;
+        int rating = 0;
+        bool hasExif = false;
 };
 
 } // namespace NfCore
