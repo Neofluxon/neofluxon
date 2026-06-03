@@ -45,10 +45,6 @@ namespace NfCore {
  * [>] Equipment - Technical Pillar: Hardware metadata (Camera & Lens).
  */
 
-// Objects representing the data layer
-struct NfCamera { int64_t id; std::string make; std::string model; };
-struct NfLens   { int64_t id; std::string make; std::string model; };
-
 class NfRepresentationRecord;
 class NfSourceRecord;
 class NfSourceData;
@@ -59,15 +55,23 @@ public:
         public:
                 Transaction(NfLibraryDatabase* db);
                 ~Transaction();
+                Transaction(const Transaction&) = delete;
+                Transaction& operator=(const Transaction&) = delete;
                 void commit();
 
         private:
                 struct sqlite3* m_db;
                 bool m_committed = false;
+                std::unique_lock<std::mutex> m_lock;
         };
 
         explicit NfLibraryDatabase(const std::filesystem::path& dbPath);
         ~NfLibraryDatabase();
+        NfLibraryDatabase(const NfLibraryDatabase&) = delete;
+        NfLibraryDatabase& operator=(const NfLibraryDatabase&) = delete;
+        NfLibraryDatabase(NfLibraryDatabase&&) = delete;
+        NfLibraryDatabase& operator=(NfLibraryDatabase&&) = delete;
+
         const std::filesystem::path& path() const;
 
         bool open();
@@ -86,19 +90,11 @@ public:
 
         std::vector<uint64_t> libraries() const;
         std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int id);
-
-
-        // [HOW] Equipment (Returns ID of existing or new)
         int64_t getOrCreateEquipment(const std::string& type,
                                      const std::string& make,
                                      const std::string& model);
-
-        // [WHY] Collections (The Tree Structure)
         int64_t createCollection(const std::string& name, int64_t parentId = 0);
         bool addImageToCollection(int64_t imageId, int64_t collectionId);
-
-        // [THE CORE] Adding the Image and its Metadata
-        // This connects Folder, Equipment, and the File together
 
 protected:
         void loadDateTimeSource(std::unique_ptr<NfSourceRecord>& source);
@@ -109,7 +105,7 @@ protected:
 
 
 private:
-        std::unique_lock<std::mutex> m_lock;
+        mutable std::mutex m_mutex;
         struct sqlite3* m_db = nullptr;
         std::filesystem::path m_dbPath;
 };

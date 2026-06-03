@@ -31,6 +31,7 @@ namespace NfCore {
 
 NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db)
         : m_db{db->m_db}
+        , m_lock{db->m_mutex}
 {
         sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
 }
@@ -288,7 +289,7 @@ bool NfLibraryDatabase::initializeSchema()
             FOREIGN KEY (lens_id)   REFERENCES lenses(id)  ON DELETE SET NULL
         );
 
-        -- Virtual grouping of images (e.g., "Best of Orchard 2026")
+        -- Virtual grouping of images
         CREATE TABLE IF NOT EXISTS collections (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             name        TEXT NOT NULL UNIQUE,
