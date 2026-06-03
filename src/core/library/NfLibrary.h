@@ -43,18 +43,18 @@ public:
         ~NfLibrary();
 
         uint64_t id() const;
-        void setName(std::string_view& name);
+        void setName(std::string_view name);
         const std::string& name() const noexcept;
 
         NfLibraryRepresentation* addRepresentation();
         void removeRepresentation(NfLibraryRepresentation* representation);
         const std::vector<std::unique_ptr<NfLibraryRepresentation>>& representations() const noexcept;
 
-        bool addPhoto(const NfPhoto& photo);
+        void addPhoto(const NfPhoto& photo);
 
 private:
-        int storeCamera(const std::string& maker, const std::string& model);
-        int storeLens(const std::string& lensName);
+        int64_t storeCamera(std::string_view maker, std::string_view model);
+        int64_t storeLens(std::string_view lensName);
 
         NfLibraryDatabase *m_db;
         uint64_t m_id;

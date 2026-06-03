@@ -44,7 +44,7 @@ const std::filesystem::path& NfPhoto::path() const
 
 std::string NfPhoto::name() const
 {
-        return m_filePath.stem().string();
+        return m_filePath.filename();
 }
 
 NfPhoto::PhotoFormat NfPhoto::format() const

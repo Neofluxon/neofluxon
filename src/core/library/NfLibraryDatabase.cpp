@@ -23,13 +23,14 @@
 
 #include "NfLibraryDatabase.h"
 #include "NfSourceRecords.h"
+#include "NfLogger.h"
 
 #include <iostream>
 
 namespace NfCore {
 
 NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db)
-        : m_db{db}
+        : m_db{db->m_db}
 {
         sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
 }
@@ -51,11 +52,19 @@ void NfLibraryDatabase::Transaction::commit()
 NfLibraryDatabase::NfLibraryDatabase(const std::filesystem::path& dbPath)
         : m_dbPath{dbPath}
 {
+        if(!open()) {
+                NF_LOG_ERROR("can't open DB for DB: " << m_dbPath );
+        }
 }
 
 NfLibraryDatabase::~NfLibraryDatabase()
 {
         close();
+}
+
+const std::filesystem::path& NfLibraryDatabase::path() const
+{
+        return m_dbPath;
 }
 
 bool NfLibraryDatabase::open()

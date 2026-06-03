@@ -68,6 +68,7 @@ public:
 
         explicit NfLibraryDatabase(const std::filesystem::path& dbPath);
         ~NfLibraryDatabase();
+        const std::filesystem::path& path() const;
 
         bool open();
         void close();

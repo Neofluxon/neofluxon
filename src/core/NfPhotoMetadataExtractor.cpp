@@ -33,7 +33,7 @@ NfPhotoMetadataExtractor::NfPhotoMetadataExtractor(const NfPhoto& photo)
 {
 }
 
-NfPhotoSummary NfPhotoMetadataExtractor::indexInfo() const
+NfPhotoSummary NfPhotoMetadataExtractor::summaryInfo() const
 {
         NfPhotoSummary info;
 

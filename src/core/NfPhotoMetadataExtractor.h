@@ -35,7 +35,7 @@ class NfPhoto;
 class NfPhotoMetadataExtractor {
  public:
         explicit NfPhotoMetadataExtractor(const NfPhoto& photo);
-        NfPhotoSummary indexInfo() const;
+        NfPhotoSummary summaryInfo() const;
         //NfPhotoMetadata fullMetadata() const;
 
   private:

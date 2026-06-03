@@ -25,6 +25,7 @@
 #include "NfLibraryRepresentation.h"
 #include "NfLibraryDatabase.h"
 #include "NfPhoto.h"
+#include "NfPhotoMetadataExtractor.h"
 #include "NfLogger.h"
 
 #include <algorithm>
@@ -50,12 +51,12 @@ uint64_t NfLibrary::id() const
         return m_id;
 }
 
-void NfLibrary::setName(const std::string& name)
+void NfLibrary::setName(std::string_view name)
 {
         //m_name = name;
 }
 
-const std::string& NfLibrary::name() const
+const std::string& NfLibrary::name() const noexcept
 {
         return m_name;
 }
@@ -82,7 +83,7 @@ void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
 }
 
 const std::vector<std::unique_ptr<NfLibraryRepresentation>>&
-NfLibrary::representations() const
+NfLibrary::representations() const noexcept
 {
         return m_representations;
 }
@@ -95,7 +96,7 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
 
         NfLibraryDatabase::Transaction tx(m_db);
 
-        auto folderId = m_db->addFolder(photo.path());
+        auto folderId = m_db->addFolder(photo.path().parent_path());
         if (folderId < 0) {
                 NF_LOG_ERROR("Failed to add folder: " << photo.path());
                 return;
@@ -108,20 +109,20 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
                 return;
 
         auto id = m_db->addImage(folderId,
-                                 photo.name,
+                                 photo.name(),
+                                 info.dateTaken.time_since_epoch().count(),
                                  cameraId,
-                                 lensId,
-                                 info.dateTaken);
+                                 lensId);
         if (id < 0) {
-                NF_LOG_ERROR("Failed to finalize image entry: " << photo.name);
+                NF_LOG_ERROR("Failed to finalize image entry: " << photo.name());
                 return;
         }
 
         tx.commit();
 }
 
-int64_t NfLibrary::storeCamera(const std::string& maker,
-                               const std::string& model)
+int64_t NfLibrary::storeCamera(std::string_view maker,
+                               std::string_view model)
 {
         if (maker.empty())
                 return -1;
@@ -136,7 +137,7 @@ int64_t NfLibrary::storeCamera(const std::string& maker,
         return cameraId;
 }
 
-int64_t NfLibrary::storeLens(const std::string& lensName)
+int64_t NfLibrary::storeLens(std::string_view lensName)
 {
         if (lensName.empty())
                 return -1;
