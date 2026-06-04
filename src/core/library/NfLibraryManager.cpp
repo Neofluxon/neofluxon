@@ -52,8 +52,25 @@ NfLibraryManager::libraries() const
         return m_libraries;
 }
 
+NfLibrary* NfLibraryManager::addLibrary(std::string_view name)
+{
+        if (auto* library = getLibraryByName(name))
+                return library;
+
+        std::scoped_lock lock(m_mutex);
+
+        const auto id = m_database->addLibrary(name);
+        if (id < 0)
+                return nullptr;
+
+        auto& library = m_libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
+
+        return library.get();
+}
+
 NfLibrary* NfLibraryManager::getLibrary(uint64_t id) const
 {
+        std::scoped_lock lock(m_mutex);
         auto it = std::find_if(m_libraries.begin(),
                                m_libraries.end(),
                                [id](const auto & library) {
@@ -63,15 +80,27 @@ NfLibrary* NfLibraryManager::getLibrary(uint64_t id) const
         return (it != m_libraries.end()) ? it->get() : nullptr;
 }
 
+NfLibrary* NfLibraryManager::getLibraryByName(std::string_view name) const
+{
+        std::scoped_lock lock(m_mutex);
+        auto it = std::find_if(m_libraries.begin(),
+                               m_libraries.end(),
+                               [name](const auto& library) {
+                                       return library->name() == name;
+                               });
+
+        return (it != m_libraries.end()) ? it->get() : nullptr;
+}
+
 void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id)
 {
         NF_LOG_DEBUG("import path: " << path);
 
-        std::scoped_lock lock(m_mutex);
         auto library = getLibrary(id);
         if (!library)
                 return;
 
+        std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfLibraryFolderImportTask>(path, library);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)

@@ -28,6 +28,7 @@
 #include <memory>
 #include <filesystem>
 #include <mutex>
+#include <string_view>
 
 namespace NfCore {
 
@@ -41,7 +42,9 @@ public:
         ~NfLibraryManager();
         const std::vector<std::unique_ptr<NfLibrary>>& libraries() const;
         void importPath(const std::filesystem::path& path, uint64_t id);
+        NfLibrary* addLibrary(std::string_view name);
         NfLibrary* getLibrary(uint64_t id) const;
+        NfLibrary* getLibraryByName(std::string_view name) const;
 
 private:
         NfScheduler* m_scheduler;

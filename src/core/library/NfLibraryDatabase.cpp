@@ -261,20 +261,31 @@ bool NfLibraryDatabase::initializeSchema()
         PRAGMA synchronous = NORMAL;
         PRAGMA foreign_keys = ON;
 
+        CREATE TABLE IF NOT EXISTS libraries (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            name    TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS folders (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            library_id  INTEGER NOT NULL,
+            path        TEXT NOT NULL,
+
+            FOREIGN KEY (library_id) REFERENCES libraries(id) ON DELETE CASCADE,
+            UNIQUE (library_id, path)
+        );
+
         CREATE TABLE IF NOT EXISTS cameras (
             id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            maker   TEXT,
-            model   TEXT
+            maker   TEXT NOT NULL,
+            model   TEXT NOT NULL,
+
+            UNIQUE (maker, model)
         );
 
         CREATE TABLE IF NOT EXISTS lenses (
             id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            name    TEXT
-        );
-
-        CREATE TABLE IF NOT EXISTS folders (
-            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            path    TEXT UNIQUE NOT NULL
+            name    TEXT NOT NULL UNIQUE
         );
 
         CREATE TABLE IF NOT EXISTS images (
@@ -284,66 +295,91 @@ bool NfLibraryDatabase::initializeSchema()
             lens_id         INTEGER,
             camera_id       INTEGER,
             datetime_taken  INTEGER,
+
             FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
             FOREIGN KEY (camera_id) REFERENCES cameras(id) ON DELETE SET NULL,
             FOREIGN KEY (lens_id)   REFERENCES lenses(id)  ON DELETE SET NULL
         );
 
-        -- Virtual grouping of images
         CREATE TABLE IF NOT EXISTS collections (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            name        TEXT NOT NULL UNIQUE,
+            library_id  INTEGER NOT NULL,
+            name        TEXT NOT NULL,
             description TEXT,
-            created_at  INTEGER
+            created_at  INTEGER,
+
+            FOREIGN KEY (library_id) REFERENCES libraries(id) ON DELETE CASCADE,
+            UNIQUE (library_id, name)
         );
 
-        -- Link table for many-to-many relationship
         CREATE TABLE IF NOT EXISTS collection_images (
-            collection_id INTEGER,
-            image_id      INTEGER,
-            position      INTEGER, -- Optional: to allow custom sorting within a collection
+            collection_id INTEGER NOT NULL,
+            image_id      INTEGER NOT NULL,
+            position      INTEGER,
+
             PRIMARY KEY (collection_id, image_id),
+
             FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
             FOREIGN KEY (image_id)      REFERENCES images(id)      ON DELETE CASCADE
         );
 
-        CREATE INDEX IF NOT EXISTS idx_images_folder ON images(folder_id);
-        CREATE INDEX IF NOT EXISTS idx_images_datetime ON images(datetime_taken);
-        CREATE INDEX IF NOT EXISTS idx_coll_img_id ON collection_images(image_id);)";
+       CREATE INDEX IF NOT EXISTS idx_images_folder
+           ON images(folder_id);
 
-        return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
+       CREATE INDEX IF NOT EXISTS idx_images_datetime
+          ON images(datetime_taken);
+
+       CREATE INDEX IF NOT EXISTS idx_coll_img_id
+          ON collection_images(image_id);)";
+
+       return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
 }
 
-int64_t NfLibraryDatabase::addFolder(const std::string& absolutePath)
+int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
 {
-        const char* sql = "INSERT OR IGNORE INTO folders (path) VALUES (?);";
-        sqlite3_stmt* stmt = nullptr;
+        const char* sql = R"(
+        INSERT INTO libraries (name)
+        VALUES (?)
+        ON CONFLICT(name) DO UPDATE SET name = excluded.name;
+        )";
 
+        sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
                 return -1;
 
-        sqlite3_bind_text(stmt, 1, absolutePath.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 1, name.data(),
+                          static_cast<int>(name.size()),
+                          SQLITE_TRANSIENT);
 
-        int rc = sqlite3_step(stmt);
+        int64_t libraryId = -1;
+        if (sqlite3_step(stmt) == SQLITE_DONE)
+                libraryId = static_cast<int64_t>(sqlite3_last_insert_rowid(m_db));
+
+        sqlite3_finalize(stmt);
+
+        return libraryId;
+}
+
+int64_t NfLibraryDatabase::addFolder(int64_t libraryId, const std::filesystem::path& path)
+{
+        const char* sql = R"(
+        INSERT INTO folders (library_id, path)
+        VALUES (?, ?)
+        ON CONFLICT(library_id, path) DO UPDATE SET path = excluded.path;)";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        sqlite3_bind_int64(stmt, 1, libraryId);
+
+        std::string pathStr = path.lexically_normal().generic_string();
+        sqlite3_bind_text(stmt, 2, pathStr.c_str(), -1, SQLITE_TRANSIENT);
+
         int64_t resultId = -1;
 
-        if (rc == SQLITE_DONE) {
-                // Check if a row was actually inserted
-                if (sqlite3_changes(m_db) > 0) {
-                        resultId = sqlite3_last_insert_rowid(m_db);
-                } else {
-                        // Folder already existed. Let's fetch its existing ID.
-                        sqlite3_finalize(stmt);
-
-                        const char* selectSql = "SELECT id FROM folders WHERE path = ?;";
-                        if (sqlite3_prepare_v2(m_db, selectSql, -1, &stmt, nullptr) == SQLITE_OK) {
-                                sqlite3_bind_text(stmt, 1, absolutePath.c_str(), -1, SQLITE_TRANSIENT);
-                                if (sqlite3_step(stmt) == SQLITE_ROW) {
-                                        resultId = sqlite3_column_int64(stmt, 0);
-                                }
-                        }
-                }
-        }
+        if (sqlite3_step(stmt) == SQLITE_DONE)
+                resultId = static_cast<int64_t>(sqlite3_last_insert_rowid(m_db));
 
         sqlite3_finalize(stmt);
 

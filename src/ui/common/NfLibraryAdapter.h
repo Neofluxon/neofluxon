@@ -27,6 +27,7 @@
 #include <QObject>
 
 #include <filesystem>
+#include <string_view>
 
 namespace NfCore {
 class NfLibraryManager;
@@ -42,6 +43,7 @@ public:
         explicit NfLibraryAdapter(NfCore::NfLibraryManager *library,
                                   QObject* parent = nullptr);
         ~NfLibraryAdapter();
+        void addLibrary(std::string_view name);
         void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
 
 private:

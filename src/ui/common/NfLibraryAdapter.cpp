@@ -41,6 +41,11 @@ NfLibraryAdapter::~NfLibraryAdapter()
         NF_LOG_DEBUG("called");
 }
 
+NfLibraryAdapter::addLibrary(std::string_view name)
+{
+        m_library->addLibrary(name);
+}
+
 void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t libraryId)
 {
         m_library->importPath(path, libraryId);

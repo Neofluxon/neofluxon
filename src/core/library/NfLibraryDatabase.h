@@ -78,7 +78,8 @@ public:
         void close();
         bool initializeSchema();
 
-        int64_t addFolder(const std::string& absolutePath);
+        int64_t addLibrary(const std::string_vew name);
+        int64_t addFolder(const std::filesystem::path& path);
         int64_t addImage(int64_t folderId,
                          const std::string& fileName,
                          int64_t timestamp,
