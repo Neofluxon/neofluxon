@@ -30,6 +30,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+#include <string_view>
 
 namespace NfCore {
 
@@ -48,6 +49,7 @@ namespace NfCore {
 class NfRepresentationRecord;
 class NfSourceRecord;
 class NfSourceData;
+class NfLibraryEntry;
 
 class NfLibraryDatabase {
 public:
@@ -78,8 +80,14 @@ public:
         void close();
         bool initializeSchema();
 
-        int64_t addLibrary(const std::string_vew name);
-        int64_t addFolder(const std::filesystem::path& path);
+        int64_t addLibrary(const std::string_view name);
+        bool libraryExists(int64_t id) const;
+        std::unique_ptr<NfLibraryEntry> library(uint64_t id) const;
+        std::unique_ptr<NfLibraryEntry> library(std::string_view name) const;
+        std::vector<uint64_t> libraryIds() const;
+        std::vector<NfLibraryEntry> libraries() const;
+
+        int64_t addFolder(const std::filesystem::path& path, int64_t libraryId);
         int64_t addImage(int64_t folderId,
                          const std::string& fileName,
                          int64_t timestamp,
@@ -88,8 +96,6 @@ public:
         int64_t addCamera(std::string_view maker,
                           std::string_view model);
         int64_t addLens(std::string_view lens);
-
-        std::vector<uint64_t> libraries() const;
         std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int id);
         int64_t getOrCreateEquipment(const std::string& type,
                                      const std::string& make,

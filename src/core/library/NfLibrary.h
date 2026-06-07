@@ -45,11 +45,9 @@ public:
         uint64_t id() const;
         void setName(std::string_view name);
         const std::string& name() const noexcept;
-
         NfLibraryRepresentation* addRepresentation();
         void removeRepresentation(NfLibraryRepresentation* representation);
         const std::vector<std::unique_ptr<NfLibraryRepresentation>>& representations() const noexcept;
-
         void addPhoto(const NfPhoto& photo);
 
 private:

@@ -96,11 +96,13 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
 
         NfLibraryDatabase::Transaction tx(m_db);
 
-        auto folderId = m_db->addFolder(photo.path().parent_path());
+        auto folderId = m_db->addFolder(photo.path().parent_path(), id());
         if (folderId < 0) {
                 NF_LOG_ERROR("Failed to add folder: " << photo.path());
                 return;
         }
+
+        NF_LOG_DEBUG("folder id: " << folderId);
 
         int cameraId = storeCamera(info.cameraMaker, info.cameraModel);
         int lensId   = storeLens(info.lens);
@@ -114,7 +116,7 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
                                  cameraId,
                                  lensId);
         if (id < 0) {
-                NF_LOG_ERROR("Failed to finalize image entry: " << photo.name());
+                NF_LOG_ERROR("Failed to add image entry: " << photo.name());
                 return;
         }
 

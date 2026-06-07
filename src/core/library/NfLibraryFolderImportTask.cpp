@@ -32,9 +32,9 @@
 namespace NfCore {
 
 NfLibraryFolderImportTask::NfLibraryFolderImportTask(const std::filesystem::path &folderPath,
-                                                     NfLibrary* library)
+                                                     std::unique_ptr<NfLibrary> library)
         : m_path{folderPath}
-        , m_library{library}
+        , m_library{std::move(library)}
 {
 }
 

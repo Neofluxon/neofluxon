@@ -35,6 +35,15 @@ struct NfSourceRecord {
         virtual ~NfSourceRecord() = default;
 };
 
+struct NfLibraryEntry {
+        uint64_t id;
+        std::string name;
+};
+
+struct NfLibrariesSourceRecord : public NfSourceRecord {
+        std::vector<NfLibraryEntry> libraries;
+};
+
 struct NfRepresentationRecord : public NfSourceRecord {
         //std::vector<NfDatetimeEntry> entries;
 };

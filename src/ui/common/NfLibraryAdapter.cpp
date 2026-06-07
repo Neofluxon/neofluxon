@@ -23,6 +23,7 @@
 
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibraryManager.h"
+#include "core/library/NfLibrary.h"
 #include "core/NfLogger.h"
 
 using namespace NfCore;
@@ -41,7 +42,7 @@ NfLibraryAdapter::~NfLibraryAdapter()
         NF_LOG_DEBUG("called");
 }
 
-NfLibraryAdapter::addLibrary(std::string_view name)
+void NfLibraryAdapter::addLibrary(std::string_view name)
 {
         m_library->addLibrary(name);
 }

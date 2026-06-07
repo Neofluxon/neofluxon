@@ -81,11 +81,6 @@ void NfLibraryDatabase::close()
         }
 }
 
-std::vector<uint64_t> NfLibraryDatabase::libraries() const
-{
-        return {0, 1, 2, 3};
-}
-
 std::unique_ptr<NfRepresentationRecord> NfLibraryDatabase::getRepresentationRecord(int id)
 {
         /*sqlite3_stmt* stmt;
@@ -360,30 +355,210 @@ int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
         return libraryId;
 }
 
-int64_t NfLibraryDatabase::addFolder(int64_t libraryId, const std::filesystem::path& path)
+bool NfLibraryDatabase::libraryExists(int64_t id) const
 {
         const char* sql = R"(
-        INSERT INTO folders (library_id, path)
-        VALUES (?, ?)
-        ON CONFLICT(library_id, path) DO UPDATE SET path = excluded.path;)";
+        SELECT 1
+        FROM libraries
+        WHERE id = ?
+        LIMIT 1;
+        )";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-                return -1;
+                return false;
 
-        sqlite3_bind_int64(stmt, 1, libraryId);
+        sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id));
 
-        std::string pathStr = path.lexically_normal().generic_string();
-        sqlite3_bind_text(stmt, 2, pathStr.c_str(), -1, SQLITE_TRANSIENT);
+        bool exists = false;
 
-        int64_t resultId = -1;
-
-        if (sqlite3_step(stmt) == SQLITE_DONE)
-                resultId = static_cast<int64_t>(sqlite3_last_insert_rowid(m_db));
+        if (sqlite3_step(stmt) == SQLITE_ROW)
+                exists = true;
 
         sqlite3_finalize(stmt);
 
-        return resultId;
+        return exists;
+}
+
+std::vector<uint64_t>
+NfLibraryDatabase::libraryIds() const
+{
+        std::vector<uint64_t> ids;
+
+        const char* sql = "SELECT id FROM libraries ORDER BY name;";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return ids;
+
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+                ids.push_back(
+                              static_cast<uint64_t>(
+                                                    sqlite3_column_int64(stmt, 0)));
+
+        sqlite3_finalize(stmt);
+
+        return ids;
+}
+
+std::unique_ptr<NfLibraryEntry>
+NfLibraryDatabase::library(uint64_t id) const
+{
+        const char* sql = R"(
+        SELECT id, name
+        FROM libraries
+        WHERE id = ?;
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return nullptr;
+
+        sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id));
+
+        std::unique_ptr<NfLibraryEntry> library;
+
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+                library = std::make_unique<NfLibraryEntry>();
+                library->id =
+                        static_cast<uint64_t>(
+                                sqlite3_column_int64(stmt, 0));
+
+                if (const auto* text =
+                    reinterpret_cast<const char*>(
+                            sqlite3_column_text(stmt, 1))) {
+                        library->name = text;
+                }
+        }
+
+        sqlite3_finalize(stmt);
+
+        return library;
+}
+
+std::unique_ptr<NfLibraryEntry>
+NfLibraryDatabase::library(std::string_view name) const
+{
+        const char* sql = R"(
+        SELECT id, name
+        FROM libraries
+        WHERE name = ?;
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return nullptr;
+
+        sqlite3_bind_text(stmt, 1,
+                          name.data(),
+                          static_cast<int>(name.size()),
+                          SQLITE_TRANSIENT);
+
+        std::unique_ptr<NfLibraryEntry> library;
+
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+                library = std::make_unique<NfLibraryEntry>();
+                library->id =
+                        static_cast<uint64_t>(
+                                sqlite3_column_int64(stmt, 0));
+
+                if (const auto* text =
+                    reinterpret_cast<const char*>(
+                            sqlite3_column_text(stmt, 1))) {
+                        library->name = text;
+                }
+        }
+
+        sqlite3_finalize(stmt);
+
+        return library;
+}
+
+std::vector<NfLibraryEntry>
+NfLibraryDatabase::libraries() const
+{
+        std::vector<NfLibraryEntry> libraries;
+
+        const char* sql = R"(
+        SELECT id, name
+        FROM libraries
+        ORDER BY name;
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return libraries;
+
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+                NfLibraryEntry library;
+
+                library.id =
+                        static_cast<uint64_t>(
+                                sqlite3_column_int64(stmt, 0));
+
+                if (const auto* text =
+                    reinterpret_cast<const char*>(
+                            sqlite3_column_text(stmt, 1))) {
+                        library.name = text;
+                }
+
+                libraries.push_back(std::move(library));
+        }
+
+        sqlite3_finalize(stmt);
+
+        return libraries;
+}
+
+int64_t NfLibraryDatabase::addFolder(const std::filesystem::path& path,
+                                     int64_t libraryId)
+{
+        const std::string pathStr = path.lexically_normal().generic_string();
+
+        // 1. Insert (or ignore if already exists)
+        const char* insertSql = R"(
+        INSERT OR IGNORE INTO folders (library_id, path)
+        VALUES (?, ?);
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, insertSql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        sqlite3_bind_int64(stmt, 1, libraryId);
+        sqlite3_bind_text(stmt, 2,
+                           pathStr.c_str(),
+                           -1,
+                           SQLITE_TRANSIENT);
+
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+
+        // 2. Always fetch the id (existing or newly inserted)
+        const char* selectSql = R"(
+        SELECT id
+        FROM folders
+        WHERE library_id = ? AND path = ?
+        LIMIT 1;
+        )";
+
+        if (sqlite3_prepare_v2(m_db, selectSql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        sqlite3_bind_int64(stmt, 1, libraryId);
+        sqlite3_bind_text(stmt, 2,
+                          pathStr.c_str(),
+                          -1,
+                          SQLITE_TRANSIENT);
+
+        int64_t id = -1;
+
+        if (sqlite3_step(stmt) == SQLITE_ROW)
+                id = sqlite3_column_int64(stmt, 0);
+
+        sqlite3_finalize(stmt);
+
+        return id;
 }
 
 int64_t NfLibraryDatabase::addImage(int64_t folderId,
@@ -392,6 +567,12 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
                                     int64_t cameraId,
                                     int64_t lensId)
 {
+        NF_LOG_DEBUG("folderId: " << folderId
+                     << "timestamp: " << timestamp
+                     << ", cameraId: " << cameraId
+                     << ", cameraId: " << lensId
+                     << fileName);
+        NF_LOG_DEBUG("timestamp: " << timestamp);
         const char* sql = R"(
         INSERT INTO images (folder_id, file_name, datetime_taken, camera_id, lens_id)
         VALUES (?, ?, ?, ?, ?);)";

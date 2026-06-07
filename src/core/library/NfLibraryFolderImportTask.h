@@ -26,6 +26,7 @@
 
 #include "NfTask.h"
 
+#include <memory>
 #include <filesystem>
 
 namespace NfCore {
@@ -35,7 +36,7 @@ class NfLibrary;
 class NfLibraryFolderImportTask : public NfTask {
 public:
         NfLibraryFolderImportTask(const std::filesystem::path &folderPath,
-                            NfLibrary* library);
+                                  std::unique_ptr<NfLibrary> library);
         NfLibraryFolderImportTask(NfLibraryFolderImportTask&&) noexcept = default;
         NfLibraryFolderImportTask& operator=(NfLibraryFolderImportTask&&) noexcept = default;
         NfLibraryFolderImportTask(const NfLibraryFolderImportTask&) = delete;
@@ -45,7 +46,7 @@ public:
 
 private:
         std::filesystem::path m_path;
-        NfLibrary *m_library;
+        std::unique_ptr<NfLibrary> m_library;
 };
 
 } // namespace NfCore

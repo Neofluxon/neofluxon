@@ -119,7 +119,7 @@ void NfLeftPanel::showLibraryBrowser()
 void NfLeftPanel::showImportWidget(const std::filesystem::path &path)
 {
         if (m_context->library)
-                m_context->library->importPath(path);
+                m_context->library->importPath(path, 1);
 }
 
 } // namespace NfDesktop

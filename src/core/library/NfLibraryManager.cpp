@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryManager.h"
+#include "NfSourceRecords.h"
 #include "NfLibraryDatabase.h"
 #include "NfLibrary.h"
 #include "NfLibraryFolderImportTask.h"
@@ -37,59 +38,50 @@ NfLibraryManager::NfLibraryManager(NfScheduler *scheduler)
         if (!m_database->initializeSchema()) {
                 NF_LOG_ERROR("can't initialize schema for DB: " << m_database->path() );
         }
-
-        for (const auto& id : m_database->libraries())
-                m_libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
 }
 
 NfLibraryManager::~NfLibraryManager()
 {
 }
 
-const std::vector<std::unique_ptr<NfLibrary>>&
+std::vector<std::unique_ptr<NfLibrary>>
 NfLibraryManager::libraries() const
 {
-        return m_libraries;
+        std::vector<std::unique_ptr<NfLibrary>> libraries;
+
+        auto librariesIds = m_database->libraryIds();
+        for (const auto &id: librariesIds)
+                libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
+
+        return libraries;
 }
 
-NfLibrary* NfLibraryManager::addLibrary(std::string_view name)
+std::optional<std::unique_ptr<NfLibrary>>
+NfLibraryManager::addLibrary(std::string_view name)
 {
-        if (auto* library = getLibraryByName(name))
-                return library;
+        NfLibraryDatabase::Transaction tx(m_database.get());
 
-        std::scoped_lock lock(m_mutex);
+        if (auto record = m_database->library(name)) {
+                tx.commit();
+                return std::make_unique<NfLibrary>(m_database.get(), record->id);
+        }
 
         const auto id = m_database->addLibrary(name);
         if (id < 0)
                 return nullptr;
 
-        auto& library = m_libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
+        tx.commit();
 
-        return library.get();
+        return std::make_unique<NfLibrary>(m_database.get(), id);
 }
 
-NfLibrary* NfLibraryManager::getLibrary(uint64_t id) const
+std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 {
-        std::scoped_lock lock(m_mutex);
-        auto it = std::find_if(m_libraries.begin(),
-                               m_libraries.end(),
-                               [id](const auto & library) {
-                                       return library->id() == id;
-                               });
+        NfLibraryDatabase::Transaction tx(m_database.get());
+        if (!m_database->libraryExists(id))
+                return nullptr;
 
-        return (it != m_libraries.end()) ? it->get() : nullptr;
-}
-
-NfLibrary* NfLibraryManager::getLibraryByName(std::string_view name) const
-{
-        std::scoped_lock lock(m_mutex);
-        auto it = std::find_if(m_libraries.begin(),
-                               m_libraries.end(),
-                               [name](const auto& library) {
-                                       return library->name() == name;
-                               });
-
-        return (it != m_libraries.end()) ? it->get() : nullptr;
+        return std::make_unique<NfLibrary>(m_database.get(), id);
 }
 
 void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id)
@@ -97,11 +89,12 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
         NF_LOG_DEBUG("import path: " << path);
 
         auto library = getLibrary(id);
-        if (!library)
+        if (!library) {
+                NF_LOG_ERROR("library doesn't exist: id = " << id);
                 return;
+        }
 
-        std::scoped_lock lock(m_mutex);
-        auto task = std::make_unique<NfLibraryFolderImportTask>(path, library);
+        auto task = std::make_unique<NfLibraryFolderImportTask>(path, std::move(library));
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
@@ -114,6 +107,7 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
                 });
 
         NF_LOG_DEBUG("import task submitted for : " << path);
+
         m_scheduler->submit(std::move(task));
 }
 
