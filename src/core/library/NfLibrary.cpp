@@ -22,6 +22,7 @@
  */
 
 #include "NfLibrary.h"
+#include "NfSourceRecords.h"
 #include "NfLibraryRepresentation.h"
 #include "NfLibraryDatabase.h"
 #include "NfPhoto.h"
@@ -56,9 +57,11 @@ void NfLibrary::setName(std::string_view name)
         //m_name = name;
 }
 
-const std::string& NfLibrary::name() const noexcept
+std::string NfLibrary::name() const noexcept
 {
-        return m_name;
+        using Mode = NfLibraryDatabase::Transaction::Mode;
+        NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
+        return m_db->library(m_id)->name;
 }
 
 NfLibraryRepresentation* NfLibrary::addRepresentation()

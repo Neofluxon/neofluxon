@@ -55,7 +55,12 @@ class NfLibraryDatabase {
 public:
         class Transaction {
         public:
-                Transaction(NfLibraryDatabase* db);
+                enum class Mode {
+                        Transaction,
+                        LockOnly
+                };
+
+                Transaction(NfLibraryDatabase* db, Mode mode = Mode::Transaction);
                 ~Transaction();
                 Transaction(const Transaction&) = delete;
                 Transaction& operator=(const Transaction&) = delete;
@@ -63,6 +68,7 @@ public:
 
         private:
                 struct sqlite3* m_db;
+                Mode m_mode;
                 bool m_committed = false;
                 std::unique_lock<std::mutex> m_lock;
         };

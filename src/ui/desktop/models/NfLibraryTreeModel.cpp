@@ -24,18 +24,21 @@
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
 #include "NfContext.h"
-#include "core/NfLibraryManager.h"
-#include "core/NfLibrary.h"
-#include "core/NfLibraryRepresentation.h"
-#include "core/NfLibraryTreeNode.h"
+#include "NfLibraryAdapter.h"
+#include "core/library/NfLibraryManager.h"
+#include "core/library/NfLibrary.h"
+#include "core/NfLogger.h"
+//#include "core/library/NfLibraryRepresentation.h"
+//#include "core/library/NfLibraryTreeNode.h"
 
+using namespace NfCore;
 using namespace NfUi;
 
 namespace NfDesktop {
 
 NfLibraryTreeModel::NfLibraryTreeModel(const NfContext& ctx, QObject* parent)
         : QAbstractItemModel(parent)
-        , m_library{ctx->library}
+        , m_library{ctx.library}
 {
         buildTree();
 }
@@ -118,21 +121,20 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::buildTree()
 {
-        /*m_root = std::make_unique<NfLibraryTreeItem>("",
-                                                     NfLibraryTreeItem::Type::Node);
+        m_root = std::make_unique<NfLibraryTreeItem>("", NfLibraryTreeItem::Type::Node);
 
         const auto libraries = m_library->libraries();
-
         for (const auto& library : libraries) {
 
-                auto libraryItem =
-                        populateLibrary(library, m_root.get());
-
+                auto name = QString::fromUtf8(library->name().c_str());
+                auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
+                                                                       NfLibraryTreeItem::Type::Library,
+                                                                       m_root.get());
                 m_root->appendChild(std::move(libraryItem));
-                }*/
+        }
 }
 
-std::unique_ptr<NfLibraryTreeItem>
+        /*std::unique_ptr<NfLibraryTreeItem>
 NfLibraryTreeModel::populateLibrary(NfLibrary* library,
                                     NfLibraryTreeItem* parent)
 {
@@ -140,15 +142,15 @@ NfLibraryTreeModel::populateLibrary(NfLibrary* library,
                                                                NfLibraryTreeItem::Type::Library,
                                                                parent);
 
-        for (const auto& rep : library->representations()) {
-                auto repItem = populateRepresentation(rep, libraryItem.get());
-                libraryItem->appendChild(std::move(repItem));
-        }
+        //for (const auto& rep : library->representations()) {
+        //        auto repItem = populateRepresentation(rep, libraryItem.get());
+        //        libraryItem->appendChild(std::move(repItem));
+        //}
 
         return libraryItem;
-}
+        }*/
 
-std::unique_ptr<NfLibraryTreeItem>
+        /*std::unique_ptr<NfLibraryTreeItem>
 NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
                                            NfLibraryTreeItem* parent)
 {
@@ -158,9 +160,9 @@ NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
         populateChildNodes(rep->getTree()->children(),
                            repItem.get());
         return repItem;
-}
+        }
 
-void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode*>& children,
+        void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode*>& children,
                                             NfLibraryTreeItem* parentItem)
 {
         for (const auto* child : children) {
@@ -171,6 +173,6 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode*
                         populateChildNodes(child->children(), node.get());
                 parentItem->appendChild(std::move(node));
         }
-}
+        }*/
 
 } // namespace NfDesktop

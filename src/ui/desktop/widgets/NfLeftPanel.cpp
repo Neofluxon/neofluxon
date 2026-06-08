@@ -34,13 +34,15 @@
 #include <QVBoxLayout>
 #include <QStackedWidget>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
         NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
         , m_pathBrowser{new NfPathBrowser(this)}
-          //, m_libraryTree{new NfLibraryTreeView(NfLibraryContext(ctx), this)}
+        , m_libraryTree{new NfLibraryTreeView(*ctx, this)}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);
@@ -50,7 +52,7 @@ namespace NfDesktop {
         panelLayout->addWidget(mainMenu);
 
         m_stack->addWidget(m_pathBrowser);
-        //m_stack->addWidget(m_libraryTree);
+        m_stack->addWidget(m_libraryTree);
 
         panelLayout->addWidget(m_stack);
 
@@ -112,8 +114,8 @@ void NfLeftPanel::showPathBrowser()
 void NfLeftPanel::showLibraryBrowser()
 {
         NF_LOG_INFO("showlibrary");
-        //m_stack->setCurrentWidget(m_libraryTree);
-        //m_libraryTree->show();
+        m_stack->setCurrentWidget(m_libraryTree);
+        m_libraryTree->show();
 }
 
 void NfLeftPanel::showImportWidget(const std::filesystem::path &path)

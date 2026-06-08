@@ -34,6 +34,7 @@ class NfLibrary;
 
 namespace NfUi {
 class NfContext;
+class NfLibraryAdapter;
 }
 
 namespace NfDesktop {
@@ -61,7 +62,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
         void buildTree();
 
-        NfCore::NfLibrary* m_library;
+        NfUi::NfLibraryAdapter* m_library;
         std::unique_ptr<NfLibraryTreeItem> m_root;
 };
 

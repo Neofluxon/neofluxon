@@ -28,8 +28,11 @@
 
 #include <filesystem>
 #include <string_view>
+#include <vector>
+#include <memory>
 
 namespace NfCore {
+class NfLibrary;
 class NfLibraryManager;
 }
 
@@ -45,6 +48,7 @@ public:
         ~NfLibraryAdapter();
         void addLibrary(std::string_view name);
         void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
+        std::vector<std::unique_ptr<NfCore::NfLibrary>> libraries() const;
 
 private:
         NfCore::NfLibraryManager *m_library;

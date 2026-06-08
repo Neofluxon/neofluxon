@@ -29,21 +29,27 @@
 
 namespace NfCore {
 
-NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db)
+        NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db,
+                                                    Mode mode)
         : m_db{db->m_db}
+        , m_mode{mode}
         , m_lock{db->m_mutex}
 {
-        sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
+        if (m_mode == Mode::Transaction)
+                sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
 }
 
 NfLibraryDatabase::Transaction::~Transaction()
 {
-        if (!m_committed)
+        if (m_mode == Mode::Transaction && !m_committed)
                 sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
 }
 
 void NfLibraryDatabase::Transaction::commit()
 {
+        if (m_mode != Mode::Transaction)
+                return;
+
         if (!m_committed) {
                 sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
                 m_committed = true;

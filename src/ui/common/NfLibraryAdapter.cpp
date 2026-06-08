@@ -52,4 +52,9 @@ void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t li
         m_library->importPath(path, libraryId);
 }
 
+std::vector<std::unique_ptr<NfLibrary>> NfLibraryAdapter::libraries() const
+{
+        return m_library->libraries();
+}
+
 } // namespace NfUi

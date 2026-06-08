@@ -23,15 +23,17 @@
 
 #include "NfLibraryTreeView.h"
 #include "NfLibraryTreeModel.h"
-#include "NfLibraryContext.h"
+#include "NfContext.h"
 
 #include <QHeaderView>
 #include <QAbstractItemModel>
 #include <QKeyEvent>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
-NfLibraryTreeView::NfLibraryTreeView(const NfLibraryContext& ctx, QWidget* parent)
+NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
         : QTreeView(parent)
         , m_model{new NfLibraryTreeModel(ctx, this)}
 {
