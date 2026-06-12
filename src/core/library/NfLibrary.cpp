@@ -85,10 +85,27 @@ void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
         m_representations.erase(it, m_representations.end());*/
 }
 
-const std::vector<std::unique_ptr<NfLibraryRepresentation>>&
-NfLibrary::representations() const noexcept
+std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations() const
 {
-        return m_representations;
+        std::vector<std::unique_ptr<NfLibraryRepresentation>> libraryRepresentations;
+
+        auto rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
+        rep->setName("Date");
+        libraryRepresentations.push_back(std::move(rep));
+
+        rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
+        rep->setName("Folders");
+        libraryRepresentations.push_back(std::move(rep));
+
+        rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
+        rep->setName("Equipment");
+        libraryRepresentations.push_back(std::move(rep));
+
+        rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
+        rep->setName("Collections");
+        libraryRepresentations.push_back(std::move(rep));
+
+        return libraryRepresentations;
 }
 
 void NfLibrary::addPhoto(const NfPhoto& photo)

@@ -27,8 +27,8 @@
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibraryManager.h"
 #include "core/library/NfLibrary.h"
+#include "core/library/NfLibraryRepresentation.h"
 #include "core/NfLogger.h"
-//#include "core/library/NfLibraryRepresentation.h"
 //#include "core/library/NfLibraryTreeNode.h"
 
 using namespace NfCore;
@@ -130,25 +130,24 @@ void NfLibraryTreeModel::buildTree()
                 auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
                                                                        NfLibraryTreeItem::Type::Library,
                                                                        m_root.get());
+                populateLibrary(library.get(), libraryItem.get());
+
                 m_root->appendChild(std::move(libraryItem));
         }
 }
 
-        /*std::unique_ptr<NfLibraryTreeItem>
-NfLibraryTreeModel::populateLibrary(NfLibrary* library,
-                                    NfLibraryTreeItem* parent)
+void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
+                                         NfLibraryTreeItem* parent)
 {
-        auto libraryItem = std::make_unique<NfLibraryTreeItem>(library->name(),
-                                                               NfLibraryTreeItem::Type::Library,
-                                                               parent);
-
-        //for (const auto& rep : library->representations()) {
-        //        auto repItem = populateRepresentation(rep, libraryItem.get());
-        //        libraryItem->appendChild(std::move(repItem));
-        //}
-
-        return libraryItem;
-        }*/
+        for (const auto& rep : library->representations()) {
+                auto name = QString::fromUtf8(rep->name().c_str());
+                auto repItem = std::make_unique<NfLibraryTreeItem>(name,
+                                                                   NfLibraryTreeItem::Type::Representation,
+                                                                   parent);
+                //populateRepresentation(rep, repItem.get());
+                parent->appendChild(std::move(repItem));
+        }
+}
 
         /*std::unique_ptr<NfLibraryTreeItem>
 NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,

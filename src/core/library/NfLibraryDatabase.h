@@ -103,6 +103,7 @@ public:
                           std::string_view model);
         int64_t addLens(std::string_view lens);
         std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int id);
+        //        std::vector<std::unique_ptr<NfRepresentationRecord>> getRepresentations(int libraryId) const;
         int64_t getOrCreateEquipment(const std::string& type,
                                      const std::string& make,
                                      const std::string& model);

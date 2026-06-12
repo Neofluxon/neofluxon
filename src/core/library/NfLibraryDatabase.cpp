@@ -117,6 +117,11 @@ std::unique_ptr<NfRepresentationRecord> NfLibraryDatabase::getRepresentationReco
         return nullptr; //record;
 }
 
+/*std::vector<std::unique_ptr<NfRepresentationRecord>>
+NfLibraryDatabase::getRepresentations(int libraryId) const
+{
+}*/
+
 void NfLibraryDatabase::populateSourceData(const std::unique_ptr<NfRepresentationRecord> &record)
 {
         /*switch (record->type) {

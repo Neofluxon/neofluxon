@@ -61,6 +61,8 @@ class NfLibraryTreeModel : public QAbstractItemModel {
  private:
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
         void buildTree();
+        void populateLibrary(NfCore::NfLibrary* library,
+                             NfLibraryTreeItem* parent);
 
         NfUi::NfLibraryAdapter* m_library;
         std::unique_ptr<NfLibraryTreeItem> m_root;

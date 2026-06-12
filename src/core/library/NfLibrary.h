@@ -47,7 +47,7 @@ public:
         std::string name() const noexcept;
         NfLibraryRepresentation* addRepresentation();
         void removeRepresentation(NfLibraryRepresentation* representation);
-        const std::vector<std::unique_ptr<NfLibraryRepresentation>>& representations() const noexcept;
+        std::vector<std::unique_ptr<NfLibraryRepresentation>> representations() const;
         void addPhoto(const NfPhoto& photo);
 
 private:

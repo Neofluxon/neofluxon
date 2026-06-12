@@ -40,7 +40,7 @@ NfLibraryRepresentation::~NfLibraryRepresentation()
 {
 }
 
-void NfLibraryRepresentation::setName(const std::string& name)
+void NfLibraryRepresentation::setName(std::string_view name)
 {
         m_name = name;
 }

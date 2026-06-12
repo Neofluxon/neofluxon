@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace NfCore {
 
@@ -36,7 +37,7 @@ class NfLibraryRepresentation {
 public:
         NfLibraryRepresentation(NfLibraryDatabase *db, uint64_t id);
         ~NfLibraryRepresentation();
-        void setName(const std::string& name);
+        void setName(std::string_view name);
         const std::string& name() const;
         //NfLibraryTreeNode* getTree() const;
 
