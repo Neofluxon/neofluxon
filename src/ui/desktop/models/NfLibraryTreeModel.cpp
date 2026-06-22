@@ -144,34 +144,31 @@ void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
                 auto repItem = std::make_unique<NfLibraryTreeItem>(name,
                                                                    NfLibraryTreeItem::Type::Representation,
                                                                    parent);
-                //populateRepresentation(rep, repItem.get());
+                populateRepresentation(repItem.get(), repItem.get());
                 parent->appendChild(std::move(repItem));
         }
 }
 
-        /*std::unique_ptr<NfLibraryTreeItem>
-NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
-                                           NfLibraryTreeItem* parent)
+void NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
+                                                NfLibraryTreeItem* parent)
 {
-        auto repItem = std::make_unique<NfLibraryTreeItem>(rep->name(),
-                                                           NfLibraryTreeItem::Type::Representation,
-                                                           parent);
-        populateChildNodes(rep->getTree()->children(),
-                           repItem.get());
-        return repItem;
-        }
+        auto repTree = rep->getTree();
+        if (repTree)
+                populateChildNodes(repTree->children(), parent);
+}
 
-        void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode*>& children,
+void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode>& children,
                                             NfLibraryTreeItem* parentItem)
 {
-        for (const auto* child : children) {
-                auto node = std::make_unique<NfLibraryTreeItem>(child->name(),
+        for (const auto& child : children) {
+                auto node = std::make_unique<NfLibraryTreeItem>(child.name(),
                                                                 NfLibraryTreeItem::Type::Node,
                                                                 parentItem);
-                if (!child->children().empty())
-                        populateChildNodes(child->children(), node.get());
+                if (!child.children().empty())
+                        populateChildNodes(child.children(), node.get());
+
                 parentItem->appendChild(std::move(node));
         }
-        }*/
+}
 
 } // namespace NfDesktop

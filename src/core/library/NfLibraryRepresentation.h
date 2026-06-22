@@ -35,15 +35,25 @@ class NfLibraryDatabase;
 
 class NfLibraryRepresentation {
 public:
+        enum class RepresentationType {
+                None,
+                DateTime,
+                Canonical,
+                Equipment,
+                Collections
+        };
+
         NfLibraryRepresentation(NfLibraryDatabase *db, uint64_t id);
         ~NfLibraryRepresentation();
+        RepresentationType type() const;
         void setName(std::string_view name);
         const std::string& name() const;
-        //NfLibraryTreeNode* getTree() const;
+        NfLibraryTreeNode* getTree() const;
 
 private:
+        RepresentationType m_type;
         std::string m_name;
-        //        std::unique_ptr<NfLibraryTreeNode> m_tree;
+        std::unique_ptr<NfLibraryTreeNode> m_tree;
 };
 
 } // namespace NfCore

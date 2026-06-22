@@ -32,7 +32,8 @@ NfLibraryTreeNode::NfLibraryTreeNode()
 }
 
 NfLibraryTreeNode::NfLibraryTreeNode(const std::string& name)
-        : m_name(name)
+        : m_type {RepresentationType::None}
+        , m_name{name}
 {
 }
 

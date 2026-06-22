@@ -63,6 +63,10 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         void buildTree();
         void populateLibrary(NfCore::NfLibrary* library,
                              NfLibraryTreeItem* parent);
+        void populateRepresentation(NfLibraryRepresentation* rep,
+                                    NfLibraryTreeItem* parent);
+        void populateChildNodes(const std::vector<NfLibraryTreeNode>& children,
+                                NfLibraryTreeItem* parentItem);
 
         NfUi::NfLibraryAdapter* m_library;
         std::unique_ptr<NfLibraryTreeItem> m_root;
