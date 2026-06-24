@@ -23,17 +23,21 @@
 
 #include "NfLibraryRepresentation.h"
 #include "NfLibraryDatabase.h"
-//#include "NfLibraryTreeNode.h"
+#include "NfSourceRecords.h"
+#include "NfLibraryTreeNode.h"
 
 namespace NfCore {
 
 NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db, uint64_t id)
-//: m_database{db}
-          //, m_id{id}
+        : m_database{db}
+        , m_id{id}
+        , m_type{RepresentationType::None}
 {
-        //auto rec = db->getRepresentationRecord(id);
-        //m_name = rec->name;
-        //loadTree(rec->representationTreeRecord);
+        auto rec = db->getRepresentationRecord(id);
+        if (rec) {
+                m_name = rec->name;
+                populateTree(rec.get());
+        }
 }
 
 NfLibraryRepresentation::~NfLibraryRepresentation()
@@ -50,9 +54,13 @@ const std::string& NfLibraryRepresentation::name() const
         return m_name;
 }
 
-        /*NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
+NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
 {
         return m_tree.get();
-        }*/
+}
+
+void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
+{
+}
 
 } // namespace NfCore

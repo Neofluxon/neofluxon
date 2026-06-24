@@ -29,7 +29,7 @@
 #include "core/library/NfLibrary.h"
 #include "core/library/NfLibraryRepresentation.h"
 #include "core/NfLogger.h"
-//#include "core/library/NfLibraryTreeNode.h"
+#include "core/library/NfLibraryTreeNode.h"
 
 using namespace NfCore;
 using namespace NfUi;
@@ -144,7 +144,7 @@ void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
                 auto repItem = std::make_unique<NfLibraryTreeItem>(name,
                                                                    NfLibraryTreeItem::Type::Representation,
                                                                    parent);
-                populateRepresentation(repItem.get(), repItem.get());
+                populateRepresentation(rep.get(), repItem.get());
                 parent->appendChild(std::move(repItem));
         }
 }
@@ -152,20 +152,20 @@ void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
 void NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
                                                 NfLibraryTreeItem* parent)
 {
-        auto repTree = rep->getTree();
+        auto* repTree = rep->getTree();
         if (repTree)
                 populateChildNodes(repTree->children(), parent);
 }
 
-void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNode>& children,
+void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<NfLibraryTreeNode>>& children,
                                             NfLibraryTreeItem* parentItem)
 {
         for (const auto& child : children) {
-                auto node = std::make_unique<NfLibraryTreeItem>(child.name(),
+                auto node = std::make_unique<NfLibraryTreeItem>(QString::fromStdString(child->name()),
                                                                 NfLibraryTreeItem::Type::Node,
                                                                 parentItem);
-                if (!child.children().empty())
-                        populateChildNodes(child.children(), node.get());
+                if (!child->children().empty())
+                        populateChildNodes(child->children(), node.get());
 
                 parentItem->appendChild(std::move(node));
         }

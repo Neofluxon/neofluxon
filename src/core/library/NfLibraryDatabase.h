@@ -48,7 +48,6 @@ namespace NfCore {
 
 class NfRepresentationRecord;
 class NfSourceRecord;
-class NfSourceData;
 class NfLibraryEntry;
 
 class NfLibraryDatabase {
@@ -111,12 +110,11 @@ public:
         bool addImageToCollection(int64_t imageId, int64_t collectionId);
 
 protected:
-        void loadDateTimeSource(std::unique_ptr<NfSourceRecord>& source);
-        void populateSourceData(const std::unique_ptr<NfRepresentationRecord> &record);
-        void loadCanonicalSource(std::unique_ptr<NfSourceData>& source);
-        void loadEquipmentSource(std::unique_ptr<NfSourceData>& source);
-        void loadCollectionsSource(std::unique_ptr<NfSourceData>& source);
-
+        void populateSourceData(NfRepresentationRecord *record);
+        void loadDateTimeSource(NfSourceRecord *source);
+        void loadCanonicalSource(NfSourceRecord *source);
+        void loadEquipmentSource(NfSourceRecord *source);
+        void loadCollectionsSource(NfSourceRecord *source);
 
 private:
         mutable std::mutex m_mutex;

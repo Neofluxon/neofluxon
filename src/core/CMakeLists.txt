@@ -46,7 +46,7 @@ set(CORE_HEADERS
         library/NfLibraryFolderImportTask.h
         library/NfLibraryManager.h
         library/NfLibraryRepresentation.h
-        #library/NfLibraryTreeNode.h
+        library/NfLibraryTreeNode.h
         )
 
 set(CORE_SOURCES
@@ -80,7 +80,7 @@ set(CORE_SOURCES
         library/NfLibraryFolderImportTask.cpp
         library/NfLibraryManager.cpp
         library/NfLibraryRepresentation.cpp
-        #library/NfLibraryTreeNode.cpp
+        library/NfLibraryTreeNode.cpp
         )
 
 add_library(NfCore STATIC

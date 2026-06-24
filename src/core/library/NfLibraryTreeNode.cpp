@@ -27,12 +27,8 @@
 
 namespace NfCore {
 
-NfLibraryTreeNode::NfLibraryTreeNode()
-{
-}
-
-NfLibraryTreeNode::NfLibraryTreeNode(const std::string& name)
-        : m_type {RepresentationType::None}
+NfLibraryTreeNode::NfLibraryTreeNode(const std::string& name, NodeType t)
+        : m_type{t}
         , m_name{name}
 {
 }
@@ -41,31 +37,30 @@ NfLibraryTreeNode::~NfLibraryTreeNode()
 {
 }
 
-void NfLibraryTreeNode::setName(const std::string& name)
-{
-        m_name = name;
-}
-
-const std::string& NfLibraryTreeNode::type() const
-{
-        return m_type;
-}
-
-void NfLibraryTreeNode::setType(const std::string& t)
-{
-        m_type = t;
-}
-
 const std::string& NfLibraryTreeNode::name() const
 {
         return m_name;
 }
 
+void NfLibraryTreeNode::setName(const std::string& name)
+{
+        m_name = name;
+}
+
+NfLibraryTreeNode::NodeType NfLibraryTreeNode::type() const
+{
+        return m_type;
+}
+
+void NfLibraryTreeNode::setType(NfLibraryTreeNode::NodeType t)
+{
+        m_type = t;
+}
+
 NfLibraryTreeNode* NfLibraryTreeNode::addChild()
 {
         auto child = std::make_unique<NfLibraryTreeNode>();
-        NfLibraryTreeNode* ptr = child.get();
-
+        auto* ptr = child.get();
         m_children.push_back(std::move(child));
 
         return ptr;

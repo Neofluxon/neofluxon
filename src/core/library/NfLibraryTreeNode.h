@@ -27,6 +27,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <variant>
+#include <map>
 
 namespace NfCore {
 
@@ -61,7 +63,7 @@ public:
                 Keyword
         };
 
-        explicit NfLibraryTreeNode(const std::string& name, NodeType t{});
+        NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();
         void setName(const std::string& name);
         const std::string& name() const;

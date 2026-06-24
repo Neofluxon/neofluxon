@@ -30,6 +30,8 @@
 
 namespace NfCore {
 class NfLibrary;
+class NfLibraryRepresentation;
+class NfLibraryTreeNode;
 }
 
 namespace NfUi {
@@ -63,9 +65,9 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         void buildTree();
         void populateLibrary(NfCore::NfLibrary* library,
                              NfLibraryTreeItem* parent);
-        void populateRepresentation(NfLibraryRepresentation* rep,
+        void populateRepresentation(NfCore::NfLibraryRepresentation* rep,
                                     NfLibraryTreeItem* parent);
-        void populateChildNodes(const std::vector<NfLibraryTreeNode>& children,
+        void populateChildNodes(const std::vector<std::unique_ptr<NfCore::NfLibraryTreeNode>>& children,
                                 NfLibraryTreeItem* parentItem);
 
         NfUi::NfLibraryAdapter* m_library;

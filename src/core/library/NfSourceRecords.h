@@ -44,8 +44,11 @@ struct NfLibrariesSourceRecord : public NfSourceRecord {
         std::vector<NfLibraryEntry> libraries;
 };
 
-struct NfRepresentationRecord : public NfSourceRecord {
-        //std::vector<NfDatetimeEntry> entries;
+struct NfRepresentationRecord {
+        int64_t id;
+        std::string name;
+        int type;
+        std::unique_ptr<NfSourceRecord> sourceData;
 };
 
 // Represents the Year/Month/Day tree data

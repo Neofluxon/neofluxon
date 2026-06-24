@@ -23,14 +23,15 @@
 
 #include "NfLibraryDatabase.h"
 #include "NfSourceRecords.h"
+#include "NfLibraryRepresentation.h"
 #include "NfLogger.h"
 
 #include <iostream>
 
 namespace NfCore {
 
-        NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db,
-                                                    Mode mode)
+NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db,
+                                            Mode mode)
         : m_db{db->m_db}
         , m_mode{mode}
         , m_lock{db->m_mutex}
@@ -85,179 +86,6 @@ void NfLibraryDatabase::close()
                 sqlite3_close(m_db);
                 m_db = nullptr;
         }
-}
-
-std::unique_ptr<NfRepresentationRecord> NfLibraryDatabase::getRepresentationRecord(int id)
-{
-        /*sqlite3_stmt* stmt;
-        const char* sql = "SELECT name, type FROM representations WHERE id = ?";
-
-        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-                return nullptr;
-
-        sqlite3_bind_int(stmt, 1, id);
-        int rc = sqlite3_step(stmt);
-
-        std::unique_ptr<NfRepresentationRecord> record;
-        if (rc == SQLITE_ROW) {
-                record = std::make_unique<NfRepresentationRecord>();
-                record->id = id;
-
-                const unsigned char* rawName = sqlite3_column_text(stmt, 0);
-                int rawType = sqlite3_column_int(stmt, 1);
-
-                record->name = reinterpret_cast<const char*>(rawName);
-                record->type = rawType;
-        }
-
-        sqlite3_finalize(stmt);
-
-        populateSourceData(record);*/
-
-        return nullptr; //record;
-}
-
-/*std::vector<std::unique_ptr<NfRepresentationRecord>>
-NfLibraryDatabase::getRepresentations(int libraryId) const
-{
-}*/
-
-void NfLibraryDatabase::populateSourceData(const std::unique_ptr<NfRepresentationRecord> &record)
-{
-        /*switch (record->type) {
-        case NfRepresentationType::DateTime:
-                record->sourceData = std::make_unique<NfDatetimeSourceRecord>();
-                loadDateTimeSource(record->sourceData);
-                break;
-        case NfRepresentationType::Canonical:
-                record->sourceData = std::make_unique<NfCanonicalSourceRecord>();
-                loadCanonicalSource(record->sourceData);
-                break;
-        case NfRepresentationType::Equipment:
-                record->sourceData = std::make_unique<NfEquipmentSourceRecord>();
-                loadEquipmentSource(record->sourceData);
-                break;
-        case NfRepresentationType::Collections:
-                record->sourceData = std::make_unique<NfCollectionsSourceRecord>();
-                loadCollectionsSource(record->sourceData);
-                break;
-                }*/
-}
-
-void NfLibraryDatabase::loadDateTimeSource(std::unique_ptr<NfSourceRecord>& source)
-{
-        /*auto* record = static_cast<NfDatetimeSourceRecord*>(source.get());
-        const char* sql = "SELECT DISTINCT datetime_taken "
-                "FROM images "
-                "WHERE datetime_taken IS NOT NULL;";
-
-        sqlite3_stmt* stmt;
-        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-                while (sqlite3_step(stmt) == SQLITE_ROW)
-                        record->entries.push_back({ sqlite3_column_int64(stmt, 0) });
-        }
-        sqlite3_finalize(stmt);*/
-}
-
-void NfLibraryDatabase::loadCanonicalSource(std::unique_ptr<NfSourceData>& source)
-{
-        /*auto* record = static_cast<NfCanonicalSourceRecord*>(source.get());
-
-    // We join images and folders to find only folders that actually contain images
-    const char* sql =
-        "SELECT DISTINCT f.id, f.path "
-        "FROM folders f "
-        "INNER JOIN images i ON f.id = i.folder_id "
-        "ORDER BY f.path ASC;";
-
-    sqlite3_stmt* stmt;
-
-    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            int id = sqlite3_column_int(stmt, 0);
-            const char* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-            // Storing the ID and Path pair
-            record->folders.push_back({ id, path ? path : "" });
-        }
-    } else {
-        // Log error: sqlite3_errmsg(m_db)
-    }
-
-    sqlite3_finalize(stmt);*/
-}
-
-void NfLibraryDatabase::loadEquipmentSource(std::unique_ptr<NfSourceData>& source)
-{
-        /*auto* record = static_cast<NfEquipmentSourceRecord*>(source.get());
-        sqlite3_stmt* stmt;
-
-        // 1. Load only Cameras that have associated images
-        const char* sqlCameras =
-                "SELECT DISTINCT c.id, c.maker, c.model "
-                "FROM cameras c "
-                "INNER JOIN images i ON c.id = i.camera_id "
-                "ORDER BY c.maker ASC, c.model ASC;";
-
-        if (sqlite3_prepare_v2(m_db, sqlCameras, -1, &stmt, nullptr) == SQLITE_OK) {
-                while (sqlite3_step(stmt) == SQLITE_ROW) {
-                        int id = sqlite3_column_int(stmt, 0);
-                        const char* maker = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-                        const char* model = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-
-                        record->cameras.push_back({
-                                        id,
-                                        maker ? maker : "",
-                                        model ? model : ""
-                                });
-                }
-        }
-        sqlite3_finalize(stmt);
-
-        // 2. Load only Lenses that have associated images
-        const char* sqlLenses =
-                "SELECT DISTINCT l.id, l.name "
-                "FROM lenses l "
-                "INNER JOIN images i ON l.id = i.lens_id "
-                "ORDER BY l.name ASC;";
-
-        if (sqlite3_prepare_v2(m_db, sqlLenses, -1, &stmt, nullptr) == SQLITE_OK) {
-                while (sqlite3_step(stmt) == SQLITE_ROW) {
-                        int id = sqlite3_column_int(stmt, 0);
-                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-
-                        record->lenses.push_back({
-                                        id,
-                                        name ? name : ""
-                                });
-                }
-        }
-        sqlite3_finalize(stmt);*/
-}
-
-void NfLibraryDatabase::loadCollectionsSource(std::unique_ptr<NfSourceData>& source)
-{
-        /*auto* record = static_cast<NfCollectionsSourceRecord*>(source.get());
-
-        // Join collections with image_collections (or images) to find non-empty sets
-        // Assuming a many-to-many relationship table 'image_collections'
-        const char* sql =
-                "SELECT DISTINCT c.id, c.name "
-                "FROM collections c "
-                "INNER JOIN image_collections ic ON c.id = ic.collection_id "
-                "ORDER BY c.name ASC;";
-
-        sqlite3_stmt* stmt;
-
-        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-                while (sqlite3_step(stmt) == SQLITE_ROW) {
-                        int id = sqlite3_column_int(stmt, 0);
-                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-
-                        record->collections.push_back({ id, name ? name : "" });
-                }
-        }
-
-        sqlite3_finalize(stmt);*/
 }
 
 bool NfLibraryDatabase::initializeSchema()
@@ -689,6 +517,180 @@ int64_t NfLibraryDatabase::addLens(std::string_view lens)
         sqlite3_finalize(stmt);
 
         return resultId;
+}
+
+std::unique_ptr<NfRepresentationRecord> NfLibraryDatabase::getRepresentationRecord(int id)
+{
+        sqlite3_stmt* stmt;
+        const char* sql = "SELECT name, type FROM representations WHERE id = ?";
+
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return nullptr;
+
+        sqlite3_bind_int(stmt, 1, id);
+        int rc = sqlite3_step(stmt);
+
+        std::unique_ptr<NfRepresentationRecord> record;
+        if (rc == SQLITE_ROW) {
+                record = std::make_unique<NfRepresentationRecord>();
+                record->id = id;
+
+                const unsigned char* rawName = sqlite3_column_text(stmt, 0);
+                int rawType = sqlite3_column_int(stmt, 1);
+
+                record->name = reinterpret_cast<const char*>(rawName);
+                record->type = rawType;
+        }
+
+        sqlite3_finalize(stmt);
+
+        populateSourceData(record.get());
+
+        return record;
+}
+
+/*std::vector<std::unique_ptr<NfRepresentationRecord>>
+NfLibraryDatabase::getRepresentations(int libraryId) const
+{
+}*/
+
+void NfLibraryDatabase::populateSourceData(NfRepresentationRecord *record)
+{
+        using RepresentationType = NfLibraryRepresentation::RepresentationType;
+        switch (static_cast<RepresentationType>(record->type)) {
+        case RepresentationType::DateTime:
+                record->sourceData = std::make_unique<NfDatetimeSourceRecord>();
+                loadDateTimeSource(record->sourceData.get());
+                break;
+        case RepresentationType::Canonical:
+                record->sourceData = std::make_unique<NfCanonicalSourceRecord>();
+                loadCanonicalSource(record->sourceData.get());
+                break;
+        case RepresentationType::Equipment:
+                record->sourceData = std::make_unique<NfEquipmentSourceRecord>();
+                loadEquipmentSource(record->sourceData.get());
+                break;
+        case RepresentationType::Collections:
+                record->sourceData = std::make_unique<NfCollectionsSourceRecord>();
+                loadCollectionsSource(record->sourceData.get());
+                break;
+        }
+}
+
+void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source)
+{
+        /*auto* record = static_cast<NfDatetimeSourceRecord*>(source.get());
+        const char* sql = "SELECT DISTINCT datetime_taken "
+                "FROM images "
+                "WHERE datetime_taken IS NOT NULL;";
+
+        sqlite3_stmt* stmt;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW)
+                        record->entries.push_back({ sqlite3_column_int64(stmt, 0) });
+        }
+        sqlite3_finalize(stmt);*/
+}
+
+void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord *source)
+{
+        /*auto* record = static_cast<NfCanonicalSourceRecord*>(source.get());
+
+    // We join images and folders to find only folders that actually contain images
+    const char* sql =
+        "SELECT DISTINCT f.id, f.path "
+        "FROM folders f "
+        "INNER JOIN images i ON f.id = i.folder_id "
+        "ORDER BY f.path ASC;";
+
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            int id = sqlite3_column_int(stmt, 0);
+            const char* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+            // Storing the ID and Path pair
+            record->folders.push_back({ id, path ? path : "" });
+        }
+    } else {
+        // Log error: sqlite3_errmsg(m_db)
+    }
+
+    sqlite3_finalize(stmt);*/
+}
+
+void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source)
+{
+        /*auto* record = static_cast<NfEquipmentSourceRecord*>(source.get());
+        sqlite3_stmt* stmt;
+
+        // 1. Load only Cameras that have associated images
+        const char* sqlCameras =
+                "SELECT DISTINCT c.id, c.maker, c.model "
+                "FROM cameras c "
+                "INNER JOIN images i ON c.id = i.camera_id "
+                "ORDER BY c.maker ASC, c.model ASC;";
+
+        if (sqlite3_prepare_v2(m_db, sqlCameras, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char* maker = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+                        const char* model = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+
+                        record->cameras.push_back({
+                                        id,
+                                        maker ? maker : "",
+                                        model ? model : ""
+                                });
+                }
+        }
+        sqlite3_finalize(stmt);
+
+        // 2. Load only Lenses that have associated images
+        const char* sqlLenses =
+                "SELECT DISTINCT l.id, l.name "
+                "FROM lenses l "
+                "INNER JOIN images i ON l.id = i.lens_id "
+                "ORDER BY l.name ASC;";
+
+        if (sqlite3_prepare_v2(m_db, sqlLenses, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+
+                        record->lenses.push_back({
+                                        id,
+                                        name ? name : ""
+                                });
+                }
+        }
+        sqlite3_finalize(stmt);*/
+}
+
+void NfLibraryDatabase::loadCollectionsSource(NfSourceRecord *source)
+{
+        /*auto* record = static_cast<NfCollectionsSourceRecord*>(source.get());
+
+        // Join collections with image_collections (or images) to find non-empty sets
+        // Assuming a many-to-many relationship table 'image_collections'
+        const char* sql =
+                "SELECT DISTINCT c.id, c.name "
+                "FROM collections c "
+                "INNER JOIN image_collections ic ON c.id = ic.collection_id "
+                "ORDER BY c.name ASC;";
+
+        sqlite3_stmt* stmt;
+
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+
+                        record->collections.push_back({ id, name ? name : "" });
+                }
+        }
+
+        sqlite3_finalize(stmt);*/
 }
 
 } // namespace NfCore

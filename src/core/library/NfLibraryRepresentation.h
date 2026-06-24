@@ -30,8 +30,9 @@
 
 namespace NfCore {
 
-        //class NfLibraryTreeNode;
+class NfRepresentationRecord;
 class NfLibraryDatabase;
+class NfLibraryTreeNode;
 
 class NfLibraryRepresentation {
 public:
@@ -50,7 +51,12 @@ public:
         const std::string& name() const;
         NfLibraryTreeNode* getTree() const;
 
+protected:
+        void populateTree(const NfRepresentationRecord *record);
+
 private:
+        NfLibraryDatabase* m_database;
+        uint64_t m_id;
         RepresentationType m_type;
         std::string m_name;
         std::unique_ptr<NfLibraryTreeNode> m_tree;
