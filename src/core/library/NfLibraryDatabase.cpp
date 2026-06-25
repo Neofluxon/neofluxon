@@ -100,6 +100,9 @@ bool NfLibraryDatabase::initializeSchema()
             name    TEXT NOT NULL UNIQUE
         );
 
+        INSERT OR IGNORE INTO libraries (name)
+        VALUES ('Default Library');
+
         CREATE TABLE IF NOT EXISTS folders (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             library_id  INTEGER NOT NULL,
@@ -519,34 +522,38 @@ int64_t NfLibraryDatabase::addLens(std::string_view lens)
         return resultId;
 }
 
-std::unique_ptr<NfRepresentationRecord> NfLibraryDatabase::getRepresentationRecord(int id)
+std::unique_ptr<NfRepresentationRecord>
+NfLibraryDatabase::getRepresentationRecord(int64_t libraryId,
+                                           NfLibraryRepresentation::RepresentationType repType)
 {
-        sqlite3_stmt* stmt;
-        const char* sql = "SELECT name, type FROM representations WHERE id = ?";
+        using RepresentationType = NfLibraryRepresentation::RepresentationType;
 
-        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-                return nullptr;
+        auto record = std::make_unique<NfRepresentationRecord>();
+        record->libraryId = libraryId;
+        record->type = static_cast<int>(repType);
 
-        sqlite3_bind_int(stmt, 1, id);
-        int rc = sqlite3_step(stmt);
-
-        std::unique_ptr<NfRepresentationRecord> record;
-        if (rc == SQLITE_ROW) {
-                record = std::make_unique<NfRepresentationRecord>();
-                record->id = id;
-
-                const unsigned char* rawName = sqlite3_column_text(stmt, 0);
-                int rawType = sqlite3_column_int(stmt, 1);
-
-                record->name = reinterpret_cast<const char*>(rawName);
-                record->type = rawType;
+        switch (repType) {
+        case RepresentationType::DateTime:
+                record->name = "DateTime";
+                break;
+        case RepresentationType::Canonical:
+                record->name = "Canonical";
+                break;
+        case RepresentationType::Equipment:
+                record->name = "Equipment";
+                break;
+        case RepresentationType::Collections:
+                record->name = "Collections";
+                break;
+        case RepresentationType::None:
+        default:
+                record->name = "None";
+                break;
         }
-
-        sqlite3_finalize(stmt);
 
         populateSourceData(record.get());
 
-        return record;
+        return std::move(record);
 }
 
 /*std::vector<std::unique_ptr<NfRepresentationRecord>>
@@ -560,24 +567,24 @@ void NfLibraryDatabase::populateSourceData(NfRepresentationRecord *record)
         switch (static_cast<RepresentationType>(record->type)) {
         case RepresentationType::DateTime:
                 record->sourceData = std::make_unique<NfDatetimeSourceRecord>();
-                loadDateTimeSource(record->sourceData.get());
+                loadDateTimeSource(record->sourceData.get(), record->libraryId);
                 break;
         case RepresentationType::Canonical:
                 record->sourceData = std::make_unique<NfCanonicalSourceRecord>();
-                loadCanonicalSource(record->sourceData.get());
+                loadCanonicalSource(record->sourceData.get(), record->libraryId);
                 break;
         case RepresentationType::Equipment:
                 record->sourceData = std::make_unique<NfEquipmentSourceRecord>();
-                loadEquipmentSource(record->sourceData.get());
+                loadEquipmentSource(record->sourceData.get(), record->libraryId);
                 break;
         case RepresentationType::Collections:
                 record->sourceData = std::make_unique<NfCollectionsSourceRecord>();
-                loadCollectionsSource(record->sourceData.get());
+                loadCollectionsSource(record->sourceData.get(), record->libraryId);
                 break;
         }
 }
 
-void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source)
+void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libraryId)
 {
         /*auto* record = static_cast<NfDatetimeSourceRecord*>(source.get());
         const char* sql = "SELECT DISTINCT datetime_taken "
@@ -592,34 +599,32 @@ void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source)
         sqlite3_finalize(stmt);*/
 }
 
-void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord *source)
+void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libraryId)
 {
-        /*auto* record = static_cast<NfCanonicalSourceRecord*>(source.get());
+        auto* record = static_cast<NfCanonicalSourceRecord*>(source);
+        const char* sql =
+                "SELECT DISTINCT f.id, f.path "
+                "FROM folders f "
+                "INNER JOIN images i ON f.id = i.folder_id "
+                "WHERE f.library_id = ? "
+                "ORDER BY f.path ASC;";
 
-    // We join images and folders to find only folders that actually contain images
-    const char* sql =
-        "SELECT DISTINCT f.id, f.path "
-        "FROM folders f "
-        "INNER JOIN images i ON f.id = i.folder_id "
-        "ORDER BY f.path ASC;";
-
-    sqlite3_stmt* stmt;
-
-    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            int id = sqlite3_column_int(stmt, 0);
-            const char* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-            // Storing the ID and Path pair
-            record->folders.push_back({ id, path ? path : "" });
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_int(stmt, 1, libraryId);
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        auto id = sqlite3_column_int(stmt, 0);
+                        const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+                        record->folders.emplace_back(id, path ? path : "");
+                }
+        } else {
+                // Log sqlite3_errmsg(m_db)
         }
-    } else {
-        // Log error: sqlite3_errmsg(m_db)
-    }
 
-    sqlite3_finalize(stmt);*/
+        sqlite3_finalize(stmt);
 }
 
-void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source)
+void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libraryId)
 {
         /*auto* record = static_cast<NfEquipmentSourceRecord*>(source.get());
         sqlite3_stmt* stmt;
@@ -667,7 +672,7 @@ void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source)
         sqlite3_finalize(stmt);*/
 }
 
-void NfLibraryDatabase::loadCollectionsSource(NfSourceRecord *source)
+void NfLibraryDatabase::loadCollectionsSource(NfSourceRecord *source, int64_t libraryId)
 {
         /*auto* record = static_cast<NfCollectionsSourceRecord*>(source.get());
 

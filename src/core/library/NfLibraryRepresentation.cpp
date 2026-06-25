@@ -25,18 +25,24 @@
 #include "NfLibraryDatabase.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryTreeNode.h"
+#include "NfLogger.h"
 
 namespace NfCore {
 
-NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db, uint64_t id)
+NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db,
+                                                 int64_t libraryId,
+                                                 RepresentationType t)
         : m_database{db}
-        , m_id{id}
-        , m_type{RepresentationType::None}
+        , m_libraryId{libraryId}
+        , m_type{t}
 {
-        auto rec = db->getRepresentationRecord(id);
-        if (rec) {
-                m_name = rec->name;
-                populateTree(rec.get());
+
+        NF_LOG_DEBUG("called");
+        auto record = m_database->getRepresentationRecord(m_libraryId, m_type);
+        if (record) {
+                m_name = record->name;
+                NF_LOG_DEBUG("populate tree for : " << m_name);
+                populateTree(record.get());
         }
 }
 
@@ -61,6 +67,67 @@ NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
 
 void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 {
+        NF_LOG_DEBUG("called");
+        switch (static_cast<RepresentationType>(rep->type)) {
+        case RepresentationType::DateTime:
+                break;
+        case RepresentationType::Canonical:
+                populateCanonicalTree(rep);
+                break;
+        case RepresentationType::Equipment:
+                break;
+        case RepresentationType::Collections:
+                break;
+        case RepresentationType::None:
+        default:
+                break;
+        }
+}
+
+void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)
+{
+        NF_LOG_DEBUG("called");
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
+                                                     NfLibraryTreeNode::NodeType::Root);
+
+        auto* source = dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
+
+        if (!source) {
+                NF_LOG_DEBUG("source record is null");
+                return;
+        }
+
+        for (const auto& folder : source->folders) {
+                NF_LOG_DEBUG("path: " << folder.path);
+
+                auto* parent = m_tree.get();
+
+                std::filesystem::path p = folder.path;
+                for (const auto& part : p) {
+                        std::string name = part.string();
+
+                        if (name.empty())
+                                continue;
+
+                        NfLibraryTreeNode* child = nullptr;
+
+                        for (const auto& c : parent->children()) {
+                                if (c->name() == name) {
+                                        child = c.get();
+                                        break;
+                                }
+                        }
+
+                        if (!child) {
+                                child = parent->addChild();
+                                child->setName(name);
+                                child->setType(
+                                               NfLibraryTreeNode::NodeType::Folder);
+                        }
+
+                        parent = child;
+                }
+        }
 }
 
 } // namespace NfCore

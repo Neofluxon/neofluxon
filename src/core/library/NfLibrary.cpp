@@ -89,20 +89,21 @@ std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations(
 {
         std::vector<std::unique_ptr<NfLibraryRepresentation>> libraryRepresentations;
 
-        auto rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
-        rep->setName("Date");
+        using RepresentationType = NfLibraryRepresentation::RepresentationType;
+        auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
+                                                             RepresentationType::DateTime);
         libraryRepresentations.push_back(std::move(rep));
 
-        rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
-        rep->setName("Folders");
+        rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
+                                                        RepresentationType::Canonical);
         libraryRepresentations.push_back(std::move(rep));
 
-        rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
-        rep->setName("Equipment");
+        rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
+                                                        RepresentationType::Equipment);
         libraryRepresentations.push_back(std::move(rep));
 
-        rep = std::make_unique<NfLibraryRepresentation>(nullptr, 0);
-        rep->setName("Collections");
+        rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
+                                                        RepresentationType::Collections);
         libraryRepresentations.push_back(std::move(rep));
 
         return libraryRepresentations;

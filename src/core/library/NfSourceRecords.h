@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <filesystem>
 
 namespace NfCore {
 
@@ -45,7 +46,7 @@ struct NfLibrariesSourceRecord : public NfSourceRecord {
 };
 
 struct NfRepresentationRecord {
-        int64_t id;
+        int64_t libraryId;
         std::string name;
         int type;
         std::unique_ptr<NfSourceRecord> sourceData;
@@ -63,7 +64,7 @@ struct NfDatetimeSourceRecord : public NfSourceRecord {
 // Represents the physical folder structure
 struct NfFolderEntry {
         int id;
-        std::string path;
+        std::filesystem::path path;
 };
 
 struct NfCanonicalSourceRecord : public NfSourceRecord {

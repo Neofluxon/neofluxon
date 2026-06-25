@@ -78,9 +78,13 @@ NfLibraryManager::addLibrary(std::string_view name)
 std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 {
         using Transaction = NfLibraryDatabase::Transaction;
-        NfLibraryDatabase::Transaction tx(m_database.get(), Transaction::Mode::LockOnly);
-        if (!m_database->libraryExists(id))
-                return nullptr;
+
+        {
+                NfLibraryDatabase::Transaction tx(m_database.get(),
+                                                  Transaction::Mode::LockOnly);
+                if (!m_database->libraryExists(id))
+                        return nullptr;
+        }
 
         return std::make_unique<NfLibrary>(m_database.get(), id);
 }

@@ -44,7 +44,9 @@ public:
                 Collections
         };
 
-        NfLibraryRepresentation(NfLibraryDatabase *db, uint64_t id);
+        NfLibraryRepresentation(NfLibraryDatabase *db,
+                                int64_t libraryId,
+                                RepresentationType t);
         ~NfLibraryRepresentation();
         RepresentationType type() const;
         void setName(std::string_view name);
@@ -53,10 +55,11 @@ public:
 
 protected:
         void populateTree(const NfRepresentationRecord *record);
+        void populateCanonicalTree(const NfRepresentationRecord* rep);
 
 private:
         NfLibraryDatabase* m_database;
-        uint64_t m_id;
+        int64_t m_libraryId;
         RepresentationType m_type;
         std::string m_name;
         std::unique_ptr<NfLibraryTreeNode> m_tree;

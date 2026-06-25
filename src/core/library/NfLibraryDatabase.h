@@ -24,6 +24,8 @@
 #ifndef NF_LIBRARY_DATABASE_H
 #define NF_LIBRARY_DATABASE_H
 
+#include "NfLibraryRepresentation.h"
+
 #include <sqlite3.h>
 #include <filesystem>
 #include <string>
@@ -101,7 +103,8 @@ public:
         int64_t addCamera(std::string_view maker,
                           std::string_view model);
         int64_t addLens(std::string_view lens);
-        std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int id);
+        std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int64_t libraryId,
+                                                                        NfLibraryRepresentation::RepresentationType repType);
         //        std::vector<std::unique_ptr<NfRepresentationRecord>> getRepresentations(int libraryId) const;
         int64_t getOrCreateEquipment(const std::string& type,
                                      const std::string& make,
@@ -111,10 +114,10 @@ public:
 
 protected:
         void populateSourceData(NfRepresentationRecord *record);
-        void loadDateTimeSource(NfSourceRecord *source);
-        void loadCanonicalSource(NfSourceRecord *source);
-        void loadEquipmentSource(NfSourceRecord *source);
-        void loadCollectionsSource(NfSourceRecord *source);
+        void loadDateTimeSource(NfSourceRecord *source, int64_t libraryId);
+        void loadCanonicalSource(NfSourceRecord *source, int64_t libraryId);
+        void loadEquipmentSource(NfSourceRecord *source, int64_t libraryId);
+        void loadCollectionsSource(NfSourceRecord *source, int64_t libraryId);
 
 private:
         mutable std::mutex m_mutex;
