@@ -24,6 +24,8 @@
 #ifndef NF_LIBRARY_REPRESENTATION_H
 #define NF_LIBRARY_REPRESENTATION_H
 
+#include "NfLibraryTreeNode.h"
+
 #include <memory>
 #include <string>
 #include <string_view>
@@ -32,7 +34,6 @@ namespace NfCore {
 
 class NfRepresentationRecord;
 class NfLibraryDatabase;
-class NfLibraryTreeNode;
 
 class NfLibraryRepresentation {
 public:
@@ -56,6 +57,10 @@ public:
 protected:
         void populateTree(const NfRepresentationRecord *record);
         void populateCanonicalTree(const NfRepresentationRecord* rep);
+        void populateDateTimeTree(const NfRepresentationRecord* rep);
+        NfLibraryTreeNode* findOrCreateChild(NfLibraryTreeNode* parent,
+                                             const std::string& name,
+                                             NfLibraryTreeNode::NodeType nodeType);
 
 private:
         NfLibraryDatabase* m_database;

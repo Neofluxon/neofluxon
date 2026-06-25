@@ -586,17 +586,31 @@ void NfLibraryDatabase::populateSourceData(NfRepresentationRecord *record)
 
 void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libraryId)
 {
-        /*auto* record = static_cast<NfDatetimeSourceRecord*>(source.get());
-        const char* sql = "SELECT DISTINCT datetime_taken "
-                "FROM images "
-                "WHERE datetime_taken IS NOT NULL;";
+        NF_LOG_DEBUG("called");
+        auto* record = static_cast<NfDatetimeSourceRecord*>(source);
 
-        sqlite3_stmt* stmt;
+        const char* sql =
+                "SELECT DISTINCT i.datetime_taken "
+                "FROM images i "
+                "JOIN folders f ON f.id = i.folder_id "
+                "WHERE i.datetime_taken IS NOT NULL "
+                "AND f.library_id = 1 "
+                "ORDER BY i.datetime_taken;";
+
+        sqlite3_stmt* stmt = nullptr;
+
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-                while (sqlite3_step(stmt) == SQLITE_ROW)
-                        record->entries.push_back({ sqlite3_column_int64(stmt, 0) });
+
+                sqlite3_bind_int64(stmt, 1, libraryId);
+
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        record->entries.push_back({
+                                        sqlite3_column_int64(stmt, 0)
+                                });
+                }
         }
-        sqlite3_finalize(stmt);*/
+
+        sqlite3_finalize(stmt);
 }
 
 void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libraryId)

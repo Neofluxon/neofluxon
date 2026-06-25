@@ -70,6 +70,7 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
         NF_LOG_DEBUG("called");
         switch (static_cast<RepresentationType>(rep->type)) {
         case RepresentationType::DateTime:
+                populateDateTimeTree(rep);
                 break;
         case RepresentationType::Canonical:
                 populateCanonicalTree(rep);
@@ -82,6 +83,81 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
         default:
                 break;
         }
+}
+
+void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord* rep)
+{
+        NF_LOG_DEBUG("called");
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
+                                                     NfLibraryTreeNode::NodeType::Root);
+
+        auto* source = dynamic_cast<const NfDatetimeSourceRecord*>(rep->sourceData.get());
+        if (!source)
+                return;
+
+        NF_LOG_DEBUG("datetime entries: " << source->entries.size());
+        for (const auto& entry : source->entries) {
+                std::time_t t = static_cast<std::time_t>(entry.timestamp / 1000000000LL);
+                NF_LOG_DEBUG("datetime raw ns: " << entry.timestamp);
+                NF_LOG_DEBUG("datetime sec: " << t);
+
+                std::tm tm{};
+#ifdef _WIN32
+                localtime_s(&tm, &t);
+#else
+                localtime_r(&t, &tm);
+#endif
+
+                char yearBuf[8];
+                char monthBuf[8];
+                char dayBuf[8];
+
+                std::strftime(yearBuf, sizeof(yearBuf), "%Y", &tm);
+                std::strftime(monthBuf, sizeof(monthBuf), "%m", &tm);
+                std::strftime(dayBuf, sizeof(dayBuf), "%d", &tm);
+
+                NfLibraryTreeNode* parent = m_tree.get();
+
+                // Year
+                {
+                        std::string year = yearBuf;
+                        parent = findOrCreateChild(parent, year,
+                                                   NfLibraryTreeNode::NodeType::DateYear);
+                }
+
+                // Month
+                {
+                        std::string month = monthBuf;
+                        parent = findOrCreateChild(parent,
+                                                   month,
+                                                   NfLibraryTreeNode::NodeType::DateMonth);
+                }
+
+                // Day
+                {
+                        std::string day = dayBuf;
+                        parent = findOrCreateChild(parent,
+                                                   day,
+                                                   NfLibraryTreeNode::NodeType::DateDay);
+                }
+        }
+}
+
+NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
+                                                              const std::string& name,
+                                                              NfLibraryTreeNode::NodeType nodeType){
+        // search existing children
+        for (const auto& child : parent->children()) {
+                if (child->name() == name)
+                        return child.get();
+        }
+
+        // not found -> create
+        auto* node = parent->addChild();
+        node->setName(name);
+        node->setType(nodeType);
+
+        return node;
 }
 
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)
