@@ -49,6 +49,7 @@ public:
         void addLibrary(std::string_view name);
         void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
         std::vector<std::unique_ptr<NfCore::NfLibrary>> libraries() const;
+        void onNodeSelected(const NfLibraryTreeItem* node);
 
 private:
         NfCore::NfLibraryManager *m_library;

@@ -57,4 +57,9 @@ std::vector<std::unique_ptr<NfLibrary>> NfLibraryAdapter::libraries() const
         return m_library->libraries();
 }
 
+void NfLibraryAdapter::onNodeSelected(const NfLibraryTreeItem* node)
+{
+        
+}
+
 } // namespace NfUi

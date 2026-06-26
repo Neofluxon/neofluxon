@@ -29,6 +29,7 @@
 #include "NfThumbnail.h"
 #include "NfPreview.h"
 #include "NfTask.h"
+#include "NfPhotoSource.h"
 
 #include <filesystem>
 #include <vector>
@@ -38,7 +39,7 @@
 
 namespace NfCore {
 
-class NfPathScanner;
+class NfPhotoScanner;
 class NfScheduler;
 class NfImage;
 class NfCache;
@@ -72,8 +73,8 @@ public:
  private:
         static NfTask::Priority requestTypeToPriority(RequestType type);
 
-        std::unique_ptr<NfPathScanner> m_pathScanner;
-        std::filesystem::path m_path;
+        std::unique_ptr<NfPhotoScanner> m_photoScanner;
+        NfPhotoSource m_source;
         NfScheduler* m_scheduler;
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;

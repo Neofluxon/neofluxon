@@ -153,10 +153,8 @@ void NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
                                                 NfLibraryTreeItem* parent)
 {
         auto* repTree = rep->getTree();
-        if (repTree) {
-                NF_LOG_DEBUG("populate children for: " << parent->name().toStdString());
+        if (repTree)
                 populateChildNodes(repTree->children(), parent);
-        }
 }
 
 void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<NfLibraryTreeNode>>& children,
@@ -169,7 +167,6 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<Nf
                 if (!child->children().empty())
                         populateChildNodes(child->children(), node.get());
 
-                NF_LOG_DEBUG("append child : " << node->name().toStdString());
                 parentItem->appendChild(std::move(node));
         }
 }

@@ -36,12 +36,9 @@ NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db,
         , m_libraryId{libraryId}
         , m_type{t}
 {
-
-        NF_LOG_DEBUG("called");
         auto record = m_database->getRepresentationRecord(m_libraryId, m_type);
         if (record) {
                 m_name = record->name;
-                NF_LOG_DEBUG("populate tree for : " << m_name);
                 populateTree(record.get());
         }
 }
@@ -87,7 +84,6 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 
 void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord* rep)
 {
-        NF_LOG_DEBUG("called");
         m_tree = std::make_unique<NfLibraryTreeNode>("Root",
                                                      NfLibraryTreeNode::NodeType::Root);
 
@@ -98,9 +94,6 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
         NF_LOG_DEBUG("datetime entries: " << source->entries.size());
         for (const auto& entry : source->entries) {
                 std::time_t t = static_cast<std::time_t>(entry.timestamp / 1000000000LL);
-                NF_LOG_DEBUG("datetime raw ns: " << entry.timestamp);
-                NF_LOG_DEBUG("datetime sec: " << t);
-
                 std::tm tm{};
 #ifdef _WIN32
                 localtime_s(&tm, &t);
@@ -174,8 +167,6 @@ void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord
         }
 
         for (const auto& folder : source->folders) {
-                NF_LOG_DEBUG("path: " << folder.path);
-
                 auto* parent = m_tree.get();
 
                 std::filesystem::path p = folder.path;

@@ -35,7 +35,7 @@ namespace NfCore {
 NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache,
                              NfCache *previewsCache,
                              NfScheduler* scheduler)
-        : m_pathScanner{std::make_unique<NfPathScanner>()}
+        : m_photoScanner{std::make_unique<NfPathScanner>()}
         , m_scheduler{scheduler}
         , m_thumbnailsCache{thumbnailsCache}
         , m_previewsCache{previewsCache}
@@ -48,7 +48,7 @@ NfPhotoLoader::~NfPhotoLoader()
         NF_LOG_DEBUG("called");
 }
 
-void NfPhotoLoader::setPath(const std::filesystem::path &path)
+void NfPhotoLoader::setSource(const NfPhotoSource &source)
 {
         {
                 std::scoped_lock lock(m_mutex);
@@ -59,11 +59,11 @@ void NfPhotoLoader::setPath(const std::filesystem::path &path)
         m_scheduler->cancelAll();
         m_pendingThumbnailTasks.clear();
 
-        m_path = path;
-        m_pathScanner->setPath(path);
+        m_source = source;
+        m_photoScanner->setSource(m_source);
 }
 
-const std::filesystem::path& NfPhotoLoader::getPath() const
+const NfPhotoSource& NfPhotoLoader::getSource() const
 {
         return m_path;
 }
@@ -148,7 +148,7 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
 
 std::vector<NfPhoto> NfPhotoLoader::takePhotos()
 {
-        return m_pathScanner->takePhotos();
+        return m_photoScanner->takePhotos();
 }
 
 std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()

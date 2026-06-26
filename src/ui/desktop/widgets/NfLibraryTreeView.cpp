@@ -36,6 +36,7 @@ namespace NfDesktop {
 NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
         : QTreeView(parent)
         , m_model{new NfLibraryTreeModel(ctx, this)}
+        , m_state{cts.uiState->libraryModeState()}
 {
         setupView();
         setupBehavior();
@@ -44,32 +45,29 @@ NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
 
 void NfLibraryTreeView::setupView()
 {
-        // No horizontal header (clean sidebar look)
         header()->hide();
 
-        // Tree behavior
-        setRootIsDecorated(true);     // show expand arrows
+        setRootIsDecorated(true);
         setItemsExpandable(true);
         setExpandsOnDoubleClick(true);
 
-        // Selection
         setSelectionMode(QAbstractItemView::SingleSelection);
         setSelectionBehavior(QAbstractItemView::SelectRows);
 
-        // Performance
         setUniformRowHeights(true);
-
-        // Nice indentation for hierarchy
         setIndentation(18);
 }
 
 void NfLibraryTreeView::setupBehavior()
 {
-        // Optional: no edit
         setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-        // Optional: keyboard navigation feel like file browser
         setFocusPolicy(Qt::StrongFocus);
+}
+
+NfLibraryTreeView::currentChanged(const QModelIndex& current,
+                                  const QModelIndex& previous)
+{
+        m_state.setSelectedNode(m_model->nodeFromIndex(current));
 }
 
 } // namespace NfDesktop

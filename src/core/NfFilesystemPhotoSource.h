@@ -1,5 +1,5 @@
 /**
- * File name: NfFolderModeState.h
+ * File name: NfFilesystemPhotoSource.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,19 +21,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <QObject>
+#ifndef NF_FILESYSTEM_PHOTO_SOURCE_H
+#define NF_FILESYSTEM_PHOTO_SOURCE_H
 
-namespace NfUi {
+#include "NfPhotoSource.h"
 
-class NfUiLibraryModeState : public QObject
+#include <filesystem>
+
+namespace NfCore {
+
+class NfPhotoScanner;
+
+class NfFileSystemPhotoSource: NfPhotoSource
 {
-    Q_OBJECT
+ public:
+        NfFileSystemPhotoSource() = default;
+        explicit NfFileSystemPhotoSource(const std::filesystem::path& p);
+        void setPath(const std::filesystem::path& p);
+        const std::filesystem::path& path() const;
+        void apply(NfPhotoScanner& scanner) const override;
 
-public:
-        explicit NfUiLibraryModeState(QObject* parent = nullptr);
-
-public slots:
-        void setSelectedNode(const NfLibraryTreeItem* item);
+ private:
+        std::filesystem::path m_path;
 };
 
-} // namespace NfUi
+} // NfCore
+
+#endif // NF_FILESYSTEM_PHOTO_SOURCE_H

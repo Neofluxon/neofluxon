@@ -30,4 +30,17 @@ NfUiLibraryModeState::NfUiLibraryModeState(QObject* parent)
 {
 }
 
+void NfUiLibraryModeState::setSelectedNode(const NfLibraryTreeNode* node)
+{
+        if (m_selectedNode == node)
+                return;
+
+        m_selectedNode = node;
+
+        auto context = resolveContext(node);
+        m_context = context;
+
+        notify(NfLibrarySelectionChangedEvent{context});
+}
+
 } // namespace NfUi

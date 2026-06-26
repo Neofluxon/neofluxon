@@ -44,6 +44,8 @@ class NfLibraryTreeView : public QTreeView {
  protected:
         void setupView();
         void setupBehavior();
+        void currentChanged(const QModelIndex& current,
+                            const QModelIndex& previous) override;
 
  private:
         NfLibraryTreeModel* m_model;
