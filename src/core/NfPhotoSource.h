@@ -26,11 +26,13 @@
 
 namespace NfCore {
 
+class NfPhotoScanner;
+
 class NfPhotoSource
 {
 public:
-    virtual ~NfPhotoSource() = default;
-    virtual void apply(NfPhotoScanner& scanner) const = 0;
+        virtual ~NfPhotoSource() = default;
+        virtual void apply(NfPhotoScanner& scanner) const = 0;
 };
 
 } // NfCore

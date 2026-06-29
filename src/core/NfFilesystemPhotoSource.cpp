@@ -1,5 +1,5 @@
 /**
- * File name: NfPhotoSource.h
+ * File name: NfFilesystemPhotoSource.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,31 +21,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_PHOTO_SOURCE_H
-#define NF_LIBRARY_PHOTO_SOURCE_H
-
-#include "NfPhotoSource.h"
+#include "NfFileSystemPhotoSource.h"
 
 namespace NfCore {
 
-class NfPhotoScanner;
-class NfLibraryQuery;
-
-class NfLibraryPhotoSource : public NfPhotoSource
+NfFileSystemPhotoSource::NfFileSystemPhotoSource(const std::filesystem::path& p)
+void NfFileSystemPhotoSource::setPath(const std::filesystem::path& p)
 {
-public:
-    NfLibraryPhotoSource() = default;
-    explicit NfLibraryPhotoSource(const NfLibraryQuery& query);
+}
 
-    void setQuery(const NfLibraryQuery& q);
-    const NfLibraryQuery& query() const;
+const std::filesystem::path& NfFileSystemPhotoSource::path() const
+{
+}
 
-    void apply(NfPhotoScanner& scanner) const override;
+void NfFileSystemPhotoSource::apply(NfPhotoScanner& scanner) const
+{
+        
+}
 
-private:
-    NfLibraryQuery m_query;
-};
+} // NfCore
 
-} // namespace NfCore
-
-#endif // NF_LIBRARY_PHOTO_SOURCE_H

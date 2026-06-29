@@ -23,7 +23,7 @@
 
 #include "NfPhotoLoader.h"
 #include "NfCache.h"
-#include "NfPathScanner.h"
+#include "NfPhotoScanner.h"
 #include "NfScheduler.h"
 #include "NfImage.h"
 #include "NfThumbnailTask.h"
@@ -35,7 +35,7 @@ namespace NfCore {
 NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache,
                              NfCache *previewsCache,
                              NfScheduler* scheduler)
-        : m_photoScanner{std::make_unique<NfPathScanner>()}
+        : m_photoScanner{std::make_unique<NfPhotoScanner>()}
         , m_scheduler{scheduler}
         , m_thumbnailsCache{thumbnailsCache}
         , m_previewsCache{previewsCache}
