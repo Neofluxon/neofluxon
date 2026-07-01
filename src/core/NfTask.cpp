@@ -70,4 +70,14 @@ int NfTask::priority() const
         return m_priority;
 }
 
+void NfTask::cancel()
+{
+        m_cancelled.store(true, std::memory_order_relaxed);
+}
+
+bool NfTask::isCancelled() const
+{
+        return m_cancelled.store(true, std::memory_order_relaxed);
+}
+
 } // namespace NfCore

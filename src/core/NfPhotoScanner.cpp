@@ -22,6 +22,7 @@
  */
 
 #include "PhotoScanner.h"
+#include "NfPhotoSource.h"
 #include "NfLogger.h"
 
 namespace NfCore {
@@ -39,16 +40,43 @@ PhotoScanner::~PhotoScanner()
 
 void PhotoScanner::setSource(const NfPhotoSource &source)
 {
-        std::unqieu_pre<NfTask> task;
+        {
+                std::scoped_lock lock(m_mutex);
+                m_loadedPhotos.clear();
+                m_generationId++;
+        }
+
+        m_scheduler->cancelAll();
+
+        std::unqiue_ptr<NfTask> task;
         if (auto fsSource = dynamic_cast<const NfFilesystemPhotoSource*>(&source)) {
-                task = std::make_unique<NfFilesystemPhotoScanTask>(fsSource->path());
+                task = std::make_unique<NfFilesystemPhotoScanTask>(fsSource);
+                task->setGenerationId(m_generationId);
                 task->setPhotoFound([this](const NfPhoto& photo) {
                         std::scoped_lock lock(m_mutex);
+                        if (task->generationId() != m_generationId)
+                                return;
+
                         m_loadedPhotos.push_back(std::move(photo));
                 });
+        } else if (auto librarySource = dynamic_cast<const NfLibraryPhotoSource*>(&source)) {
+                task = std::make_unique<NfLibraryPhotoScanTask>(m_library, librarySource);
+                task->setGenerationId(m_generationId);
+                task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
+                        if (status != NfTask::TaskStatus::Success)
+                                return;
+
+                        auto* libraryTask = dynamic_cast<NfLibraryPhotoScanTask*>(result);
+                        if (libraryTask) {
+                                std::scoped_lock lock(m_mutex);
+
+                                if (libraryTask->generationId() != m_generationId)
+                                        return;
+
+                                m_loadedPhotos.append_range(libraryTask->takePhhotos()
+                                                            | std::views::as_rvalue);
+                        }
         }
-        else if (auto dbSource = dynamic_cast<const NfLibraryPhotoSource*>(&source))
-                task = std::make_unique<NfLibraryPhotoScanTask>(m_library, dbSource->query());
 
         if (task)
                 m_scheduler->submit(std::move(task));

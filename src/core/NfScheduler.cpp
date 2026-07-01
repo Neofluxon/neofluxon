@@ -131,7 +131,7 @@ void NfScheduler::cancelAll()
         m_pendingTasks.clear();
         m_priorityQueue.clear();
 
-        for (auto &task: m_pendingTasks)
+        for (auto &task: m_runningTasks)
                 task.second->cancel();
 }
 

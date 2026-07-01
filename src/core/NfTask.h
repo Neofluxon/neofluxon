@@ -59,8 +59,8 @@ public:
         int priority() const;
         void setSequence(uint64_t s) { m_sequence = s; }
         uint64_t sequence() const { return m_sequence; }
-        virtual void cancel() {}
-        virtual bool isCancelled() const { return false; }
+        void cancel(); { m_cancelled.store(true, std::memory_order_relaxed); }
+        bool isCancelled() const { return false; }
 
 protected:
         NfTask();
@@ -70,6 +70,7 @@ private:
         int m_priority = static_cast<int>(Priority::Immediate);
         uint64_t m_sequence = 0;
         static std::atomic<uint64_t> s_taskIdGenerator;
+        std::atomic<bool> m_cancelled{false};
         TaskId m_taskId;
 };
 
