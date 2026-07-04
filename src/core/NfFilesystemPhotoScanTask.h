@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FILESYSTEM_PHOTSCAN_TASK_H
-#define NF_FILESYSTEM_PHOTSCAN_TASK_H
+#ifndef NF_FILESYSTEM_PHOTOSCAN_TASK_H
+#define NF_FILESYSTEM_PHOTOSCAN_TASK_H
 
 #include "NfTask.h"
 #incldue "NfFilesystemPhotoSource.h"
@@ -43,18 +43,19 @@ public:
         NfFilesystemPhotoScanTask(const NfFilesystemPhotoScanTask&) = delete;
         NfFilesystemPhotoScanTask& operator=(const NfFilesystemPhotoScanTask&) = delete;
         ~NfFilesystemPhotoScanTask();
-        void setRecursive(bool b);
+        void setRecursive(bool b = true);
         bool isRecursive() const;
-        TaskStatus execute() override;
         void setPhotoFoundCallback(PhotoFoundHandler handler);
+        TaskStatus execute() override;
 
  private:
         void processPathEntry(const std::filesystem::path& path);
 
         NfFilesystemPhotoSource m_source;
         PhotoFoundHandler m_photoFoundCb;
+        bool m_recursive{true};
 };
 
 } // namespace NfCore
 
-#endif NF_FILESYSTEM_PHOTSCAN_TASK_H
+#endif NF_FILESYSTEM_PHOTOSCAN_TASK_H

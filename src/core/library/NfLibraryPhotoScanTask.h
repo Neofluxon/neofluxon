@@ -1,5 +1,5 @@
 /**
- * File name: NfPathScanner.h
+ * File name: NfLibraryPhotoScanTask.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,47 +21,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_SCANNER_H
-#define NF_PHOTO_SCANNER_H
+#ifndef NF_LIBRARY_PHOTOSCAN_TASK_H
+#define NF_LIBRARY_PHOTOSCAN_TASK_H
 
+#include "NfTask.h"
+#incldue "NfLibraryPhotoSource.h"
 #include "NfPhoto.h"
 
-#include <string>
 #include <vector>
-#include <atomic>
-#include <thread>
-#include <mutex>
-#include <filesystem>
-#include <stop_token>
-#include <condition_variable>
-#include <unordered_set>
 
 namespace NfCore {
 
-class NfPathScanner {
+class NfLibraryPhotoScanTask : public NfTask {
 public:
-        NfPathScanner();
-        ~NfPathScanner();
-
-        void setPath(const std::filesystem::path& path, bool recursive = true);
-        std::filesystem::path getPath(const std::filesystem::path& path) const;
+        NfLibraryPhotoScanTask(const NfLibraryPhotoSource& source);
+        NfLibraryPhotoScanTask(NfLibraryPhotoScanTask&&) noexcept = default;
+        NfLibraryPhotoScanTask& operator=(NfLibraryPhotoScanTask&&) noexcept = default;
+        NfLibraryPhotoScanTask(const NfLibraryPhotoScanTask&) = delete;
+        NfLibraryPhotoScanTask& operator=(const NfLibraryPhotoScanTask&) = delete;
+        ~NfLibraryPhotoScanTask();
+        TaskStatus execute() override;
         std::vector<NfPhoto> takePhotos();
 
-protected:
-        void loadPhotosThread(std::stop_token stopToken);
-
-private:
-        mutable std::mutex m_mutex;
-        std::string m_path;
-        bool m_recursive;
-        std::vector<NfPhoto> m_loadedPhotos;
-
-        std::jthread m_scanThread;
-        std::atomic<bool> m_startScan;
-        std::condition_variable_any m_conditionVariable;
-        std::unordered_set<std::string> m_photoExtentions;
+ private:
+        NfLibraryPhotoSource m_source;
 };
 
-} // namepsace NfCore
+} // namespace NfCore
 
-#endif // NF_PHOTO_SCANNER_H
+#endif NF_LIBRARY_PHOTOSCAN_TASK_H

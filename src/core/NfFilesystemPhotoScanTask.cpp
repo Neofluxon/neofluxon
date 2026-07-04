@@ -22,11 +22,6 @@
  */
 
 #include "NfFilesystemPhotoScanTask.h"
-#include "NfImageDecoderFactory.h"
-#include "NfImageDecoder.h"
-#include "NfImageData.h"
-#include "NfImage.h"
-#include "NfLogger.h"
 
 namespace NfCore {
 
@@ -36,6 +31,21 @@ NfFilesystemPhotoScanTask::NfFilesystemPhotoScanTask(const NfFilesystemPhotoSour
 }
 
 NfFilesystemPhotoScanTask::~NfFilesystemPhotoScanTask() = default;
+
+void NfFilesystemPhotoScanTask::setRecursive(bool b)
+{
+        m_recursive = b;
+}
+
+bool NfFilesystemPhotoScanTask::isRecursive() const
+{
+        return m_recursive;
+}
+
+void NfFilesystemPhotoScanTask::setPhotoFoundCallback(PhotoFoundHandler handler)
+{
+        m_photoFoundCb = std::move(handler);
+}
 
 NfFilesystemPhotoScanTask::TaskStatus NfFilesystemPhotoScanTask::execute()
 {
@@ -50,7 +60,7 @@ NfFilesystemPhotoScanTask::TaskStatus NfFilesystemPhotoScanTask::execute()
                 };
 
                 auto directory = m_source->path();
-                if (recursive) {
+                if (m_recursive) {
                         NF_LOG_DEBUG("iterate dir (recursive): " << directory);
 
                         fs::recursive_directory_iterator it(directory), end;
@@ -66,7 +76,7 @@ NfFilesystemPhotoScanTask::TaskStatus NfFilesystemPhotoScanTask::execute()
         }
 }
 
-void NfPathScanner::processPathEntry(const std::filesystem::path& path)
+void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& path)
 {
         namespace fs = std::filesystem;
 
@@ -88,21 +98,6 @@ void NfPathScanner::processPathEntry(const std::filesystem::path& path)
         }
         catch (const fs::filesystem_error&) {
         }
-}
-
-void NfFilesystemPhotoScanTask::setRecursive(bool b)
-{
-        m_recursive = b;
-}
-
-bool NfFilesystemPhotoScanTask::isRecursive() const
-{
-        return m_recursive;
-}
-
-void NfFilesystemPhotoScanTask::setPhotoFoundCallback(PhotoFoundHandler handler)
-{
-        m_photoFoundCb = std::move(handler);
 }
 
 } // namespace NfCore

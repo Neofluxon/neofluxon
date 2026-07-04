@@ -23,6 +23,8 @@
 
 #include "PhotoScanner.h"
 #include "NfPhotoSource.h"
+#include "NfFilesystemPhotoScanTask.h"
+#include "NfLibraryPhotoScanTask.h"
 #include "NfLogger.h"
 
 namespace NfCore {
@@ -50,7 +52,7 @@ void PhotoScanner::setSource(const NfPhotoSource &source)
 
         std::unqiue_ptr<NfTask> task;
         if (auto fsSource = dynamic_cast<const NfFilesystemPhotoSource*>(&source)) {
-                task = std::make_unique<NfFilesystemPhotoScanTask>(fsSource);
+                task = std::make_unique<NfFilesystemPhotoScanTask>(*fsSource);
                 task->setGenerationId(m_generationId);
                 task->setPhotoFound([this](const NfPhoto& photo) {
                         std::scoped_lock lock(m_mutex);
@@ -60,7 +62,7 @@ void PhotoScanner::setSource(const NfPhotoSource &source)
                         m_loadedPhotos.push_back(std::move(photo));
                 });
         } else if (auto librarySource = dynamic_cast<const NfLibraryPhotoSource*>(&source)) {
-                task = std::make_unique<NfLibraryPhotoScanTask>(m_library, librarySource);
+                task = std::make_unique<NfLibraryPhotoScanTask>(*librarySource);
                 task->setGenerationId(m_generationId);
                 task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                         if (status != NfTask::TaskStatus::Success)

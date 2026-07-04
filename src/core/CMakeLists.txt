@@ -26,7 +26,10 @@ set(CORE_HEADERS
         NfImageTask.h
         NfJpegImageDecoder.h
         NfLogger.h
-        NfPathScanner.h
+        NfPhotoSource.h
+        NfFilesystemPhotoSource.h
+        NfFilesystemPhotoScanTask.h
+        NfPhotoScanner.h
         NfPhotoId.h
         NfPhoto.h
         NfPhotoSummary.h
@@ -44,6 +47,8 @@ set(CORE_HEADERS
         library/NfLibrary.h
         library/NfLibraryDatabase.h
         library/NfLibraryFolderImportTask.h
+        library/NfLibraryPhotoSource.h
+        library/NfLibraryPhotoScanTask.h
         library/NfLibraryManager.h
         library/NfLibraryRepresentation.h
         library/NfLibraryTreeNode.h
@@ -61,7 +66,10 @@ set(CORE_SOURCES
         NfImageTask.cpp
         NfJpegImageDecoder.cpp
         NfLogger.cpp
-        NfPathScanner.cpp
+        NfFilesystemPhotoSource.cpp
+        NfFilesystemPhotoScanTask.cpp
+        NfLibraryPhotoScanTask.cpp
+        NfPhotoScanner.cpp
         NfPhotoId.cpp
         NfPhoto.cpp
         NfPhotoMetadataExtractor.cpp
