@@ -36,11 +36,6 @@ NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db,
         , m_libraryId{libraryId}
         , m_type{t}
 {
-        auto record = m_database->getRepresentationRecord(m_libraryId, m_type);
-        if (record) {
-                m_name = record->name;
-                populateTree(record.get());
-        }
 }
 
 NfLibraryRepresentation::~NfLibraryRepresentation()
@@ -54,11 +49,27 @@ void NfLibraryRepresentation::setName(std::string_view name)
 
 const std::string& NfLibraryRepresentation::name() const
 {
+        if (!m_name.empty())
+                return m_name;
+
+        auto record = m_database->getRepresentationRecord(m_libraryId, m_type);
+        if (record)
+                m_name = record->name;
+
         return m_name;
 }
 
 NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
 {
+        if (m_tree)
+                return m_tree.get()
+
+        auto record = m_database->getRepresentationRecord(m_libraryId, m_type);
+        if (record) {
+                m_name = record->name;
+                populateTree(record.get());
+        }
+
         return m_tree.get();
 }
 

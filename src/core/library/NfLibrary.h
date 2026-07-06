@@ -24,6 +24,8 @@
 #ifndef NF_LIBRARY_H
 #define NF_LIBRARY_H
 
+#include "NfPhoto.h"
+
 #include <string>
 #include <vector>
 #include <memory>
@@ -48,7 +50,9 @@ public:
         NfLibraryRepresentation* addRepresentation();
         void removeRepresentation(NfLibraryRepresentation* representation);
         std::vector<std::unique_ptr<NfLibraryRepresentation>> representations() const;
+        std::vector<NfLibraryRepresentation> representations() const;
         void addPhoto(const NfPhoto& photo);
+        std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
 
 private:
         int64_t storeCamera(std::string_view maker, std::string_view model);

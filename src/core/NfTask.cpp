@@ -70,6 +70,26 @@ int NfTask::priority() const
         return m_priority;
 }
 
+void NfTask::setGenerationId(uint64_t generationId)
+{
+        m_generationId = generationId;
+}
+
+uint64_t NfTask::generationId() const
+{
+        return m_generationId;
+}
+
+void NfTask::setSequence(uint64_t s)
+{
+        m_sequence = s;
+}
+
+uint64_t NfTask::sequence() const
+{
+        return m_sequence;
+}
+
 void NfTask::cancel()
 {
         m_cancelled.store(true, std::memory_order_relaxed);

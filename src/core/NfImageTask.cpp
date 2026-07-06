@@ -27,7 +27,6 @@
 namespace NfCore {
 
 NfImageTask::NfImageTask(const NfPhoto& photo)
-        : m_generationId{0}
         , m_photo{photo}
         , m_image{std::make_unique<NfImage>()}
         , m_extractionMethod{ExtractionMethod::Fastest}
@@ -35,16 +34,6 @@ NfImageTask::NfImageTask(const NfPhoto& photo)
 }
 
 NfImageTask::~NfImageTask() = default;
-
-void NfImageTask::setGenerationId(uint64_t generationId)
-{
-        m_generationId = generationId;
-}
-
-uint64_t NfImageTask::generationId() const
-{
-        return m_generationId;
-}
 
 void NfImageTask::setExtractionMethod(NfImageTask::ExtractionMethod method)
 {

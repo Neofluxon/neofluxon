@@ -116,4 +116,24 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
         m_scheduler->submit(std::move(task));
 }
 
+std::vector<NfPhoto>
+NfLibraryManager::queryPhotos(const NfLibraryQuery& query)
+{
+        if (query.libraryId) {
+                if (auto* library = getLibrary(*query.libraryId))
+                        return library->findPhotos(query);
+
+                return {};
+        }
+
+        const auto allLibraries = libraries();
+        std::vector<NfPhoto> result;
+        for (const auto& lib : allLibraries) {
+                auto photos = lib->findPhotos(query);
+                result.append_range(std::move(photos));
+        }
+
+        return result;
+}
+
 } // namespace NfCore

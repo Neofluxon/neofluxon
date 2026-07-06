@@ -24,6 +24,8 @@
 #ifndef NF_LIBRARY_MANAGER_H
 #define NF_LIBRARY_MANAGER_H
 
+#include "NfPhoto.h"
+
 #include <vector>
 #include <memory>
 #include <filesystem>
@@ -45,6 +47,7 @@ public:
         void importPath(const std::filesystem::path& path, uint64_t libraryId);
         std::optional<std::unique_ptr<NfLibrary>> addLibrary(std::string_view name);
         std::unique_ptr<NfLibrary> getLibrary(uint64_t id) const;
+        std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
 
 private:
         NfScheduler* m_scheduler;

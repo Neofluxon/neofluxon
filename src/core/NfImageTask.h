@@ -53,8 +53,6 @@ public:
         NfImageTask& operator=(const NfImageTask&) = delete;
         ~NfImageTask();
 
-        void setGenerationId(uint64_t generationId);
-        uint64_t generationId() const;
         void setExtractionMethod(ExtractionMethod method);
         ExtractionMethod extractionMethod() const;
         NfImage* getImage() const;
@@ -65,7 +63,6 @@ protected:
         NfImage* imageContainer() const;
 
 private:
-        uint64_t m_generationId;
         NfPhoto m_photo;
         std::unique_ptr<NfImage> m_image;
         ExtractionMethod m_extractionMethod;

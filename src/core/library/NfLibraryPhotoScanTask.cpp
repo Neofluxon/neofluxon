@@ -34,10 +34,18 @@ NfLibraryPhotoScanTask::~NfLibraryPhotoScanTask() = default;
 
 NfLibraryPhotoScanTask::TaskStatus NfLibraryPhotoScanTask::execute()
 {
+    auto* libraryManager = m_source->libraryManager();
+    if (!libraryManager)
+        return TaskStatus::Success;
+
+    m_photos = libraryManager->findPhotos(m_source->query());
+
+    return TaskStatus::Success;
 }
 
 std::vector<NfPhoto> NfLibraryPhotoScanTask::takePhotos()
 {
+        return std::move(m_photos);
 }
 
 } // namespace NfCore

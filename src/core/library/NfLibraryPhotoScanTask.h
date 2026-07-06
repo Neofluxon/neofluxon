@@ -43,8 +43,9 @@ public:
         TaskStatus execute() override;
         std::vector<NfPhoto> takePhotos();
 
- private:
+ privatew:
         NfLibraryPhotoSource m_source;
+        std::vector<NfPhoto> m_photos;
 };
 
 } // namespace NfCore

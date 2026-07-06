@@ -87,26 +87,15 @@ void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
 
 std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations() const
 {
-        std::vector<std::unique_ptr<NfLibraryRepresentation>> libraryRepresentations;
+        std::vector<std::unique_ptr<NfLibraryRepresentation>> reps;
+        using RT = NfLibraryRepresentation::RepresentationType;
 
-        using RepresentationType = NfLibraryRepresentation::RepresentationType;
-        auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
-                                                             RepresentationType::DateTime);
-        libraryRepresentations.push_back(std::move(rep));
+        reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id, RT::DateTime));
+        reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id, RT::Canonical));
+        reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id, RT::Equipment));
+        reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id, RT::Collections));
 
-        rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
-                                                        RepresentationType::Canonical);
-        libraryRepresentations.push_back(std::move(rep));
-
-        rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
-                                                        RepresentationType::Equipment);
-        libraryRepresentations.push_back(std::move(rep));
-
-        rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id,
-                                                        RepresentationType::Collections);
-        libraryRepresentations.push_back(std::move(rep));
-
-        return libraryRepresentations;
+        return reps;
 }
 
 void NfLibrary::addPhoto(const NfPhoto& photo)
@@ -142,6 +131,31 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         }
 
         tx.commit();
+}
+
+std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
+{
+        using RepresentationType = NfLibraryRepresentation::RepresentationType;
+
+        std::vector<NfPhoto> result;
+
+        switch (query.representationType) {
+        case RepresentationType::DateTime:
+        case RepresentationType::Canonical:
+        case RepresentationType::Equipment:
+        case RepresentationType::Collections:
+                break;
+        default:
+                type = RepresentationType::Canonical;
+                break;
+        }
+
+        auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id, type);
+
+        auto photos = rep->queryPhotos(query);
+        result.append_range(std::move(photos));
+
+        return result;
 }
 
 int64_t NfLibrary::storeCamera(std::string_view maker,

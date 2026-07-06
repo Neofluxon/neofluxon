@@ -75,7 +75,7 @@ void PhotoScanner::setSource(const NfPhotoSource &source)
                                 if (libraryTask->generationId() != m_generationId)
                                         return;
 
-                                m_loadedPhotos.append_range(libraryTask->takePhhotos()
+                                m_loadedPhotos.append_range(libraryTask->takePhotos()
                                                             | std::views::as_rvalue);
                         }
         }
