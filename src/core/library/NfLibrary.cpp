@@ -151,7 +151,6 @@ std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
         }
 
         auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id, type);
-
         auto photos = rep->queryPhotos(query);
         result.append_range(std::move(photos));
 

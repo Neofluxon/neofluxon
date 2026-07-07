@@ -100,6 +100,7 @@ public:
                          int64_t timestamp,
                          int64_t cameraId,
                          int64_t lensId);
+        std::vector<NfImageRecord> getImagesInFolderSubtree(const uint64_t folderId) const;
         int64_t addCamera(std::string_view maker,
                           std::string_view model);
         int64_t addLens(std::string_view lens);

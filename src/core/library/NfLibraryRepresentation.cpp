@@ -73,6 +73,30 @@ NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
         return m_tree.get();
 }
 
+std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &query) const
+{
+        switch (query->representationType) {
+        case RepresentationType::Canonical:
+                return queryPhotosByPath(rep->queryValue);
+                break;
+        case RepresentationType::DateTime:
+                populateDateTimeTree(rep);
+                break;
+        case RepresentationType::Equipment:
+                break;
+        case RepresentationType::Collections:
+                break;
+        case RepresentationType::None:
+        default:
+                break;
+        }
+}
+
+std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t &id)
+{
+        
+}
+
 void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 {
         NF_LOG_DEBUG("called");

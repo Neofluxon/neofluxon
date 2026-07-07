@@ -53,6 +53,7 @@ public:
         void setName(std::string_view name);
         const std::string& name() const;
         NfLibraryTreeNode* getTree() const;
+        std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
 
 protected:
         void populateTree(const NfRepresentationRecord *record);

@@ -167,7 +167,10 @@ bool NfLibraryDatabase::initializeSchema()
           ON images(datetime_taken);
 
        CREATE INDEX IF NOT EXISTS idx_coll_img_id
-          ON collection_images(image_id);)";
+          ON collection_images(image_id);
+
+       CREATE INDEX idx_folders_library_path
+          ON folders(library_id, path);)";
 
        return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
 }
@@ -445,6 +448,49 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
         sqlite3_finalize(stmt);
 
         return resultId;
+}
+
+std::vector<std::filesystem::path>
+NfLibraryDatabase::getImagePathsInFolderSubtree(const uint64_t folderId) const
+{
+        std::vector<std::filesystem::path> result;
+
+        const char* sql = R"(
+        SELECT folders.path || '/' || images.file_name
+        FROM images
+        JOIN folders
+            ON images.folder_id = folders.id
+        WHERE images.folder_id IN (
+                SELECT child.id
+                FROM folders AS parent
+                JOIN folders AS child
+                    ON child.library_id = parent.library_id
+                WHERE parent.id = ?
+                  AND (
+                        child.path = parent.path
+                        OR child.path LIKE parent.path || '/%'
+                      )
+        );
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return result;
+
+        sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(folderId));
+
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+                {
+                        const char* path =
+                                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+
+                        if (path)
+                                result.emplace_back(path);
+                }
+
+        sqlite3_finalize(stmt);
+
+        return result;
 }
 
 int64_t NfLibraryDatabase::addCamera(std::string_view maker,
