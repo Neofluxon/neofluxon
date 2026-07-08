@@ -40,7 +40,7 @@ PhotoScanner::~PhotoScanner()
         NF_LOG_DEBUG("called");
 }
 
-void PhotoScanner::setSource(const NfPhotoSource &source)
+void PhotoScanner::setSource(const NfPhotoSource *source)
 {
         {
                 std::scoped_lock lock(m_mutex);

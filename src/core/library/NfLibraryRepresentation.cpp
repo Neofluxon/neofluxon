@@ -94,7 +94,12 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t &id)
 {
-        
+        std::vector<NfPhoto> photos;
+        auto imagePaths = m_database = getImagePathsByFolderId(id);
+        for (const auto &path : imagePaths)
+                photos.emplace_back(path);
+
+        return photos;
 }
 
 void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)

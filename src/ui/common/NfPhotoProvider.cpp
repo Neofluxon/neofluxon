@@ -58,15 +58,15 @@ NfPhotoProvider::~NfPhotoProvider()
         NF_LOG_DEBUG("called");
 }
 
-void NfPhotoProvider::setPath(const std::filesystem::path& path)
+void NfPhotoProvider::setSource(const NfPhotoSource &source)
 {
-        m_path = path;
-        m_photoLoader->setPath(path);
+        m_source = source.clone();
+        m_photoLoader->setSource(m_source);
 }
 
-const std::filesystem::path& NfPhotoProvider::getPath() const
+const NfPhotoSource& NfPhotoProvider::getSource() const
 {
-        return m_path;
+        return m_source;
 }
 
 QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo) const

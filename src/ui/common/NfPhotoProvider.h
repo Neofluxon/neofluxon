@@ -39,6 +39,7 @@ namespace NfCore {
 class NeofluxonCore;
 class NfPhotoLoader;
 class NfCache;
+class NfPhotoSource;
 }
 
 using namespace NfCore;
@@ -59,6 +60,7 @@ public:
                                  QObject* parent = nullptr);
         ~NfPhotoProvider();
 
+        void setSource(const NfPhotoSource &source);
         void setPath(const std::filesystem::path& path);
         const std::filesystem::path& getPath() const;
 

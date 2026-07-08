@@ -59,13 +59,13 @@ void NfPhotoLoader::setSource(const NfPhotoSource &source)
         m_scheduler->cancelAll();
         m_pendingThumbnailTasks.clear();
 
-        m_source = source;
-        m_photoScanner->setSource(m_source);
+        m_source = source.clone();
+        m_photoScanner->setSource(m_source.clone());
 }
 
 const NfPhotoSource& NfPhotoLoader::getSource() const
 {
-        return m_path;
+        return m_source;
 }
 
 void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,

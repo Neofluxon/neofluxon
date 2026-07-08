@@ -36,6 +36,7 @@ namespace NfCore {
 class NfLibraryDatabase;
 class NfLibraryRepresentation;
 class NfPhoto;
+class NfLibraryQuery;
 
 class NfLibraryRepresentation;
 

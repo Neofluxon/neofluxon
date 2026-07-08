@@ -27,6 +27,7 @@
 #include "NfLibrary.h"
 #include "NfLibraryFolderImportTask.h"
 #include "NfScheduler.h"
+#include "NfLibraryQuery.h"
 #include "NfLogger.h"
 
 namespace NfCore {
@@ -107,7 +108,6 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
                 auto* importTask = dynamic_cast<NfLibraryFolderImportTask*>(result);
                 if (importTask) {
                         NF_LOG_DEBUG("library import finished");
-                        // TOTO...
                 }
                 });
 
@@ -119,12 +119,8 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
 std::vector<NfPhoto>
 NfLibraryManager::queryPhotos(const NfLibraryQuery& query)
 {
-        if (query.libraryId) {
-                if (auto* library = getLibrary(*query.libraryId))
-                        return library->findPhotos(query);
-
-                return {};
-        }
+        if (auto* library = getLibrary(query.libraryId))
+                return library->findPhotos(query);
 
         const auto allLibraries = libraries();
         std::vector<NfPhoto> result;

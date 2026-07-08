@@ -27,6 +27,7 @@
 #include "NfLibraryDatabase.h"
 #include "NfPhoto.h"
 #include "NfPhotoMetadataExtractor.h"
+#include "NfLibraryQuery.h"
 #include "NfLogger.h"
 
 #include <algorithm>

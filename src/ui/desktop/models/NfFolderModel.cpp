@@ -37,12 +37,12 @@ NfFolderModel::NfFolderModel(NfContext *ctx, QObject *parent)
 
 void NfFolderModel::setPath(const std::filesystem::path& path)
 {
-        m_browserModel->setPath(path);
+        m_browserModel->setSource(path);
 }
 
 const std::filesystem::path& NfFolderModel::getPath() const
 {
-        return m_browserModel->getPath();
+        return m_browserModel->getSurce().;
 }
 
 NfBrowserModel* NfFolderModel::browser() const

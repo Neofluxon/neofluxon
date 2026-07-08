@@ -67,7 +67,7 @@ void NfCentralWidget::showFolderView()
 
 void NfCentralWidget::showLibraryView()
 {
-        //setCurrentView(new NfLibraryView(this, m_libraryModel));
+        setCurrentView(new NfLibraryView(this, m_libraryModel));
 }
 
 void NfCentralWidget::setCurrentView(QWidget* view)

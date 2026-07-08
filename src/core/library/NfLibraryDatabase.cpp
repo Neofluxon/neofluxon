@@ -225,10 +225,10 @@ bool NfLibraryDatabase::libraryExists(int64_t id) const
         return exists;
 }
 
-std::vector<uint64_t>
+std::vector<int64_t>
 NfLibraryDatabase::libraryIds() const
 {
-        std::vector<uint64_t> ids;
+        std::vector<int64_t> ids;
 
         const char* sql = "SELECT id FROM libraries ORDER BY name;";
 
@@ -237,9 +237,7 @@ NfLibraryDatabase::libraryIds() const
                 return ids;
 
         while (sqlite3_step(stmt) == SQLITE_ROW)
-                ids.push_back(
-                              static_cast<uint64_t>(
-                                                    sqlite3_column_int64(stmt, 0)));
+                ids.push_back(static_cast<int64_t>(sqlite3_column_int64(stmt, 0)));
 
         sqlite3_finalize(stmt);
 
@@ -247,7 +245,7 @@ NfLibraryDatabase::libraryIds() const
 }
 
 std::unique_ptr<NfLibraryEntry>
-NfLibraryDatabase::library(uint64_t id) const
+NfLibraryDatabase::library(int64_t id) const
 {
         const char* sql = R"(
         SELECT id, name
@@ -266,7 +264,7 @@ NfLibraryDatabase::library(uint64_t id) const
         if (sqlite3_step(stmt) == SQLITE_ROW) {
                 library = std::make_unique<NfLibraryEntry>();
                 library->id =
-                        static_cast<uint64_t>(
+                        static_cast<int64_t>(
                                 sqlite3_column_int64(stmt, 0));
 
                 if (const auto* text =
@@ -304,7 +302,7 @@ NfLibraryDatabase::library(std::string_view name) const
         if (sqlite3_step(stmt) == SQLITE_ROW) {
                 library = std::make_unique<NfLibraryEntry>();
                 library->id =
-                        static_cast<uint64_t>(
+                        static_cast<int64_t>(
                                 sqlite3_column_int64(stmt, 0));
 
                 if (const auto* text =
@@ -338,7 +336,7 @@ NfLibraryDatabase::libraries() const
                 NfLibraryEntry library;
 
                 library.id =
-                        static_cast<uint64_t>(
+                        static_cast<int64_t>(
                                 sqlite3_column_int64(stmt, 0));
 
                 if (const auto* text =
@@ -451,7 +449,7 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
 }
 
 std::vector<std::filesystem::path>
-NfLibraryDatabase::getImagePathsInFolderSubtree(const uint64_t folderId) const
+NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
 {
         std::vector<std::filesystem::path> result;
 

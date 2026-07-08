@@ -38,6 +38,7 @@ namespace NfCore {
 class NfLibrary;
 class NfScheduler;
 class NfLibraryDatabase;
+class NfLibraryQuery;
 
 class NfLibraryManager {
 public:

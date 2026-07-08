@@ -1,5 +1,5 @@
 /**
- * File name: NfUiLibraryModeState.h
+ * File name: NfLibraryQuery.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,26 +21,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfUiLibraryModeState.h"
+#ifndef NF_LIBRARY_QUERY_H
+#define NF_LIBRARY_QUERY_H
 
-namespace NfUi {
+#include <cstdint>
+#include <string>
+#include <variant>
 
-NfUiLibraryModeState::NfUiLibraryModeState(QObject* parent)
-    : QObject(parent)
-{
-}
+namespace NfCore {
 
-void NfUiLibraryModeState::queryLibrary(const NfLibraryQuery &query)
-{
-        if (m_query == query)
-                return;
+struct NfLibraryQuery {
+    using QueryValue = std::variant<int64_t, std::string>;
+    int64_t libraryId = -1;
+    NfLibraryRepresentation::RepresentationType representationType{};
+    QueryValue queryValue;
+};
 
-        m_m_query = node;
+} // namespace NfCore
 
-        auto context = resolveContext(node);
-        m_context = context;
-
-        notify(NfLibrarySelectionChangedEvent{context});
-}
-
-} // namespace NfUi
+#endif // NF_LIBRARY_QUERY_H
