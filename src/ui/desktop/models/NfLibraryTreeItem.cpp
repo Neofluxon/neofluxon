@@ -23,14 +23,16 @@
 
 #include "NfLibraryTreeItem.h"
 
+using namespace NfCore;
+
 namespace NfDesktop {
 
 NfLibraryTreeItem::NfLibraryTreeItem(const QString& name,
-                                 Type type,
-                                 NfLibraryTreeItem* parent)
-        : m_name(name)
-        , m_type(type)
-        , m_parent(parent)
+                                     Type type,
+                                     NfLibraryTreeItem* parent)
+        : m_name{name}
+        , m_type{type}
+        , m_parent{parent}
 {
 }
 
@@ -82,14 +84,35 @@ NfLibraryTreeItem::Type NfLibraryTreeItem::type() const
         return m_type;
 }
 
-void NfLibraryTreeItem::setRepresentationType(RepresentationType type)
+void NfLibraryTreeItem::setValue(const NfLibraryTreeItem::Value &v)
 {
-        m_representationType = type;
+        m_value = v;
 }
 
-NfLibraryTreeItem::RepresentationType NfLibraryTreeItem::representationType() const
+NfLibraryTreeItem::Value NfLibraryTreeItem::value() const
 {
-        return m_representationType;
+        return m_value;
+}
+
+NfLibraryQuery NfLibraryTreeItem::makeQuery() const
+{
+        NfLibraryQuery query;
+        const NfLibraryTreeItem* node = this;
+        while (node) {
+                if (node->type() == NodeType::Library) {
+                        query.libraryId = std::get<int64_t>(node->value());
+                        break;
+                }
+
+                if (node->type() == NodeType::Representation)
+                        query.representationType = node->representationType();
+
+                node = node->parent();
+        }
+
+        query.queryValue = value();
+
+        return query;
 }
 
 } // namespace NfDesktop

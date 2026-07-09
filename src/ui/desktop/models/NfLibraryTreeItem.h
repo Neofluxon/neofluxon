@@ -24,18 +24,22 @@
 #ifndef NF_LIBRARY_TREE_ITEM_H
 #define NF_LIBRARY_TREE_ITEM_H
 
+#incldue "core/library/NfLibraryTreeNode.h"
+#incldue "core/library/NfLibraryQuery.h"
+
 #include <QString>
 
 #include <memory>
 
 namespace NfDesktop {
 
-class NfLibraryTreeItem {
+class NfLibraryTreeItem : public NfLibraryTreeNode {
  public:
-        enum class Type {
+        enum class NodeType {
+                Root,
                 Library,
                 Representation,
-                Node
+                Node,
         };
 
         enum class RepresentationType {
@@ -45,6 +49,8 @@ class NfLibraryTreeItem {
                 Equipment,
                 Collections
         };
+
+        using Value = NfCore::NfLibraryTreeNode::NodeValue;
 
  public:
         NfLibraryTreeItem(const QString& name,
@@ -59,15 +65,16 @@ class NfLibraryTreeItem {
         int row() const;
         QString name() const;
         Type type() const;
-        void setRepresentationType(RepresentationType type);
-        RepresentationType representationType() const;
+        void setValue(const Value &v) const;
+        Value value() const;
+        NfCore:NfLibraryQuery makeQuery() const;
 
  private:
         QString m_name;
         Type m_type {};
-        RepresentationType m_representationType {RepresentationType::None};
-        NfLibraryTreeItem* m_parent {};
+        NfLibraryTreeItem* m_parent{};
         std::vector<std::unique_ptr<NfLibraryTreeItem>> m_children;
+        Value m_value;
 };
 
 } // namespace NfDesktop

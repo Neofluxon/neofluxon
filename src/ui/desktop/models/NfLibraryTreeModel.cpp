@@ -121,7 +121,8 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::buildTree()
 {
-        m_root = std::make_unique<NfLibraryTreeItem>("", NfLibraryTreeItem::Type::Node);
+        m_root = std::make_unique<NfLibraryTreeItem>("Library",
+                                                     NfLibraryTreeItem::Type::Root);
 
         const auto libraries = m_library->libraries();
         for (const auto& library : libraries) {
@@ -137,21 +138,23 @@ void NfLibraryTreeModel::buildTree()
 }
 
 void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
-                                         NfLibraryTreeItem* parent)
+                                         NfLibraryTreeItem* libraryItem)
 {
+        libraryItem->setvalue(library->value());
         for (const auto& rep : library->representations()) {
                 auto name = QString::fromUtf8(rep->name().c_str());
                 auto repItem = std::make_unique<NfLibraryTreeItem>(name,
                                                                    NfLibraryTreeItem::Type::Representation,
                                                                    parent);
                 populateRepresentation(rep.get(), repItem.get());
-                parent->appendChild(std::move(repItem));
+                libraryItem->appendChild(std::move(repItem));
         }
 }
 
 void NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
                                                 NfLibraryTreeItem* parent)
 {
+        parent->setValue(rep->value());
         auto* repTree = rep->getTree();
         if (repTree)
                 populateChildNodes(repTree->children(), parent);
@@ -164,6 +167,7 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<Nf
                 auto node = std::make_unique<NfLibraryTreeItem>(QString::fromStdString(child->name()),
                                                                 NfLibraryTreeItem::Type::Node,
                                                                 parentItem);
+                node->setValue(child->value());
                 if (!child->children().empty())
                         populateChildNodes(child->children(), node.get());
 

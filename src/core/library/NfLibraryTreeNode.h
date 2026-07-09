@@ -63,12 +63,16 @@ public:
                 Keyword
         };
 
+        using NodeValue = std::variant<int64_t, std::string>;
+
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();
         void setName(const std::string& name);
         const std::string& name() const;
         void setType(NodeType t);
         NodeType type() const;
+        void setValue(const NodeValue& val);
+        NodeValue getValue() const;
         NfLibraryTreeNode* addChild();
         void removeChild(NfLibraryTreeNode* child);
         const std::vector<std::unique_ptr<NfLibraryTreeNode>>& children() const;
@@ -76,7 +80,7 @@ public:
 private:
         NodeType m_type;
         std::string m_name;
-        std::map<std::string, std::variant<int, double, std::string>> metadata;
+        NodeValue m_value;
         std::vector<std::unique_ptr<NfLibraryTreeNode>> m_children;
 };
 
