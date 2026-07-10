@@ -23,6 +23,7 @@
 
 #include "NfFolderModel.h"
 #include "NfBrowserModel.h"
+#include "core/NfFilesystemPhotoSource.h"
 
 using namespace NfUi;
 
@@ -37,12 +38,12 @@ NfFolderModel::NfFolderModel(NfContext *ctx, QObject *parent)
 
 void NfFolderModel::setPath(const std::filesystem::path& path)
 {
-        m_browserModel->setSource(path);
+        m_browserModel->setSource(std::make_unique<NfFilesystemPhotoSource>(path));
 }
 
 const std::filesystem::path& NfFolderModel::getPath() const
 {
-        return m_browserModel->getSurce().;
+        return m_browserModel->getSurce();
 }
 
 NfBrowserModel* NfFolderModel::browser() const

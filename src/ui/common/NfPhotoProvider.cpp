@@ -107,7 +107,7 @@ void NfPhotoProvider::prefetchThumbnail(const NfPhoto &photo)
                 auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
                 cacheImage.reset();
 
-                auto size   = NfQPixmap::estimateSizeBytes(pixmap.get());
+                auto size = NfQPixmap::estimateSizeBytes(pixmap.get());
                 pixmapImage = pixmap.release();
 
                 // Pixmap cache is called only from the GUI thread

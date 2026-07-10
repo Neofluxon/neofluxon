@@ -26,6 +26,7 @@
 #include "NfUiState.h"
 #include "NfFolderModel.h"
 #include "NfFolderView.h"
+#include "NfLibraryView.h"
 
 #include <QVBoxLayout>
 
@@ -38,7 +39,9 @@ NfCentralWidget::NfCentralWidget(NfContext *ctx, QWidget* parent)
         , m_context{ctx}
         , m_currentView{nullptr}
         , m_layout{new QVBoxLayout(this)}
+        , m_browserModel{new NfBrowserModel(m_context, this));
         , m_folderModel{new NfFolderModel(m_context, this)}
+        , m_libraryModel{new NfLibraryModel(m_context, this)}
 {
         setObjectName("NfCentralWidget");
 
@@ -67,7 +70,7 @@ void NfCentralWidget::showFolderView()
 
 void NfCentralWidget::showLibraryView()
 {
-        setCurrentView(new NfLibraryView(this, m_libraryModel));
+        setCurrentView(new NfLibraryView(NfLibraryContext(m_context)));
 }
 
 void NfCentralWidget::setCurrentView(QWidget* view)

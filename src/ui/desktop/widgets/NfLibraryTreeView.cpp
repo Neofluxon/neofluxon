@@ -68,7 +68,7 @@ NfLibraryTreeView::currentChanged(const QModelIndex& current,
                                   const QModelIndex& previous)
 {
         if (auto* node = m_model->itemFromIndex(current); node)
-                m_state.queryLibrary(node->makeQuiery());
+                m_state.setQuery(node->makeQuery());
 }
 
 } // namespace NfDesktop

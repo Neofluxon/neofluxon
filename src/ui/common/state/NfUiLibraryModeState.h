@@ -21,6 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "core/library/NfLibraryQuery.h"
+
 #include <QObject>
 
 namespace NfUi {
@@ -31,9 +33,14 @@ class NfUiLibraryModeState : public QObject
 
 public:
         explicit NfUiLibraryModeState(QObject* parent = nullptr);
+        void setQuery(const NfCore::NfLibraryQuery& query);
+        const NfCore::NfLibraryQuery& query() const;
 
-public slots:
-        void setSelectedNode(const NfLibraryTreeItem* item);
+signals:
+        void queryChanged(const NfCore::NfLibraryQuery& query);
+
+private:
+        NfCore::NfLibraryQuery m_query;
 };
 
 } // namespace NfUi
