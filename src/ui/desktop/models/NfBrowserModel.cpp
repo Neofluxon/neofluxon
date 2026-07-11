@@ -173,6 +173,4 @@ void NfBrowserModel::prefetchPage(int firstVisible, int pageSize)
         for (int row = start; row < end; ++row)
                 m_photoProvider->prefetchThumbnail(m_photos[row]);
 }
-
-
 } // namespace NfDesktop

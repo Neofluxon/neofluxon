@@ -21,11 +21,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#ifndef NF_UI_FOLDER_STATE_H
+#define NF_UI_FOLDER_STATE_H
+
 #include <QObject>
 
 #include <filesystem>
 
 namespace NfUi {
+
+class NfUiBrowserState;
 
 class NfUiFolderModeState : public QObject
 {
@@ -38,19 +43,19 @@ public:
         };
 
         explicit NfUiFolderModeState(QObject* parent = nullptr);
-        ViewMode viewMode() const;
         const std::filesystem::path& path() const;
+        NfUiBrowserState* browser() const;
 
 signals:
-        void viewModeChanged(ViewMode mode);
         void pathChanged(const std::filesystem::path& path);
 
 public slots:
-        void setViewMode(ViewMode mode);
         void setPath(const std::filesystem::path& path);
 
 private:
-        ViewMode m_viewMode;
         std::filesystem::path m_path;
+        NfUiBrowserState *m_browserState;
 };
 } // namespace NfUi
+
+#endif // NF_UI_FOLDER_STATE_H

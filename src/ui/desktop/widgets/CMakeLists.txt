@@ -1,6 +1,6 @@
 set(WIDGETS_HEADERS
     NfStyledWidget.h
-    NfBrowserView.h
+    NfThumbnailsView.h
     NfCentralWidget.h
     NfLeftPanel.h
     NfMainMenu.h
@@ -9,14 +9,16 @@ set(WIDGETS_HEADERS
     NfPathBrowser.h
     NfLibraryTreeView.h
     NfSettingsDialog.h
+    NfBrowserView.h
     NfFolderView.h
+    NfLibraryView.h
     NfPhotoPreviewView.h
     NfTopBar.h
 )
 
 set(WIDGETS_SOURCES
     NfStyledWidget.cpp
-    NfBrowserView.cpp
+    NfThumbnailsView.cpp
     NfCentralWidget.cpp
     NfLeftPanel.cpp
     NfMainMenu.cpp
@@ -25,7 +27,9 @@ set(WIDGETS_SOURCES
     NfPathBrowser.cpp
     NfLibraryTreeView.cpp
     NfSettingsDialog.cpp
+    NfBrowserView.cpp
     NfFolderView.cpp
+    NfLibraryView.cpp
     NfPhotoPreviewView.cpp
     NfTopBar.cpp
 )

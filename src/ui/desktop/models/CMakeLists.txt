@@ -2,6 +2,7 @@
 set(MODEL_HEADERS
     NfBrowserModel.h
     NfFolderModel.h
+    NfLibraryModel.h
     NfLibraryTreeItem.h
     NfLibraryTreeModel.h
 )
@@ -9,6 +10,7 @@ set(MODEL_HEADERS
 set(MODEL_SOURCES
     NfBrowserModel.cpp
     NfFolderModel.cpp
+    NfLibraryModel.h
     NfLibraryTreeItem.cpp
     NfLibraryTreeModel.cpp
 )

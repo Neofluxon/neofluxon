@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserView.h
+ * File name: NfLibraryModel.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,54 +21,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_BROWSER_VIEW_H
-#define NF_BROWSER_VIEW_H
-
+#include "NfLibraryModel.h"
 #include "NfContext.h"
+#include "NfBrowserModel.h"
+#include "core/library/NfLibraryQuery.h"
+#include "core/library/NfLibraryPhotoSource.h"
 
-#include <QWidget>
-
-namespace NfUi {
- class NfUiFolderModeState;
-}
-
-class QVBoxLayout;
+using namespace NfCore;
+using namespace NfUi;
 
 namespace NfDesktop {
 
-class NfBrowserModel;
-class NfThumbnailsView;
-class NfPhotoPreviewView;
-
-class NfBrowserView : public QWidget
+NfLibraryModel::NfLibraryModel(NfLibraryContext ctx, QObject *parent)
+        : QObject(parent)
+        , m_context{std::move(ctx)}
+        , m_browserModel{new NfBrowserModel(m_context.prent(), this)}
 {
-        Q_OBJECT
+}
 
- public:
-        explicit NfBrowserView(NfBrowserModel *model,
-                               QWidget* parent = nullptr);
+void NfLibraryModel::setQuery(const NfLibraryQuery &query);
+{
+        m_browserModel->setSource(std::make_unique<NfLibraryPhotoSource>(query));
+}
 
-protected slots:
-        void updateView();
-
-public slots:
-        void showGridView();
-        void showPreviewView();
-
-signals:
-
-protected:
-        void keyPressEvent(QKeyEvent *event) override;
-
-private:
-        NfUi::NfContext m_context;
-        NfUi::NfUiFolderModeState *m_state;
-        NfBrowserModel* m_model;
-        QVBoxLayout* m_mainLayout;
-        NfThumbnailsView* m_thumbnailsView;
-        NfPhotoPreviewView* m_photoPreviewView;
-};
+NfBrowserModel* NfLibraryModel::browser() const
+{
+        return m_browserModel;
+}
 
 } // namespace NfDesktop
-
-#endif // NF_BROWSER_VIEW_H

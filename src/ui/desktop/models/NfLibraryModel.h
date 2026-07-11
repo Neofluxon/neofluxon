@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserModel.h
+ * File name: NfLibraryModel.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FOLDER_MODEL_H
-#define NF_FOLDER_MODEL_H
+#ifndef NF_LIBRARY_MODEL_H
+#define NF_LIBRARY_MODEL_H
 
-#include "NfBrowserModel.h"
+#include "NfLibraryContext.h"
 
 #include <QObject>
 
-namespace NfUi {
-struct NfContext;
+namespace NfCore {
+class NfLibraryQuery;
 }
 
-using namespace NfUi;
+namespace NfUi {
+class NfBrowserModel;
+}
 
 namespace NfDesktop {
 
-class NfBrowserModel;
-
-class NfFolderModel : public QObject
+class NfLibraryModel : public QObject
 {
         Q_OBJECT
 
 public:
-        explicit NfFolderModel(NfContext *ctx, QObject *parent = nullptr);
+        explicit NfLibraryModel(NfUi::NfLibraryContext ctx, QObject *parent = nullptr);
         ~NfFolderModel() = default;
-        void setPath(const std::filesystem::path& path);
-        const std::filesystem::path& getPath() const;
-
+        void setQuery(const NfCore::NfLibraryQuery &query);
         NfBrowserModel* browser() const;
 
  private:
-        NfContext *m_context;
+        NfUi::NfLibraryContext m_context;
         NfBrowserModel *m_browserModel;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_FOLDER_MODEL_H
+#endif // NF_LIBRARY_MODEL_H

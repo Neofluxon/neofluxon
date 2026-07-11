@@ -22,110 +22,97 @@
  */
 
 #include "NfBrowserView.h"
+#include "NfUiState.h"
 #include "NfBrowserModel.h"
+#include "NfThubnailsView.h"
+#include "NfPhotoPreviewView.h"
 
-#include <QWheelEvent>
-#include <QResizeEvent>
-#include <QMouseEvent>
-#include <QScrollBar>
+#include <QVBoxLayout>
+#include <QKeyEvent>
+
+using namespace NfUi;
 
 namespace NfDesktop {
 
-NfBrowserView::NfBrowserView(QWidget* parent)
-        : QListView(parent)
-        , m_layoutMode{LayoutMode::GridView}
-        , m_thumbnailSize{42}
-
+NfBrowserView::NfBrowserView(NfBrowserModel *model, QWidget* parent)
+        : QWidget(parent)
+        , m_model{model}
+        , m_mainLayout{nullptr}
+        , m_thumbnailsView{nullptr}
+        , m_photoPreviewView{nullptr}
 {
-        setObjectName("NfBrowserView");
+        m_mainLayout = new QVBoxLayout(this);
+        m_mainLayout->setContentsMargins(0, 0, 0, 0);
+        m_mainLayout->setSpacing(0);
 
-        connect(verticalScrollBar(),
-                &QScrollBar::valueChanged,
-                this,
-                &NfBrowserView::onScrollChanged);
+        m_thumbnailsView = new NfThumbnailsView(this);
+        m_thumbnailsView->setModel(m_model->browser());
+        m_mainLayout->addWidget(m_thumbnailsView);
 
-        setMouseTracking(true);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::viewModeChanged,
+                         this,
+                         &NfBrowserView::updateView);
+        QObject::connect(m_thumbnailsView, &QListView::doubleClicked,
+                         [this](const QModelIndex &index) {
+                                 m_state->setViewMode(NfUiFolderModeState::ViewMode::Preview);
+                         });
 
-        setSelectionMode(QAbstractItemView::SingleSelection);
-
-        setUniformItemSizes(true);
-        setSpacing(0);
-
-        setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-
-        updateLayout();
+        updateView();
 }
 
-void NfBrowserView::setLayoutMode(LayoutMode mode)
+void NfBrowserView::showGridView()
 {
-        if (m_layoutMode == mode)
-                return;
+        m_thumbnailsView->setLayoutMode(NfBrowserView::LayoutMode::GridView);
 
-        m_layoutMode = mode;
-        updateLayout();
+        if (m_photoPreviewView) {
+                m_mainLayout->removeWidget(m_photoPreviewView);
+                m_photoPreviewView->deleteLater();
+                m_photoPreviewView = nullptr;
+        }
+
+        m_mainLayout->setStretch(0, 1);
 }
 
-NfBrowserView::LayoutMode NfBrowserView::layoutMode() const
+void NfBrowserView::showPreviewView()
 {
-        return m_layoutMode;
-}
+        m_thumbnailsView->setLayoutMode(NfBrowserView::LayoutMode::FilmstripView);
 
-void NfBrowserView::setThumbnailSize(int size)
-{
-        m_thumbnailSize = size;
-        setIconSize(QSize(size, size));
-}
+        if (!m_photoPreviewView) {
+                m_photoPreviewView = new NfPhotoPreviewView(m_model->browser(), this);
+                QObject::connect(m_thumbnailsView->selectionModel(),
+                                 &QItemSelectionModel::currentChanged,
+                                 m_photoPreviewView,
+                                 &NfPhotoPreviewView::setPhotoIndex);
 
-int NfBrowserView::thumbnailSize() const
-{
-        return m_thumbnailSize;
-}
+                // Insert at the top
+                m_mainLayout->insertWidget(0, m_photoPreviewView);
 
-void NfBrowserView::updateLayout()
-{
-        setViewMode(QListView::IconMode);
-        setFlow(QListView::LeftToRight);
-        if (m_layoutMode == LayoutMode::GridView) {
-                setWrapping(true);
-                setResizeMode(QListView::Adjust);
-        } else {
-                setWrapping(false);
+                // Index 0 (Preview) gets more space, Index 1 (Filmstrip) gets less
+                m_mainLayout->setStretch(0, 7);
+                m_mainLayout->setStretch(1, 3);
+
+                m_photoPreviewView->setPhotoIndex(m_thumbnailsView->currentIndex());
+                m_thumbnailsView->scrollTo(m_thumbnailsView->currentIndex(),
+                                        QAbstractItemView::PositionAtCenter);
         }
 }
 
-void NfBrowserView::resizeEvent(QResizeEvent* event)
+void NfBrowserView::updateView()
 {
-        QListView::resizeEvent(event);
-}
-
-void NfBrowserView::wheelEvent(QWheelEvent* event)
-{
-        QListView::wheelEvent(event);
-}
-
-void NfBrowserView::mouseMoveEvent(QMouseEvent* event)
-{
-        auto index = indexAt(event->pos());
-        if (index.isValid())
-                emit photoHovered(index);
-
-        QListView::mouseMoveEvent(event);
-}
-
-void NfBrowserView::mouseDoubleClickEvent(QMouseEvent* event)
-{
-        auto index = indexAt(event->pos());
-
-        if (index.isValid())
-                emit photoActivated(index);
-
-        QListView::mouseDoubleClickEvent(event);
+        switch(m_state->viewMode()) {
+        case NfUiFolderModeState::ViewMode::Preview:
+                showPreviewView();
+                break;
+        case NfUiFolderModeState::ViewMode::Grid:
+        default:
+                showGridView();
+                break;
+        }
 }
 
 void NfBrowserView::keyPressEvent(QKeyEvent *event)
 {
-        QListView::keyPressEvent(event);
-
         switch (event->key()) {
         case Qt::Key_Left:
         case Qt::Key_Right:
@@ -136,38 +123,19 @@ void NfBrowserView::keyPressEvent(QKeyEvent *event)
         case Qt::Key_PageUp:
         case Qt::Key_PageDown:
                 {
-                        auto index = currentIndex();
-                        if (index.isValid())
-                                scrollTo(index, QAbstractItemView::PositionAtCenter);
+                        m_thumbnailsView->setFocus();
+
+                        // Forward the event to the browser view.
+                        QCoreApplication::sendEvent(m_thumbnailsView, event);
+
                         event->accept();
                         break;
                 }
+
         default:
+                QWidget::keyPressEvent(event);
                 break;
         }
-}
-
-void NfBrowserView::onScrollChanged()
-{
-        auto* browserModel = qobject_cast<NfBrowserModel*>(model());
-        if (!browserModel)
-                return;
-
-        // Top visible item
-        QModelIndex top = indexAt(QPoint(0, 0));
-        int firstVisibleRow = top.isValid() ? top.row() : 0;
-
-        // Bottom visible item (more reliable than grid math)
-        QModelIndex bottom = indexAt(QPoint(0, viewport()->height() - 1));
-        int lastVisibleRow = bottom.isValid()
-                ? bottom.row()
-                : model()->rowCount() - 1;
-
-        int visibleCount = lastVisibleRow - firstVisibleRow + 1;
-        if (visibleCount <= 0)
-                visibleCount = 1;
-
-        browserModel->prefetchPage(firstVisibleRow, visibleCount);
 }
 
 } // namespace NfDesktop

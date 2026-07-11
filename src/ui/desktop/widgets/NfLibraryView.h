@@ -1,5 +1,5 @@
 /**
- * File name: NfFolderView.h
+ * File name: NfLibraryView.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,53 +21,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FOLDER_VIEW_H
+#ifndef NF_LIBRARY_VIEW_H
 #define NF_FOLDER_VIEW_H
 
-#include "NfFolderContext.h"
+#include "NfLibraryContext.h"
 
 #include <QWidget>
 
 namespace NfUi {
- class NfUiFolderModeState;
+ class NfUiLibraryModeState;
 }
-
-using namespace NfUi;
 
 class QVBoxLayout;
 
 namespace NfDesktop {
 
-class NfFolderModel;
 class NfBrowserView;
-class NfPhotoPreviewView;
 
-class NfFolderView : public QWidget
+class NfLibraryView : public QWidget
 {
         Q_OBJECT
 
  public:
-        explicit NfFolderView(const NfFolderContext &ctx,
-                              NfFolderModel *model,
+        explicit NfLibraryView(NfUi::NfLibraryContext ctx,
+                              NfLibraryModel *model,
                               QWidget* parent = nullptr);
 
-protected slots:
-        void updateView();
-
-protected:
-        void showGridView();
-        void showPreviewView();
-        void keyPressEvent(QKeyEvent *event) override;
-
 private:
-        NfFolderContext m_context;
-        NfUiFolderModeState *m_state;
-        NfFolderModel* m_model;
+        NfUi::NfLibraryContext m_context;
+        NfUi::NfUiLibraryModeState *m_state;
+        NfLibraryModel* m_model;
         QVBoxLayout* m_mainLayout;
         NfBrowserView* m_browserView;
-        NfPhotoPreviewView* m_photoPreviewView;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_FOLDER_VIEW_H
+#endif // NF_LIBRARY_VIEW_H

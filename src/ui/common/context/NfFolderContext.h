@@ -36,6 +36,7 @@ class NfFolderContext {
         explicit NfFolderContext(NfContext* ctx)
                 : m_context{ctx} {}
         NfUiState* uiState() const { return m_context->uiState; }
+        NfContext* prent() const { return m_context; }
 
  private:
         NfContext* m_context;

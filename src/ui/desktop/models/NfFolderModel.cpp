@@ -22,6 +22,8 @@
  */
 
 #include "NfFolderModel.h"
+#include "NfContext.h"
+#include "NfFolderContext.h"
 #include "NfBrowserModel.h"
 #include "core/NfFilesystemPhotoSource.h"
 
@@ -29,21 +31,16 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfFolderModel::NfFolderModel(NfContext *ctx, QObject *parent)
+NfFolderModel::NfFolderModel(NfFolderContext ctx, QObject *parent)
         : QObject(parent)
-        , m_context{ctx}
-        , m_browserModel{new NfBrowserModel(m_context, this)}
+        , m_context{std::move(ctx)}
+        , m_browserModel{new NfBrowserModel(m_context.prent(), this)}
 {
 }
 
 void NfFolderModel::setPath(const std::filesystem::path& path)
 {
         m_browserModel->setSource(std::make_unique<NfFilesystemPhotoSource>(path));
-}
-
-const std::filesystem::path& NfFolderModel::getPath() const
-{
-        return m_browserModel->getSurce();
 }
 
 NfBrowserModel* NfFolderModel::browser() const

@@ -1,5 +1,5 @@
 /**
- * File name: NfCentralWidget.h
+ * File name: NfUiBrowserState.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,42 +21,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_CENTRAL_WIDGET_H
-#define NF_CENTRAL_WIDGET_H
-
-#include <QWidget>
-
-class QVBoxLayout;
+#include "NfUiBrowserState.h"
 
 namespace NfUi {
-struct NfContext;
+
+NfUiBrowserState::NfUiBrowserState(QObject* parent)
+        : QObject(parent)
+        , m_viewMode{ViewMode::Grid}
+{
 }
 
-using namespace NfUi;
-
-namespace NfDesktop {
-
-class NfCentralWidget : public QWidget
+NfUiBrowserState::ViewMode NfUiBrowserState::viewMode() const
 {
-        Q_OBJECT
+        return m_viewMode;
+}
 
- public:
-        explicit NfCentralWidget(NfContext* ctx, QWidget* parent = nullptr);
+void NfUiBrowserState::setViewMode(ViewMode mode)
+{
+        if (m_viewMode == mode)
+                return;
 
- protected slots:
-        void showShootsView();
-        void showFolderView();
-        void showLibraryView();
-        void updateView();
+        m_viewMode = mode;
+        emit viewModeChanged(m_viewMode);
+}
 
- private:
-        void setCurrentView(QWidget* view);
-
-        NfContext *m_context;
-        QVBoxLayout* m_layout;
-        QWidget* m_currentView;
-};
-
-} // namespace NfDesktop
-
-#endif // NF_CENTRAL_WIDGET_H
+} // namespace NfUi

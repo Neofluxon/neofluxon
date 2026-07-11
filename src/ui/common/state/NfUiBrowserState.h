@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserView.h
+ * File name: NfBrowserState.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,54 +21,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_BROWSER_VIEW_H
-#define NF_BROWSER_VIEW_H
+#ifndef NF_UI_BROWSER_STATE_H
+#define NF_UI_BROWSER_STATE_H
 
-#include "NfContext.h"
-
-#include <QWidget>
+#include <QObject>
 
 namespace NfUi {
- class NfUiFolderModeState;
-}
 
-class QVBoxLayout;
-
-namespace NfDesktop {
-
-class NfBrowserModel;
-class NfThumbnailsView;
-class NfPhotoPreviewView;
-
-class NfBrowserView : public QWidget
+class NfUiBrowserState : public QObject
 {
         Q_OBJECT
 
- public:
-        explicit NfBrowserView(NfBrowserModel *model,
-                               QWidget* parent = nullptr);
+public:
+        enum class ViewMode {
+                Grid,
+                Preview
+        };
 
-protected slots:
-        void updateView();
-
-public slots:
-        void showGridView();
-        void showPreviewView();
+        explicit NfUiBrowserState(QObject* parent = nullptr);
+        ViewMode viewMode() const;
 
 signals:
+        void viewModeChanged(ViewMode mode);
 
-protected:
-        void keyPressEvent(QKeyEvent *event) override;
+public slots:
+        void setViewMode(ViewMode mode);
 
 private:
-        NfUi::NfContext m_context;
-        NfUi::NfUiFolderModeState *m_state;
-        NfBrowserModel* m_model;
-        QVBoxLayout* m_mainLayout;
-        NfThumbnailsView* m_thumbnailsView;
-        NfPhotoPreviewView* m_photoPreviewView;
+        ViewMode m_viewMode;
 };
+} // namespace NfUi
 
-} // namespace NfDesktop
-
-#endif // NF_BROWSER_VIEW_H
+#endif // NF_UI_BROWSER_STATE_H
