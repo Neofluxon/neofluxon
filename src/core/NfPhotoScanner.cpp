@@ -40,31 +40,28 @@ PhotoScanner::~PhotoScanner()
         NF_LOG_DEBUG("called");
 }
 
-void PhotoScanner::setSource(const NfPhotoSource *source)
+std::unique_ptr<NfTask>
+PhotoScanner::createTask(const NfFilesystemPhotoSource& source)
 {
-        {
+        task = std::make_unique<NfFilesystemPhotoScanTask>(source);
+        task->setGenerationId(m_generationId);
+        task->setPhotoFound([this](const NfPhoto& photo) {
                 std::scoped_lock lock(m_mutex);
-                m_loadedPhotos.clear();
-                m_generationId++;
-        }
+                if (task->generationId() != m_generationId)
+                        return;
 
-        m_scheduler->cancelAll();
+                m_loadedPhotos.push_back(std::move(photo));
+        });
 
-        std::unqiue_ptr<NfTask> task;
-        if (auto fsSource = dynamic_cast<const NfFilesystemPhotoSource*>(&source)) {
-                task = std::make_unique<NfFilesystemPhotoScanTask>(*fsSource);
-                task->setGenerationId(m_generationId);
-                task->setPhotoFound([this](const NfPhoto& photo) {
-                        std::scoped_lock lock(m_mutex);
-                        if (task->generationId() != m_generationId)
-                                return;
+        return task;
+}
 
-                        m_loadedPhotos.push_back(std::move(photo));
-                });
-        } else if (auto librarySource = dynamic_cast<const NfLibraryPhotoSource*>(&source)) {
-                task = std::make_unique<NfLibraryPhotoScanTask>(*librarySource);
-                task->setGenerationId(m_generationId);
-                task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
+std::unique_ptr<NfTask>
+PhotoScanner::createTask(const NfLibraryPhotoSource& source)
+{
+        task = std::make_unique<NfLibraryPhotoScanTask>(*librarySource);
+        task->setGenerationId(m_generationId);
+        task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                         if (status != NfTask::TaskStatus::Success)
                                 return;
 
@@ -78,7 +75,24 @@ void PhotoScanner::setSource(const NfPhotoSource *source)
                                 m_loadedPhotos.append_range(libraryTask->takePhotos()
                                                             | std::views::as_rvalue);
                         }
+        });
+
+        return task;
+}
+
+void PhotoScanner::setSource(const NfPhotoSource& source)
+{
+        {
+                std::scoped_lock lock(m_mutex);
+                m_loadedPhotos.clear();
+                ++m_generationId;
         }
+
+        m_scheduler->cancelAll();
+
+        auto task = std::visit([this](const auto& src) {
+                return createTask(src);
+        }, source);
 
         if (task)
                 m_scheduler->submit(std::move(task));

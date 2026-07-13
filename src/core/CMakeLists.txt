@@ -47,6 +47,7 @@ set(CORE_HEADERS
         library/NfLibrary.h
         library/NfLibraryDatabase.h
         library/NfLibraryFolderImportTask.h
+        library/NfSourceRecords.h
         library/NfLibraryPhotoSource.h
         library/NfLibraryPhotoScanTask.h
         library/NfLibraryManager.h
@@ -68,7 +69,6 @@ set(CORE_SOURCES
         NfLogger.cpp
         NfFilesystemPhotoSource.cpp
         NfFilesystemPhotoScanTask.cpp
-        NfLibraryPhotoScanTask.cpp
         NfPhotoScanner.cpp
         NfPhotoId.cpp
         NfPhoto.cpp
@@ -86,6 +86,8 @@ set(CORE_SOURCES
         library/NfLibrary.cpp
         library/NfLibraryDatabase.cpp
         library/NfLibraryFolderImportTask.cpp
+        library/NfLibraryPhotoSource.cpp
+        library/NfLibraryPhotoScanTask.cpp
         library/NfLibraryManager.cpp
         library/NfLibraryRepresentation.cpp
         library/NfLibraryTreeNode.cpp

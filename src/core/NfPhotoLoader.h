@@ -39,7 +39,6 @@
 
 namespace NfCore {
 
-class NfPhotoSource;
 class NfPhotoScanner;
 class NfScheduler;
 class NfImage;
@@ -58,7 +57,7 @@ public:
         ~NfPhotoLoader();
 
         void setSource(const NfPhotoSource &source);
-        const std::filesystem::path& getPath() const;
+        const NfPhotoSource& getSource() const;
 
         void requestThumbnail(const NfPhoto &photo,
                               RequestType requestType = RequestType::Visible);

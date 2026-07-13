@@ -1,5 +1,5 @@
 /**
- * File name: NfPathScanner.h
+ * File name: NfPhotoScanner.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -38,24 +38,26 @@
 
 namespace NfCore {
 
-class NfPathScanner {
-public:
-        NfPathScanner();
-        ~NfPathScanner();
+class NfTask;
+class NfPhotoSource;
+class NfFileSystemPhotoSource;
+class NfLibraryPhotoSource;
 
-        void setPath(const std::filesystem::path& path, bool recursive = true);
-        std::filesystem::path getPath(const std::filesystem::path& path) const;
+class NfPhotoScanner {
+public:
+        NfPhotoScanner();
+        ~NfPhotoScanner();
+        void setSource(const NfPhotoSource &source);
         std::vector<NfPhoto> takePhotos();
 
-protected:
-        void loadPhotosThread(std::stop_token stopToken);
-
 private:
+        std::unique_ptr<NfTask> createTask(const NfFileSystemPhotoSource& source);
+        std::unique_ptr<NfTask> createTask(const NfLibraryPhotoSource& source);
+
         mutable std::mutex m_mutex;
         std::string m_path;
         bool m_recursive;
         std::vector<NfPhoto> m_loadedPhotos;
-
         std::jthread m_scanThread;
         std::atomic<bool> m_startScan;
         std::condition_variable_any m_conditionVariable;

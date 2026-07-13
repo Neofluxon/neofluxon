@@ -1,5 +1,5 @@
 /**
- * File name: NfFolderModeState.h
+ * File name: NfLibraryPhotoSource.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,41 +21,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_UI_FOLDER_STATE_H
-#define NF_UI_FOLDER_STATE_H
+#include "NfLibraryPhotoSource.h"
 
-#include <QObject>
+namespace NfCore {
 
-#include <filesystem>
-
-namespace NfUi {
-
-class NfUiBrowserState;
-
-class NfUiFolderModeState : public QObject
+NfLibraryPhotoSource::NfLibraryPhotoSource(const NfLibraryQuery& query)
+        : m_query{query}
 {
-        Q_OBJECT
+}
 
-public:
-        enum class ViewMode {
-                Grid,
-                Preview
-        };
+void NfLibraryPhotoSource::setQuery(const NfLibraryQuery& q)
+{
+        m_query = q;
+}
 
-        explicit NfUiFolderModeState(QObject* parent = nullptr);
-        const std::filesystem::path& path() const;
-        NfUiBrowserState* browser() const;
+const NfLibraryQuery& NfLibraryPhotoSource::query() const
+{
+        m_query = q;
+}
 
-signals:
-        void sourceChanged(const std::filesystem::path& path);
-
-public slots:
-        void setPath(const std::filesystem::path& path);
-
-private:
-        std::filesystem::path m_path;
-        NfUiBrowserState *m_browserState;
-};
-} // namespace NfUi
-
-#endif // NF_UI_FOLDER_STATE_H
+} // NfCore

@@ -24,26 +24,20 @@
 #ifndef NF_LIBRARY_PHOTO_SOURCE_H
 #define NF_LIBRARY_PHOTO_SOURCE_H
 
-#include "NfPhotoSource.h"
+#include "NfLibraryQuery.h"
 
 namespace NfCore {
 
-class NfPhotoScanner;
-class NfLibraryQuery;
-
-class NfLibraryPhotoSource : public NfPhotoSource
+class NfLibraryPhotoSource
 {
 public:
-    NfLibraryPhotoSource() = default;
-    explicit NfLibraryPhotoSource(const NfLibraryQuery& query);
-
-    void setQuery(const NfLibraryQuery& q);
-    const NfLibraryQuery& query() const;
-
-    void apply(NfPhotoScanner& scanner) const override;
+        NfLibraryPhotoSource() = default;
+        explicit NfLibraryPhotoSource(const NfLibraryQuery& query);
+        void setQuery(const NfLibraryQuery& q);
+        const NfLibraryQuery& query() const;
 
 private:
-    NfLibraryQuery m_query;
+        NfLibraryQuery m_query;
 };
 
 } // namespace NfCore

@@ -24,16 +24,15 @@
 #ifndef NF_PHOTO_SOURCE_H
 #define NF_PHOTO_SOURCE_H
 
+#include "NfFilesystemPhotoSource.h"
+#include "NfLibraryPhotoSource.h"
+
 namespace NfCore {
 
-class NfPhotoScanner;
-
-class NfPhotoSource
-{
-public:
-        virtual ~NfPhotoSource() = default;
-        virtual void apply(NfPhotoScanner& scanner) const = 0;
-};
+using NfPhotoSource = std::variant<
+    NfFilesystemPhotoSource,
+    NfLibraryPhotoSource
+>;
 
 } // NfCore
 

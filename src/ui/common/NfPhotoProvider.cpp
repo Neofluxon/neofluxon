@@ -60,7 +60,7 @@ NfPhotoProvider::~NfPhotoProvider()
 
 void NfPhotoProvider::setSource(const NfPhotoSource &source)
 {
-        m_source = source.clone();
+        m_source = source;
         m_photoLoader->setSource(m_source);
 }
 

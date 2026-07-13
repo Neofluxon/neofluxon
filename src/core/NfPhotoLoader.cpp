@@ -59,8 +59,8 @@ void NfPhotoLoader::setSource(const NfPhotoSource &source)
         m_scheduler->cancelAll();
         m_pendingThumbnailTasks.clear();
 
-        m_source = source.clone();
-        m_photoScanner->setSource(m_source.clone());
+        m_source = source;
+        m_photoScanner->setSource(m_source);
 }
 
 const NfPhotoSource& NfPhotoLoader::getSource() const

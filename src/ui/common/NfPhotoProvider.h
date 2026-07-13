@@ -26,6 +26,7 @@
 
 #include "core/NfPhoto.h"
 #include "core/NfPhotoId.h"
+#include "core/NfPhotoSource.h"
 
 #include <QObject>
 #include <QPixmap>
@@ -39,15 +40,12 @@ namespace NfCore {
 class NeofluxonCore;
 class NfPhotoLoader;
 class NfCache;
-class NfPhotoSource;
 }
-
-using namespace NfCore;
 
 Q_DECLARE_METATYPE(NfPhoto)
 Q_DECLARE_METATYPE(NfPhotoId)
-Q_DECLARE_METATYPE(std::vector<NfPhoto>)
-Q_DECLARE_METATYPE(std::vector<NfPhotoId>)
+Q_DECLARE_METATYPE(std::vector<NfCore::NfPhoto>)
+Q_DECLARE_METATYPE(std::vector<NfCore::NfPhotoId>)
 
 namespace NfUi {
 
@@ -56,22 +54,20 @@ class NfPhotoProvider : public QObject
         Q_OBJECT
 
 public:
-        explicit NfPhotoProvider(NeofluxonCore *core,
+        explicit NfPhotoProvider(NfCore::NeofluxonCore *core,
                                  QObject* parent = nullptr);
         ~NfPhotoProvider();
 
-        void setSource(const NfPhotoSource &source);
-        void setPath(const std::filesystem::path& path);
-        const std::filesystem::path& getPath() const;
-
-        QPixmap getThumbnail(const NfPhoto &photo) const;
-        QPixmap getPreview(const NfPhoto &photo) const;
-        void prefetchThumbnail(const NfPhoto &photo);
+        void setSource(const NfCore::NfPhotoSource &source);
+        NfCore::NfPhotoSource getSource() const;
+        QPixmap getThumbnail(const NfCore::NfPhoto &photo) const;
+        QPixmap getPreview(const NfCore::NfPhoto &photo) const;
+        void prefetchThumbnail(const NfCore::NfPhoto &photo);
 
 signals:
-        void photosLoaded(const std::vector<NfPhoto>& photos);
-        void thumbnailsLoaded(const std::vector<NfPhotoId>& ids);
-        void previewsLoaded(const std::vector<NfPhotoId>& ids);
+        void photosLoaded(const std::vector<NfCore::NfPhoto>& photos);
+        void thumbnailsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
+        void previewsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
 
 private slots:
         void onTimeout();
@@ -81,12 +77,12 @@ private:
         void processThumbnails();
         void processPreviews();
 
-        NfPhotoLoader *m_photoLoader;
-        NfCache *m_thumbnailCache;
-        NfCache *m_previewCache;
+        NfCore::NfPhotoLoader *m_photoLoader;
+        NfCore::NfCache *m_thumbnailCache;
+        NfCore::NfCache *m_previewCache;
         mutable QCache<uint64_t, QPixmap> m_thumbnailPixmapCache;
         mutable QCache<uint64_t, QPixmap>m_previewPixmapCache;
-        std::filesystem::path m_path;
+        NfCore::NfPhotoSource m_source;
         QPixmap m_thumbnailPlaceholder;
         QPixmap m_previewPlaceholder;
 };

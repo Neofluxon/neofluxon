@@ -56,19 +56,19 @@ NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
                          &NfBrowserModel::setPath);
  }
 
-void NfBrowserModel::setPath(const std::filesystem::path &path)
+void NfBrowserModel::setSource(std::unique_ptr<NfPhotoSource> source)
 {
         beginResetModel();
         m_photos.clear();
         m_itemsMap.clear();
         endResetModel();
 
-        m_photoProvider->setPath(path);
+        m_photoProvider->setSource(source);
 }
 
-const std::filesystem::path& NfBrowserModel::getPath() const
+NfSource NfBrowserModel::getSource() const
 {
-        return m_photoProvider->getPath();
+        return m_photoProvider->getSurce();
 }
 
 int NfBrowserModel::rowCount(const QModelIndex& parent) const
