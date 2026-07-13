@@ -44,4 +44,9 @@ void NfUiFolderModeState::setPath(const std::filesystem::path& path)
         }
 }
 
+NfUiBrowserState* NfUiFolderModeState::browser() const
+{
+        return m_browserState;
+}
+
 } // namespace NfUi

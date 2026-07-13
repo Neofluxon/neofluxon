@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryView.h
+ * File name: NfLibraryContext.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_VIEW_H
-#define NF_LIBRARY_VIEW_H
+#ifndef NF_LIBRARY_CONTEXT_H
+#define NF_LIBRARY_CONTEXT_H
 
-#include "NfLibraryContext.h"
-
-#include <QWidget>
-
-class QVBoxLayout;
+#include "NfContext.h"
 
 namespace NfUi {
- class NfUiLibraryModeState;
-}
 
-namespace NfDesktop {
+struct NfContext;
+class NfUiState;
 
-class NfLibraryModel;
-class NfBrowserView;
-
-class NfLibraryView : public QWidget
-{
-        Q_OBJECT
-
+class NfLibraryContext {
  public:
-        explicit NfLibraryView(NfUi::NfLibraryContext ctx,
-                               QWidget* parent = nullptr);
+        explicit NfLibraryContext(NfContext* ctx)
+                : m_context{ctx} {}
+        NfUiState* uiState() const { return m_context->uiState; }
+        NfContext* prent() const { return m_context; }
 
-private:
-        NfUi::NfLibraryContext m_context;
-        NfUi::NfUiLibraryModeState *m_state;
-        NfLibraryModel* m_model;
-        QVBoxLayout* m_mainLayout;
-        NfBrowserView* m_browserView;
+ private:
+        NfContext* m_context;
 };
 
-} // namespace NfDesktop
+} // namespace NfUi
 
-#endif // NF_LIBRARY_VIEW_H
+#endif // NF_LIBRARY_CONTEXT_H

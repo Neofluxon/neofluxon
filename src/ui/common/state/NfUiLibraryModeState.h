@@ -30,6 +30,8 @@
 
 namespace NfUi {
 
+class NfUiBrowserState;
+
 class NfUiLibraryModeState : public QObject
 {
     Q_OBJECT
@@ -38,12 +40,14 @@ public:
         explicit NfUiLibraryModeState(QObject* parent = nullptr);
         void setQuery(const NfCore::NfLibraryQuery& query);
         const NfCore::NfLibraryQuery& query() const;
+        NfUiBrowserState* browser() const;
 
 signals:
         void queryChanged(const NfCore::NfLibraryQuery& query);
 
 private:
         NfCore::NfLibraryQuery m_query;
+        NfUiBrowserState *m_browserState;
 };
 
 } // namespace NfUi

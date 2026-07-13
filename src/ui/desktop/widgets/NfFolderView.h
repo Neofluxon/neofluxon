@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryView.cpp
+ * File name: NfFolderView.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,35 +21,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfLibraryView.h"
-#include "NfUiLibraryModeState.h"
-#include "NfLibraryModel.h"
-#include "NfBrowserModel.h"
-#include "NfBrowserView.h"
+#ifndef NF_FOLDER_VIEW_H
+#define NF_FOLDER_VIEW_H
 
-#include <QVBoxLayout>
+#include "NfFolderContext.h"
 
-using namespace NfUi;
+#include <QWidget>
+
+class QVBoxLayout;
+
+namespace NfUi {
+class NfUiFolderModeState;
+}
 
 namespace NfDesktop {
 
-NfLibraryView::NfLibraryView(NfLibraryContext ctx,
-                             QWidget* parent)
-        : QWidget(parent)
-        , m_context{ctx}
-        , m_state{m_context.uiState()->libraryModeState()}
-        , m_model{new NfLibraryModel(std::move(ctx), this)}
-        , m_mainLayout{nullptr}
-        , m_browserView{nullptr}
-        , m_photoPreviewView{nullptr}
-{
-        m_mainLayout = new QVBoxLayout(this);
-        m_mainLayout->setContentsMargins(0, 0, 0, 0);
-        m_mainLayout->setSpacing(0);
+class NfFolderModel;
+class NfBrowserView;
 
-        m_browserView = new NfBrowserView(m_state->browser(), this);
-        m_browserView->setModel(m_model->browser());
-        m_mainLayout->addWidget(m_browserView);
-}
+class NfFolderView : public QWidget
+{
+        Q_OBJECT
+
+ public:
+        explicit NfFolderView(NfUi::NfFolderContext ctx,
+                              QWidget* parent = nullptr);
+
+private:
+        NfUi::NfFolderContext m_context;
+        NfUi::NfUiFolderModeState *m_state;
+        NfFolderModel* m_model;
+        QVBoxLayout* m_mainLayout;
+        NfBrowserView* m_browserView;
+};
 
 } // namespace NfDesktop
+
+#endif // NF_FOLDER_VIEW_H

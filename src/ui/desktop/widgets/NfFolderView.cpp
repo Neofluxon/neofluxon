@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryView.cpp
+ * File name: NfFolderView.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,9 +21,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfLibraryView.h"
-#include "NfUiLibraryModeState.h"
-#include "NfLibraryModel.h"
+#include "NfFolderView.h"
+#include "NfUiFolderModeState.h"
+#include "NfFolderModel.h"
 #include "NfBrowserModel.h"
 #include "NfBrowserView.h"
 
@@ -33,12 +33,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryView::NfLibraryView(NfLibraryContext ctx,
-                             QWidget* parent)
+NfFolderView::NfFolderView(NfFolderContext ctx,
+                           QWidget* parent)
         : QWidget(parent)
         , m_context{ctx}
         , m_state{m_context.uiState()->libraryModeState()}
-        , m_model{new NfLibraryModel(std::move(ctx), this)}
+        , m_model{new NfFolderModel(std::move(ctx), this)}
         , m_mainLayout{nullptr}
         , m_browserView{nullptr}
         , m_photoPreviewView{nullptr}
