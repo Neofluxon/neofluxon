@@ -27,7 +27,7 @@
 namespace NfCore {
 
 NfImageTask::NfImageTask(const NfPhoto& photo)
-        , m_photo{photo}
+        : m_photo{photo}
         , m_image{std::make_unique<NfImage>()}
         , m_extractionMethod{ExtractionMethod::Fastest}
 {

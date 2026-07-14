@@ -25,6 +25,7 @@
 #define NF_LIBRARY_REPRESENTATION_H
 
 #include "NfLibraryTreeNode.h"
+#include "NfPhoto.h"
 
 #include <memory>
 #include <string>
@@ -34,6 +35,7 @@ namespace NfCore {
 
 class NfRepresentationRecord;
 class NfLibraryDatabase;
+class NfLibraryQuery;
 
 class NfLibraryRepresentation {
 public:

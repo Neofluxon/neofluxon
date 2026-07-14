@@ -27,13 +27,12 @@
 #include "NfFilesystemPhotoSource.h"
 #include "NfLibraryPhotoSource.h"
 
+#include <variant>
+
 namespace NfCore {
 
-using NfPhotoSource = std::variant<
-    NfFilesystemPhotoSource,
-    NfLibraryPhotoSource
->;
+using NfPhotoSource = std::variant<NfFilesystemPhotoSource, NfLibraryPhotoSource>;
 
-} // NfCore
+}; // NfCore
 
 #endif // NF_PHOTO_SOURCE_H

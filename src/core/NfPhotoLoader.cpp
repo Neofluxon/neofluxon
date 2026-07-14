@@ -32,13 +32,12 @@
 
 namespace NfCore {
 
-NfPhotoLoader::NfPhotoLoader(NfCache *thumbnailsCache,
-                             NfCache *previewsCache,
-                             NfScheduler* scheduler)
-        : m_photoScanner{std::make_unique<NfPhotoScanner>()}
-        , m_scheduler{scheduler}
-        , m_thumbnailsCache{thumbnailsCache}
-        , m_previewsCache{previewsCache}
+NfPhotoLoader::NfPhotoLoader(NfPhotoLoaderContext ctx)
+        : m_context {std::move(ctx)}
+        , m_photoScanner{std::make_unique<NfPhotoScanner>(m_context.libraryManager)}
+        , m_scheduler{m_context.scheduler}
+        , m_thumbnailsCache{m_context.thumbnailCache}
+        , m_previewsCache{m_context.previewCache}
         , m_generationId{0}
 {
 }

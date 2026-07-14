@@ -117,16 +117,18 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
 }
 
 std::vector<NfPhoto>
-NfLibraryManager::queryPhotos(const NfLibraryQuery& query)
+NfLibraryManager::queryPhotos(const NfLibraryQuery& query) const
 {
-        if (auto* library = getLibrary(query.libraryId))
-                return library->findPhotos(query);
+        if (auto library = getLibrary(query.libraryId))
+                return library->queryPhotos(query);
 
         const auto allLibraries = libraries();
         std::vector<NfPhoto> result;
         for (const auto& lib : allLibraries) {
-                auto photos = lib->findPhotos(query);
-                result.append_range(std::move(photos));
+                auto photos = lib->queryPhotos(query);
+                result.insert(result.end(),
+                              std::make_move_iterator(photos.begin()),
+                              std::make_move_iterator(photos.end()));
         }
 
         return result;

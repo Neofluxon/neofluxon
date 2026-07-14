@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryQuery.h
+ * File name: NfPhotoLoaderContext.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,24 +21,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_QUERY_H
-#define NF_LIBRARY_QUERY_H
-
-#include "NfLibraryRepresentation.h"
-
-#include <cstdint>
-#include <string>
-#include <variant>
+#ifndef NF_PHOTO_LOADER_CONTEXT_H
+#define NF_PHOTO_LOADER_CONTEXT_H
 
 namespace NfCore {
 
-struct NfLibraryQuery {
-    using QueryValue = std::variant<int64_t, std::string>;
-    int64_t libraryId = -1;
-    NfLibraryRepresentation::RepresentationType representationType{};
-    QueryValue queryValue;
+class NfCache;
+class NfScheduler;
+class NfLibraryManager;
+
+struct NfPhotoLoaderContext
+{
+    NfCache* thumbnailCache{};
+    NfCache* previewCache{};
+    NfScheduler* scheduler{};
+    NfLibraryManager* libraryManager{};
 };
 
-} // namespace NfCore
+} // NfCore
 
-#endif // NF_LIBRARY_QUERY_H
+#endif // NF_PHOTO_LOADER_CONTEXT_H

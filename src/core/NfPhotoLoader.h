@@ -30,6 +30,7 @@
 #include "NfPreview.h"
 #include "NfTask.h"
 #include "NfPhotoSource.h"
+#include "NfPhotoLoaderContext.h"
 
 #include <filesystem>
 #include <vector>
@@ -51,9 +52,7 @@ public:
                 Prefetch
         };
 
-        NfPhotoLoader(NfCache *thumbnailsCache,
-                      NfCache *previewsCache,
-                      NfScheduler *scheduler);
+        NfPhotoLoader(NfPhotoLoaderContext ctx);
         ~NfPhotoLoader();
 
         void setSource(const NfPhotoSource &source);
@@ -73,6 +72,7 @@ public:
  private:
         static NfTask::Priority requestTypeToPriority(RequestType type);
 
+        NfPhotoLoaderContext m_context;
         std::unique_ptr<NfPhotoScanner> m_photoScanner;
         NfPhotoSource m_source;
         NfScheduler* m_scheduler;

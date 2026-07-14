@@ -61,8 +61,8 @@ public:
         uint64_t generationId() const;
         void setSequence(uint64_t s);
         uint64_t sequence() const;
-        void cancel() { m_cancelled.store(true, std::memory_order_relaxed); }
-        bool isCancelled() const { return false; }
+        void cancel();
+        bool isCancelled() const;
 
 protected:
         NfTask();

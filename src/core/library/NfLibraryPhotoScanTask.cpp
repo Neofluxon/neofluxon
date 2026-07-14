@@ -22,11 +22,14 @@
  */
 
 #include "NfLibraryPhotoScanTask.h"
+#include "NfLibraryManager.h"
 
 namespace NfCore {
 
-NfLibraryPhotoScanTask::NfLibraryPhotoScanTask(const NfLibraryPhotoSource& source)
+        NfLibraryPhotoScanTask::NfLibraryPhotoScanTask(const NfLibraryPhotoSource& source,
+                                                       NfLibraryManager *library)
         : m_source{source}
+        , m_library{library}
 {
 }
 
@@ -34,13 +37,8 @@ NfLibraryPhotoScanTask::~NfLibraryPhotoScanTask() = default;
 
 NfLibraryPhotoScanTask::TaskStatus NfLibraryPhotoScanTask::execute()
 {
-    auto* libraryManager = m_source->libraryManager();
-    if (!libraryManager)
+        m_photos = m_library->queryPhotos(m_source.query());
         return TaskStatus::Success;
-
-    m_photos = libraryManager->findPhotos(m_source->query());
-
-    return TaskStatus::Success;
 }
 
 std::vector<NfPhoto> NfLibraryPhotoScanTask::takePhotos()

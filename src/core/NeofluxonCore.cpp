@@ -22,6 +22,7 @@
  */
 
 #include "NeofluxonCore.h"
+#include "NfPhotoLoaderContext.h"
 #include "NfPhotoLoader.h"
 #include "NfLibraryManager.h"
 #include "NfCache.h"
@@ -40,10 +41,12 @@ NeofluxonCore::NeofluxonCore()
         , m_backgroundScheduler{std::make_unique<NfScheduler>()}
         , m_backgroundThreadPool{std::make_unique<NfThreadPool>(m_backgroundScheduler.get(),
                                                                 m_threadAllocationManager.getBackgroundThreadCount())}
-        , m_photoLoader{std::make_unique<NfPhotoLoader>(m_thumbnailCache.get(),
-                                                        m_previewCache.get(),
-                                                        m_foregroundScheduler.get())}
         , m_libraryManager{std::make_unique<NfLibraryManager>(m_backgroundScheduler.get())}
+        , m_photoLoader{std::make_unique<NfPhotoLoader>(NfPhotoLoaderContext{
+                        .thumbnailCache = m_thumbnailCache.get(),
+                        .previewCache = m_previewCache.get(),
+                        .scheduler = m_foregroundScheduler.get(),
+                        .libraryManager = m_libraryManager.get()})}
 {
         NF_LOG_DEBUG("called");
 }

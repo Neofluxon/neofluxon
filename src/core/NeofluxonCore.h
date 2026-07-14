@@ -58,8 +58,8 @@ private:
         std::unique_ptr<NfThreadPool> m_foregroundThreadPool;
         std::unique_ptr<NfScheduler> m_backgroundScheduler;
         std::unique_ptr<NfThreadPool> m_backgroundThreadPool;
-        std::unique_ptr<NfPhotoLoader> m_photoLoader;
         std::unique_ptr<NfLibraryManager> m_libraryManager;
+        std::unique_ptr<NfPhotoLoader> m_photoLoader;
 };
 
 } // namespace NfCore

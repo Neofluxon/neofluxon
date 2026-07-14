@@ -37,7 +37,7 @@ void NfLibraryPhotoSource::setQuery(const NfLibraryQuery& q)
 
 const NfLibraryQuery& NfLibraryPhotoSource::query() const
 {
-        m_query = q;
+        return m_query;
 }
 
 } // NfCore

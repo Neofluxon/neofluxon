@@ -97,7 +97,7 @@ void NfTask::cancel()
 
 bool NfTask::isCancelled() const
 {
-        return m_cancelled.store(true, std::memory_order_relaxed);
+        return m_cancelled.load(std::memory_order_relaxed);
 }
 
 } // namespace NfCore

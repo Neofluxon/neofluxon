@@ -22,11 +22,17 @@
  */
 
 #include "NfFilesystemPhotoScanTask.h"
+#include "NfLogger.h"
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 namespace NfCore {
 
 NfFilesystemPhotoScanTask::NfFilesystemPhotoScanTask(const NfFilesystemPhotoSource& source)
         : m_source{source}
+        , m_photoExtentions{".cr3", ".cr2", ".dng", ".raf", ".nef", ".jpg", ".jpeg", ".png"}
 {
 }
 
@@ -47,19 +53,19 @@ void NfFilesystemPhotoScanTask::setPhotoFoundCallback(PhotoFoundHandler handler)
         m_photoFoundCb = std::move(handler);
 }
 
-NfFilesystemPhotoScanTask::TaskStatus NfFilesystemPhotoScanTask::execute()
+NfTask::TaskStatus NfFilesystemPhotoScanTask::execute()
 {
         try {
                 auto scan = [&](auto it, auto end) {
                         for (; it != end; ++it) {
-                                if (isCanceled())
+                                if (isCancelled())
                                         return;
 
                                 processPathEntry(it->path());
                         }
                 };
 
-                auto directory = m_source->path();
+                auto directory = m_source.path();
                 if (m_recursive) {
                         NF_LOG_DEBUG("iterate dir (recursive): " << directory);
 
@@ -72,14 +78,15 @@ NfFilesystemPhotoScanTask::TaskStatus NfFilesystemPhotoScanTask::execute()
                         scan(it, end);
                 }
         }
-        catch (const std::filesystem::filesystem_error&) {
+        catch (const fs::filesystem_error&) {
+                return TaskStatus::Failed;
         }
+
+        return TaskStatus::Success;
 }
 
 void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& path)
 {
-        namespace fs = std::filesystem;
-
         try {
                 if (!fs::is_regular_file(path))
                         return;
@@ -94,7 +101,7 @@ void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& pa
                 NfPhoto photo(path);
 
                 NF_LOG_DEBUG("NEW PHOTO: " << photo.path());
-                m_photoFoundCb(std::move(photo));
+                m_photoFoundCb(std::move(photo), generationId());
         }
         catch (const fs::filesystem_error&) {
         }

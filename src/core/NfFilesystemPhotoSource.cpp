@@ -21,22 +21,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfFileSystemPhotoSource.h"
+#include "NfFilesystemPhotoSource.h"
 
 namespace NfCore {
 
-NfFileSystemPhotoSource::NfFileSystemPhotoSource(const std::filesystem::path& p)
-void NfFileSystemPhotoSource::setPath(const std::filesystem::path& p)
+NfFilesystemPhotoSource::NfFilesystemPhotoSource(const std::filesystem::path& p)
+        : m_path{p}
 {
 }
 
-const std::filesystem::path& NfFileSystemPhotoSource::path() const
+void NfFilesystemPhotoSource::setPath(const std::filesystem::path& p)
 {
+        m_path = p;
 }
 
-void NfFileSystemPhotoSource::apply(NfPhotoScanner& scanner) const
+const std::filesystem::path& NfFilesystemPhotoSource::path() const
 {
-        
+        return m_path;
 }
 
 } // NfCore

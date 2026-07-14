@@ -51,7 +51,6 @@ public:
         NfLibraryRepresentation* addRepresentation();
         void removeRepresentation(NfLibraryRepresentation* representation);
         std::vector<std::unique_ptr<NfLibraryRepresentation>> representations() const;
-        std::vector<NfLibraryRepresentation> representations() const;
         void addPhoto(const NfPhoto& photo);
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
 

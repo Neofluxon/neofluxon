@@ -25,17 +25,18 @@
 #define NF_FILESYSTEM_PHOTOSCAN_TASK_H
 
 #include "NfTask.h"
-#incldue "NfFilesystemPhotoSource.h"
+#include "NfFilesystemPhotoSource.h"
 #include "NfPhoto.h"
 
-#include <filesystem>
 #include <functional>
+#include <string>
+#include <unordered_set>
 
 namespace NfCore {
 
 class NfFilesystemPhotoScanTask : public NfTask {
 public:
-        using PhotoFoundHandler = std::copyable_function<void(NfPhoto)>;
+        using PhotoFoundHandler = std::function<void(NfPhoto, uint64_t)>;
 
         NfFilesystemPhotoScanTask(const NfFilesystemPhotoSource& source);
         NfFilesystemPhotoScanTask(NfFilesystemPhotoScanTask&&) noexcept = default;
@@ -52,10 +53,11 @@ public:
         void processPathEntry(const std::filesystem::path& path);
 
         NfFilesystemPhotoSource m_source;
+        std::unordered_set<std::string> m_photoExtentions;
         PhotoFoundHandler m_photoFoundCb;
         bool m_recursive{true};
 };
 
 } // namespace NfCore
 
-#endif NF_FILESYSTEM_PHOTOSCAN_TASK_H
+#endif // NF_FILESYSTEM_PHOTOSCAN_TASK_H

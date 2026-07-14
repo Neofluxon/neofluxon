@@ -24,22 +24,17 @@
 #ifndef NF_FILESYSTEM_PHOTO_SOURCE_H
 #define NF_FILESYSTEM_PHOTO_SOURCE_H
 
-#include "NfPhotoSource.h"
-
 #include <filesystem>
 
 namespace NfCore {
 
-class NfPhotoScanner;
-
-class NfFileSystemPhotoSource: NfPhotoSource
+class NfFilesystemPhotoSource
 {
  public:
-        NfFileSystemPhotoSource() = default;
-        explicit NfFileSystemPhotoSource(const std::filesystem::path& p);
+        NfFilesystemPhotoSource() = default;
+        explicit NfFilesystemPhotoSource(const std::filesystem::path& p);
         void setPath(const std::filesystem::path& p);
         const std::filesystem::path& path() const;
-        void apply(NfPhotoScanner& scanner) const override;
 
  private:
         std::filesystem::path m_path;

@@ -25,16 +25,19 @@
 #define NF_LIBRARY_PHOTOSCAN_TASK_H
 
 #include "NfTask.h"
-#incldue "NfLibraryPhotoSource.h"
+#include "NfLibraryPhotoSource.h"
 #include "NfPhoto.h"
 
 #include <vector>
 
 namespace NfCore {
 
+class NfLibraryManager;
+
 class NfLibraryPhotoScanTask : public NfTask {
 public:
-        NfLibraryPhotoScanTask(const NfLibraryPhotoSource& source);
+        NfLibraryPhotoScanTask(const NfLibraryPhotoSource& source,
+                               NfLibraryManager *library);
         NfLibraryPhotoScanTask(NfLibraryPhotoScanTask&&) noexcept = default;
         NfLibraryPhotoScanTask& operator=(NfLibraryPhotoScanTask&&) noexcept = default;
         NfLibraryPhotoScanTask(const NfLibraryPhotoScanTask&) = delete;
@@ -43,11 +46,12 @@ public:
         TaskStatus execute() override;
         std::vector<NfPhoto> takePhotos();
 
- privatew:
+ private:
         NfLibraryPhotoSource m_source;
+        NfLibraryManager *m_library;
         std::vector<NfPhoto> m_photos;
 };
 
 } // namespace NfCore
 
-#endif NF_LIBRARY_PHOTOSCAN_TASK_H
+#endif // NF_LIBRARY_PHOTOSCAN_TASK_H

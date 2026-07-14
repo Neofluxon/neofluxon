@@ -25,42 +25,39 @@
 #define NF_PHOTO_SCANNER_H
 
 #include "NfPhoto.h"
+#include "NfPhotoSource.h"
 
 #include <string>
 #include <vector>
-#include <atomic>
-#include <thread>
 #include <mutex>
-#include <filesystem>
-#include <stop_token>
-#include <condition_variable>
 #include <unordered_set>
 
 namespace NfCore {
 
 class NfTask;
-class NfPhotoSource;
+class NfScheduler;
+class NfThreadPool;
 class NfFileSystemPhotoSource;
 class NfLibraryPhotoSource;
+class NfLibraryManager;
 
 class NfPhotoScanner {
 public:
-        NfPhotoScanner();
+        NfPhotoScanner(NfLibraryManager *library);
         ~NfPhotoScanner();
         void setSource(const NfPhotoSource &source);
         std::vector<NfPhoto> takePhotos();
 
 private:
-        std::unique_ptr<NfTask> createTask(const NfFileSystemPhotoSource& source);
+        std::unique_ptr<NfTask> createTask(const NfFilesystemPhotoSource& source);
         std::unique_ptr<NfTask> createTask(const NfLibraryPhotoSource& source);
 
+        NfLibraryManager* m_library;
+        std::unique_ptr<NfScheduler> m_scheduler;
+        std::unique_ptr<NfThreadPool> m_threadPool;
         mutable std::mutex m_mutex;
-        std::string m_path;
-        bool m_recursive;
+        uint64_t m_generationId{0};
         std::vector<NfPhoto> m_loadedPhotos;
-        std::jthread m_scanThread;
-        std::atomic<bool> m_startScan;
-        std::condition_variable_any m_conditionVariable;
         std::unordered_set<std::string> m_photoExtentions;
 };
 

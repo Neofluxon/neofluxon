@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_IAMGE_TASK_H
-#define NF_IAMGE_TASK_H
+#ifndef NF_IMAGE_TASK_H
+#define NF_IMAGE_TASK_H
 
 #include "NfTask.h"
 #include "NfPhoto.h"
