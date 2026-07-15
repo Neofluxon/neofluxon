@@ -1,49 +1,51 @@
 # Neofluxon
 
-Here I am trying to develop a simple photography workflow software, first for myself,
-as a tool that fits my needs and is not intended for advanced users.
+Neofluxon is intended to become a Digital Asset Management (DAM) application for photographers,
+focused on organizing and managing digital assets as part of the photography workflow.
+The goal is to provide a tool for importing, organizing, browsing, searching, and preserving
+photo collections, with possible support for additional workflow features in the
+future (such as non-destructive editing).
 
-A little philosophy behind this may change or improve over time; these are the central ideas:
+## Development Goals
 
-- Filesystem is the source of truth. The main organization is the filesystem.
-- Files outlive software. Photos, edits, and exports should remain accessible independently of the application.
-- Workflow defines organization. Sessions group originals, edits, and exports as they are produced.
-- Non-destructive. Originals are never modified.
-- Data assets, organization, and edits remain accessible. They stay usable with standard tools, without dependency on the software.
+The first development goal is the DAM foundation: providing a focused solution for managing photography assets.
 
-Every import is defined as a Session/Shoot.
+The main planned features include:
 
-A shoot/session will generally represent a standard linear workflow:
-import → culling → edit → export → archive
+- Support for RAW and standard image formats.
+- Browse the filesystem and import photos as new shoots/sessions, supporting a linear workflow (culling, rating, organization, etc.).
+- Fast browsing and previews, both from the filesystem and from the library, with an initial performance target of smooth browsing for photo collections containing up to 100,000 images.
+- A library with multiple representations of the same assets:
+  - Folder tree.
+  - Date/time tree.
+  - Equipment tree (camera and lenses).
+  - Keywords tree.
+  - Collections.
+  - Other
+- Support for multiple libraries.
+- Metadata management (ratings, keywords, captions, copyright, GPS).
+- Advanced search and saved searches.
+- File tracking and duplicate detection.
+- File integrity checking.
+- Batch operations for managing multiple photos (metadata, ratings, keywords, organization, etc.).
 
-According to the third law of thermodynamics, entropy always increases.
-No matter how organized a user might be, chaos eventually wins.
-The plan is for the software to enforce/automate a filesystem structure for data assets along the workflow steps.
+### Current Development Status
 
-The first stage focuses on a single part of the workflow: organization of digital assets:
-import → culling → archive
+The project is currently under early development, and no official release is available yet.
 
-The second stage will be non-destructive editing and export.
+The following features are currently implemented for testing purposes:
 
-### Current Status
+- Filesystem browsing for RAW photos.
+- Display of thumbnails and previews (grid layout or filmstrip with preview).
+- Keyboard navigation for previewing images.
+- Supported image formats:
+  - Canon (`.cr2`, `.cr3`).
+  - Nikon (`.nef`).
+  - Fujifilm (`.raf`).
+  - Adobe Digital Negative (`.dng`).
+  - JPEG (`.jpg`), PNG (`.png`).
 
-The project is in development/experimental stage.
-No official releases are available yet.
- See repository tags for current development snapshots.
-
-### What it can do now
-
-- File system browsing for RAW photos
-- Display thumbnails and previews (grid layout or filmstrip + preview)
-- Keyboard navigation for previewing images
-- Supported image fromats:
-    * Canon (`.cr2`, `.cr3`)
-    * Nikon (`.nef`)
-    * Fujifilm (`.raf`)
-    * Adobe Digital Negative (`.dng`)
-    * `JPG`, `PNG`
-
-### Technical Overview & Licensing
+### Technical Overview
 
 Neofluxon is developed in **C++** and **Qt**. The codebase is architecturally divided into two primary layers:
 
