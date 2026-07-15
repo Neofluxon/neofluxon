@@ -42,8 +42,8 @@ class NfPhotoLoader;
 class NfCache;
 }
 
-Q_DECLARE_METATYPE(NfPhoto)
-Q_DECLARE_METATYPE(NfPhotoId)
+Q_DECLARE_METATYPE(NfCore::NfPhoto)
+Q_DECLARE_METATYPE(NfCore::NfPhotoId)
 Q_DECLARE_METATYPE(std::vector<NfCore::NfPhoto>)
 Q_DECLARE_METATYPE(std::vector<NfCore::NfPhotoId>)
 
@@ -59,7 +59,7 @@ public:
         ~NfPhotoProvider();
 
         void setSource(const NfCore::NfPhotoSource &source);
-        NfCore::NfPhotoSource getSource() const;
+        const NfCore::NfPhotoSource& getSource() const;
         QPixmap getThumbnail(const NfCore::NfPhoto &photo) const;
         QPixmap getPreview(const NfCore::NfPhoto &photo) const;
         void prefetchThumbnail(const NfCore::NfPhoto &photo);

@@ -44,7 +44,7 @@ class NfLibraryModel : public QObject
 
 public:
         explicit NfLibraryModel(NfUi::NfLibraryContext ctx, QObject *parent = nullptr);
-        ~NfFolderModel() = default;
+        ~NfLibraryModel() = default;
         void setQuery(const NfCore::NfLibraryQuery &query);
         NfBrowserModel* browser() const;
 

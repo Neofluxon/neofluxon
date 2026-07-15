@@ -32,7 +32,7 @@ NfUiLibraryModeState::NfUiLibraryModeState(QObject* parent)
 {
 }
 
-void NfUiLibraryModeState::setQuery(const NfCore::NfLibraryQuery& q)
+void NfUiLibraryModeState::setQuery(const NfLibraryQuery& q)
 {
         if (m_query == q)
                 return;
@@ -46,7 +46,7 @@ const NfLibraryQuery& NfUiLibraryModeState::query() const
         return m_query;
 }
 
-NfUiBrowserState* NfUiFolderModeState::browser() const
+NfUiBrowserState* NfUiLibraryModeState::browser() const
 {
         return m_browserState;
 }

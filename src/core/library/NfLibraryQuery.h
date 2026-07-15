@@ -37,6 +37,7 @@ struct NfLibraryQuery {
     int64_t libraryId = -1;
     NfLibraryRepresentation::RepresentationType representationType{};
     QueryValue queryValue;
+    bool operator==(const NfLibraryQuery&) const = default;
 };
 
 } // namespace NfCore

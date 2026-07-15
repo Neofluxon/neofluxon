@@ -47,7 +47,7 @@ public:
         NfUiBrowserState* browser() const;
 
 signals:
-        void sourceChanged(const std::filesystem::path& path);
+        void pathChanged(const std::filesystem::path& path);
 
 public slots:
         void setPath(const std::filesystem::path& path);

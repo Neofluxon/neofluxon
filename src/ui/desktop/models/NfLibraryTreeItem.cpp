@@ -28,7 +28,7 @@ using namespace NfCore;
 namespace NfDesktop {
 
 NfLibraryTreeItem::NfLibraryTreeItem(const QString& name,
-                                     Type type,
+                                     NodeType type,
                                      NfLibraryTreeItem* parent)
         : m_name{name}
         , m_type{type}
@@ -79,7 +79,7 @@ QString NfLibraryTreeItem::name() const
         return m_name;
 }
 
-NfLibraryTreeItem::Type NfLibraryTreeItem::type() const
+NfLibraryTreeItem::NodeType NfLibraryTreeItem::type() const
 {
         return m_type;
 }
@@ -105,7 +105,7 @@ NfLibraryQuery NfLibraryTreeItem::makeQuery() const
                 }
 
                 if (node->type() == NodeType::Representation)
-                        query.representationType = node->representationType();
+                        query.representationType = node->type();
 
                 node = node->parent();
         }

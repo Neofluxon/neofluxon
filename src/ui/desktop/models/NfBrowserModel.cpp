@@ -50,25 +50,29 @@ NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
                          &NfPhotoProvider::previewsLoaded,
                          this,
                          &NfBrowserModel::onPreviewsLoaded);
-        QObject::connect(m_context->uiState->folderModeState(),
+        QObject::connect(
+                         m_context->uiState->folderModeState(),
                          &NfUiFolderModeState::pathChanged,
                          this,
-                         &NfBrowserModel::setPath);
+                         [this](const std::filesystem::path &path)
+                         {
+                                 setSource(NfFilesystemPhotoSource{path});
+                         });
  }
 
-void NfBrowserModel::setSource(std::unique_ptr<NfPhotoSource> source)
+void NfBrowserModel::setSource(NfPhotoSource source)
 {
         beginResetModel();
         m_photos.clear();
         m_itemsMap.clear();
         endResetModel();
 
-        m_photoProvider->setSource(source);
+        m_photoProvider->setSource(std::move(source));
 }
 
-NfSource NfBrowserModel::getSource() const
+NfPhotoSource NfBrowserModel::getSource() const
 {
-        return m_photoProvider->getSurce();
+        return m_photoProvider->getSource();
 }
 
 int NfBrowserModel::rowCount(const QModelIndex& parent) const

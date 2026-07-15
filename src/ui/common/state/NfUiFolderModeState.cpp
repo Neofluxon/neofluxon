@@ -22,6 +22,7 @@
  */
 
 #include "NfUiFolderModeState.h"
+#include "NfUiBrowserState.h"
 
 namespace NfUi {
 

@@ -26,7 +26,7 @@
 
 #include "core/NfPhoto.h"
 #include "core/NfPhotoId.h"
-#include "core/NfSource.h"
+#include "core/NfPhotoSource.h"
 
 #include <QAbstractListModel>
 
@@ -53,8 +53,8 @@ public:
         explicit NfBrowserModel(NfContext *ctx,
                                 QObject* parent = nullptr);
         ~NfBrowserModel() = default;
-        void setSource(const NfCore::NfSource& source);
-        NfCore::NfSource NfBrowserModel::getSource() const;
+        void setSource(NfCore::NfPhotoSource source);
+        NfCore::NfPhotoSource getSource() const;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         void prefetchPage(int firstVisible, int pageSize);

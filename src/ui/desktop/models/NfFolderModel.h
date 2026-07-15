@@ -28,6 +28,8 @@
 
 #include <QObject>
 
+#include <filesystem>
+
 namespace NfUi {
 class NfBrowserModel;
 }
@@ -48,7 +50,7 @@ public:
 
  private:
         NfUi::NfFolderContext m_context;
-        NNfBrowserModel *m_browserModel;
+        NfBrowserModel *m_browserModel;
 };
 
 } // namespace NfDesktop

@@ -25,6 +25,7 @@
 #include "NfLibraryDatabase.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryTreeNode.h"
+#include "NfLibraryQuery.h"
 #include "NfLogger.h"
 
 namespace NfCore {
@@ -47,7 +48,7 @@ void NfLibraryRepresentation::setName(std::string_view name)
         m_name = name;
 }
 
-const std::string& NfLibraryRepresentation::name() const
+const std::string& NfLibraryRepresentation::name()
 {
         if (!m_name.empty())
                 return m_name;
@@ -59,10 +60,10 @@ const std::string& NfLibraryRepresentation::name() const
         return m_name;
 }
 
-NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
+NfLibraryTreeNode* NfLibraryRepresentation::getTree()
 {
         if (m_tree)
-                return m_tree.get()
+                return m_tree.get();
 
         auto record = m_database->getRepresentationRecord(m_libraryId, m_type);
         if (record) {
@@ -75,12 +76,12 @@ NfLibraryTreeNode* NfLibraryRepresentation::getTree() const
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &query) const
 {
-        switch (query->representationType) {
+        switch (query.representationType) {
         case RepresentationType::Canonical:
-                return queryPhotosByPath(rep->queryValue);
+                if (const auto *pathId = std::get_if<int64_t>(&query.queryValue))
+                        return queryPhotosByPathId(*pathId);
                 break;
         case RepresentationType::DateTime:
-                populateDateTimeTree(rep);
                 break;
         case RepresentationType::Equipment:
                 break;
@@ -90,12 +91,14 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
         default:
                 break;
         }
+
+        return {};
 }
 
-std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t &id)
+std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t id) const
 {
         std::vector<NfPhoto> photos;
-        auto imagePaths = m_database = getImagePathsByFolderId(id);
+        auto imagePaths = m_database->getImagePathsByFolderId(id);
         for (const auto &path : imagePaths)
                 photos.emplace_back(path);
 

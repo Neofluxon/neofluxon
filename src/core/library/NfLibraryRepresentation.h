@@ -53,8 +53,8 @@ public:
         ~NfLibraryRepresentation();
         RepresentationType type() const;
         void setName(std::string_view name);
-        const std::string& name() const;
-        NfLibraryTreeNode* getTree() const;
+        const std::string& name();
+        NfLibraryTreeNode* getTree();
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
 
 protected:
@@ -64,8 +64,10 @@ protected:
         NfLibraryTreeNode* findOrCreateChild(NfLibraryTreeNode* parent,
                                              const std::string& name,
                                              NfLibraryTreeNode::NodeType nodeType);
+        std::vector<NfPhoto> queryPhotosByPathId(uint64_t id) const;
 
 private:
+
         NfLibraryDatabase* m_database;
         int64_t m_libraryId;
         RepresentationType m_type;

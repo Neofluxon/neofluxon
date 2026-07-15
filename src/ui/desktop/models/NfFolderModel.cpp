@@ -40,7 +40,7 @@ NfFolderModel::NfFolderModel(NfFolderContext ctx, QObject *parent)
 
 void NfFolderModel::setPath(const std::filesystem::path& path)
 {
-        m_browserModel->setSource(std::make_unique<NfFilesystemPhotoSource>(path));
+        m_browserModel->setSource(NfFilesystemPhotoSource{path});
 }
 
 NfBrowserModel* NfFolderModel::browser() const
