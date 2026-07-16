@@ -63,7 +63,7 @@ struct NfDatetimeSourceRecord : public NfSourceRecord {
 
 // Represents the physical folder structure
 struct NfFolderEntry {
-        int id;
+        int64_t id;
         std::filesystem::path path;
 };
 
@@ -73,13 +73,13 @@ struct NfCanonicalSourceRecord : public NfSourceRecord {
 
 // Represents Cameras and Lenses
 struct NfCameraEntry {
-        int id;
+        int64_t id;
         std::string maker;
         std::string model;
 };
 
 struct NfLensEntry {
-        int id;
+        int64_t id;
         std::string name;
 };
 
@@ -90,7 +90,7 @@ struct NfEquipmentSourceRecord : public NfSourceRecord {
 
 // Represents Virtual Albums
 struct NfCollectionEntry {
-        int id;
+        int64_t id;
         std::string name;
 };
 

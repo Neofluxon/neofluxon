@@ -57,6 +57,16 @@ void NfLibraryTreeNode::setType(NfLibraryTreeNode::NodeType t)
         m_type = t;
 }
 
+void NfLibraryTreeNode::setValue(const NfLibraryTreeNode::NodeValue& val)
+{
+        m_value = val;
+}
+
+NfLibraryTreeNode::NodeValue NfLibraryTreeNode::getValue() const
+{
+        return m_value;
+}
+
 NfLibraryTreeNode* NfLibraryTreeNode::addChild()
 {
         auto child = std::make_unique<NfLibraryTreeNode>();

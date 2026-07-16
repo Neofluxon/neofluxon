@@ -23,7 +23,11 @@
 
 #include "NfLibraryTreeView.h"
 #include "NfLibraryTreeModel.h"
+#include "NfLibraryTreeItem.h"
 #include "NfContext.h"
+#include "NfUiState.h"
+#include "NfUiLibraryModeState.h"
+#include "NfLogger.h"
 
 #include <QHeaderView>
 #include <QAbstractItemModel>
@@ -36,7 +40,7 @@ namespace NfDesktop {
 NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
         : QTreeView(parent)
         , m_model{new NfLibraryTreeModel(ctx, this)}
-        , m_state{cts.uiState->libraryModeState()}
+        , m_state{ctx.uiState->libraryModeState()}
 {
         setupView();
         setupBehavior();
@@ -64,11 +68,14 @@ void NfLibraryTreeView::setupBehavior()
         setFocusPolicy(Qt::StrongFocus);
 }
 
-NfLibraryTreeView::currentChanged(const QModelIndex& current,
-                                  const QModelIndex& previous)
+void NfLibraryTreeView::currentChanged(const QModelIndex& current,
+                                       const QModelIndex& previous)
 {
-        if (auto* node = m_model->itemFromIndex(current); node)
-                m_state.setQuery(node->makeQuery());
+        QTreeView::currentChanged(current, previous);
+
+        NF_LOG_DEBUG("called");
+        if (auto* node = static_cast<NfLibraryTreeItem*>(current.internalPointer()))
+                m_state->setQuery(node->makeQuery());
 }
 
 } // namespace NfDesktop

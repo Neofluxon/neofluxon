@@ -47,6 +47,7 @@ NfPhotoScanner::~NfPhotoScanner()
 std::unique_ptr<NfTask>
 NfPhotoScanner::createTask(const NfFilesystemPhotoSource& source)
 {
+        NF_LOG_DEBUG("called");
         std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfFilesystemPhotoScanTask>(source);
         task->setGenerationId(m_generationId);
@@ -64,13 +65,15 @@ NfPhotoScanner::createTask(const NfFilesystemPhotoSource& source)
 std::unique_ptr<NfTask>
 NfPhotoScanner::createTask(const NfLibraryPhotoSource& source)
 {
+        NF_LOG_DEBUG("called");
         std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfLibraryPhotoScanTask>(source, m_library);
         task->setGenerationId(m_generationId);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
+                NF_LOG_DEBUG("NfLibraryPhotoScanTask result");
                         if (status != NfTask::TaskStatus::Success)
                                 return;
-
+                        NF_LOG_DEBUG("NfLibraryPhotoScanTask result1");
                         auto* libraryTask = dynamic_cast<NfLibraryPhotoScanTask*>(result);
                         if (libraryTask) {
                                 std::scoped_lock lock(m_mutex);
@@ -79,6 +82,7 @@ NfPhotoScanner::createTask(const NfLibraryPhotoSource& source)
                                         return;
 
                                 auto photos = libraryTask->takePhotos();
+                                NF_LOG_DEBUG("photos: " << photos.size());
                                 m_loadedPhotos.insert(m_loadedPhotos.end(),
                                                       std::make_move_iterator(photos.begin()),
                                                       std::make_move_iterator(photos.end()));

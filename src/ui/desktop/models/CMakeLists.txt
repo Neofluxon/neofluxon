@@ -10,7 +10,7 @@ set(MODEL_HEADERS
 set(MODEL_SOURCES
     NfBrowserModel.cpp
     NfFolderModel.cpp
-    NfLibraryModel.h
+    NfLibraryModel.cpp
     NfLibraryTreeItem.cpp
     NfLibraryTreeModel.cpp
 )

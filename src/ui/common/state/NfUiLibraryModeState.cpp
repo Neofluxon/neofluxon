@@ -22,6 +22,7 @@
  */
 
 #include "NfUiLibraryModeState.h"
+#include "NfUiBrowserState.h"
 
 using namespace NfCore;
 
@@ -29,6 +30,7 @@ namespace NfUi {
 
 NfUiLibraryModeState::NfUiLibraryModeState(QObject* parent)
     : QObject(parent)
+    , m_browserState{new NfUiBrowserState(this)}
 {
 }
 

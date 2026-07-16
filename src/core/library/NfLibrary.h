@@ -42,10 +42,10 @@ class NfLibraryRepresentation;
 
 class NfLibrary {
 public:
-        explicit NfLibrary(NfLibraryDatabase *db, uint64_t id);
+        explicit NfLibrary(NfLibraryDatabase *db, int64_t id);
         ~NfLibrary();
 
-        uint64_t id() const;
+        int64_t id() const;
         void setName(std::string_view name);
         std::string name() const noexcept;
         NfLibraryRepresentation* addRepresentation();
@@ -59,7 +59,7 @@ private:
         int64_t storeLens(std::string_view lensName);
 
         NfLibraryDatabase *m_db;
-        uint64_t m_id;
+        int64_t m_id;
         std::string m_name;
         std::vector<std::unique_ptr<NfLibraryRepresentation>> m_representations;
 };

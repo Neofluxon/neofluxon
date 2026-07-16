@@ -22,9 +22,9 @@
  */
 
 #include "NfBrowserView.h"
-#include "NfUiState.h"
+#include "NfUiBrowserState.h"
 #include "NfBrowserModel.h"
-#include "NfThubnailsView.h"
+#include "NfThumbnailsView.h"
 #include "NfPhotoPreviewView.h"
 
 #include <QVBoxLayout>
@@ -34,8 +34,11 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfBrowserView::NfBrowserView(NfBrowserModel *model, QWidget* parent)
+        NfBrowserView::NfBrowserView(NfUiBrowserState *state,
+                                     NfBrowserModel *model,
+                                     QWidget* parent)
         : QWidget(parent)
+        , m_state{state}
         , m_model{model}
         , m_mainLayout{nullptr}
         , m_thumbnailsView{nullptr}
@@ -46,7 +49,7 @@ NfBrowserView::NfBrowserView(NfBrowserModel *model, QWidget* parent)
         m_mainLayout->setSpacing(0);
 
         m_thumbnailsView = new NfThumbnailsView(this);
-        m_thumbnailsView->setModel(m_model->browser());
+        m_thumbnailsView->setModel(m_model);
         m_mainLayout->addWidget(m_thumbnailsView);
 
         QObject::connect(m_state,
@@ -55,7 +58,7 @@ NfBrowserView::NfBrowserView(NfBrowserModel *model, QWidget* parent)
                          &NfBrowserView::updateView);
         QObject::connect(m_thumbnailsView, &QListView::doubleClicked,
                          [this](const QModelIndex &index) {
-                                 m_state->setViewMode(NfUiFolderModeState::ViewMode::Preview);
+                                 m_state->setViewMode(NfUiBrowserState::ViewMode::Preview);
                          });
 
         updateView();
@@ -63,7 +66,7 @@ NfBrowserView::NfBrowserView(NfBrowserModel *model, QWidget* parent)
 
 void NfBrowserView::showGridView()
 {
-        m_thumbnailsView->setLayoutMode(NfBrowserView::LayoutMode::GridView);
+        m_thumbnailsView->setLayoutMode(NfThumbnailsView::LayoutMode::GridView);
 
         if (m_photoPreviewView) {
                 m_mainLayout->removeWidget(m_photoPreviewView);
@@ -76,10 +79,10 @@ void NfBrowserView::showGridView()
 
 void NfBrowserView::showPreviewView()
 {
-        m_thumbnailsView->setLayoutMode(NfBrowserView::LayoutMode::FilmstripView);
+        m_thumbnailsView->setLayoutMode(NfThumbnailsView::LayoutMode::FilmstripView);
 
         if (!m_photoPreviewView) {
-                m_photoPreviewView = new NfPhotoPreviewView(m_model->browser(), this);
+                m_photoPreviewView = new NfPhotoPreviewView(m_model, this);
                 QObject::connect(m_thumbnailsView->selectionModel(),
                                  &QItemSelectionModel::currentChanged,
                                  m_photoPreviewView,
@@ -101,10 +104,10 @@ void NfBrowserView::showPreviewView()
 void NfBrowserView::updateView()
 {
         switch(m_state->viewMode()) {
-        case NfUiFolderModeState::ViewMode::Preview:
+        case NfUiBrowserState::ViewMode::Preview:
                 showPreviewView();
                 break;
-        case NfUiFolderModeState::ViewMode::Grid:
+        case NfUiBrowserState::ViewMode::Grid:
         default:
                 showGridView();
                 break;

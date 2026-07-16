@@ -63,7 +63,7 @@ public:
                 Keyword
         };
 
-        using NodeValue = std::variant<int64_t, std::string>;
+        using NodeValue = std::variant<int, int64_t, std::string>;
 
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();

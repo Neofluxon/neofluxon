@@ -29,7 +29,7 @@
 #include <QWidget>
 
 namespace NfUi {
- class NfUiFolderModeState;
+ class NfUiBrowserState;
 }
 
 class QVBoxLayout;
@@ -44,25 +44,23 @@ class NfBrowserView : public QWidget
 {
         Q_OBJECT
 
- public:
-        explicit NfBrowserView(NfBrowserModel *model,
+public:
+        explicit NfBrowserView(NfUi::NfUiBrowserState *state,
+                               NfBrowserModel *model,
                                QWidget* parent = nullptr);
-
-protected slots:
-        void updateView();
 
 public slots:
         void showGridView();
         void showPreviewView();
 
-signals:
+protected slots:
+        void updateView();
 
 protected:
         void keyPressEvent(QKeyEvent *event) override;
 
 private:
-        NfUi::NfContext m_context;
-        NfUi::NfUiFolderModeState *m_state;
+        NfUi::NfUiBrowserState *m_state;
         NfBrowserModel* m_model;
         QVBoxLayout* m_mainLayout;
         NfThumbnailsView* m_thumbnailsView;

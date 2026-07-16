@@ -32,11 +32,9 @@ namespace NfCore {
 class NfLibraryQuery;
 }
 
-namespace NfUi {
-class NfBrowserModel;
-}
-
 namespace NfDesktop {
+
+class NfBrowserModel;
 
 class NfLibraryModel : public QObject
 {

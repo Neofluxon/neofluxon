@@ -23,6 +23,7 @@
 
 #include "NfLibraryPhotoScanTask.h"
 #include "NfLibraryManager.h"
+#include "NfLogger.h"
 
 namespace NfCore {
 
@@ -37,6 +38,7 @@ NfLibraryPhotoScanTask::~NfLibraryPhotoScanTask() = default;
 
 NfLibraryPhotoScanTask::TaskStatus NfLibraryPhotoScanTask::execute()
 {
+        NF_LOG_DEBUG("called");
         m_photos = m_library->queryPhotos(m_source.query());
         return TaskStatus::Success;
 }

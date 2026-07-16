@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryTreeItem.h"
+#include "core/NfLogger.h"
 
 using namespace NfCore;
 
@@ -104,10 +105,18 @@ NfLibraryQuery NfLibraryTreeItem::makeQuery() const
                         break;
                 }
 
-                if (node->type() == NodeType::Representation)
-                        query.representationType = node->type();
+                if (node->type() == NodeType::Representation) {
+                        if (const auto *nodeVal = std::get_if<int>(&query.queryValue))
+                                query.representationType = static_cast<RepresentationType>(*nodeVal);
+                }
 
                 node = node->parent();
+        }
+
+        const auto v = value();
+        if (const auto* val = std::get_if<int64_t>(&v)) {
+                NF_LOG_DEBUG("node name: " << m_name.toStdString());
+                NF_LOG_DEBUG("val: " << *val);
         }
 
         query.queryValue = value();

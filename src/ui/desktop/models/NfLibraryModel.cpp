@@ -39,9 +39,9 @@ NfLibraryModel::NfLibraryModel(NfLibraryContext ctx, QObject *parent)
 {
 }
 
-void NfLibraryModel::setQuery(const NfLibraryQuery &query);
+void NfLibraryModel::setQuery(const NfLibraryQuery &query)
 {
-        m_browserModel->setSource(NfLibraryPhotoSource>{query});
+        m_browserModel->setSource(NfLibraryPhotoSource{query});
 }
 
 NfBrowserModel* NfLibraryModel::browser() const

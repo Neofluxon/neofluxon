@@ -34,7 +34,7 @@
 
 namespace NfCore {
 
-NfLibrary::NfLibrary(NfLibraryDatabase *db, uint64_t id)
+NfLibrary::NfLibrary(NfLibraryDatabase *db, int64_t id)
         : m_db{db}
         , m_id{id}
 {
@@ -48,7 +48,7 @@ NfLibrary::~NfLibrary()
 {
 }
 
-uint64_t NfLibrary::id() const
+int64_t NfLibrary::id() const
 {
         return m_id;
 }
@@ -155,6 +155,9 @@ std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
                repType = RepresentationType::Canonical;
                break;
        }
+
+       NF_LOG_DEBUG("library id: " << m_id);
+       NF_LOG_DEBUG("repType: " << static_cast<int>(repType));
 
        auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id, repType);
        auto photos = rep->queryPhotos(query);

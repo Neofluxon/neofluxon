@@ -122,14 +122,15 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 void NfLibraryTreeModel::buildTree()
 {
         m_root = std::make_unique<NfLibraryTreeItem>("Library",
-                                                     NfLibraryTreeItem::Type::Root);
+                                                     NfLibraryTreeItem::NodeType::Root);
 
         const auto libraries = m_library->libraries();
         for (const auto& library : libraries) {
 
                 auto name = QString::fromUtf8(library->name().c_str());
+                auto nodeType = NfLibraryTreeItem::NodeType::Library;
                 auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
-                                                                       NfLibraryTreeItem::Type::Library,
+                                                                       nodeType,
                                                                        m_root.get());
                 populateLibrary(library.get(), libraryItem.get());
 
@@ -140,12 +141,13 @@ void NfLibraryTreeModel::buildTree()
 void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
                                          NfLibraryTreeItem* libraryItem)
 {
-        libraryItem->setvalue(library->value());
+        libraryItem->setValue(library->id());
         for (const auto& rep : library->representations()) {
                 auto name = QString::fromUtf8(rep->name().c_str());
+                auto nodeType = NfLibraryTreeItem::NodeType::Representation;
                 auto repItem = std::make_unique<NfLibraryTreeItem>(name,
-                                                                   NfLibraryTreeItem::Type::Representation,
-                                                                   parent);
+                                                                   nodeType,
+                                                                   libraryItem);
                 populateRepresentation(rep.get(), repItem.get());
                 libraryItem->appendChild(std::move(repItem));
         }
@@ -154,7 +156,7 @@ void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
 void NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
                                                 NfLibraryTreeItem* parent)
 {
-        parent->setValue(rep->value());
+        parent->setValue(static_cast<int>(rep->type()));
         auto* repTree = rep->getTree();
         if (repTree)
                 populateChildNodes(repTree->children(), parent);
@@ -164,10 +166,16 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<Nf
                                             NfLibraryTreeItem* parentItem)
 {
         for (const auto& child : children) {
+                auto nodeType = NfLibraryTreeItem::NodeType::Node;
                 auto node = std::make_unique<NfLibraryTreeItem>(QString::fromStdString(child->name()),
-                                                                NfLibraryTreeItem::Type::Node,
+                                                                nodeType,
                                                                 parentItem);
-                node->setValue(child->value());
+                NF_LOG_DEBUG("child name: " << child->name());
+                const auto value = child->getValue();
+                if (const auto* val = std::get_if<int64_t>(&value)) {
+                        NF_LOG_DEBUG("path id: " << *val);
+                }
+                node->setValue(child->getValue());
                 if (!child->children().empty())
                         populateChildNodes(child->children(), node.get());
 

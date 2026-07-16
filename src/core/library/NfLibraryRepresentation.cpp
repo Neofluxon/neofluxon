@@ -43,6 +43,12 @@ NfLibraryRepresentation::~NfLibraryRepresentation()
 {
 }
 
+NfLibraryRepresentation::RepresentationType
+NfLibraryRepresentation::type() const
+{
+        return m_type;
+}
+
 void NfLibraryRepresentation::setName(std::string_view name)
 {
         m_name = name;
@@ -76,10 +82,13 @@ NfLibraryTreeNode* NfLibraryRepresentation::getTree()
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &query) const
 {
+        NF_LOG_DEBUG("called");
         switch (query.representationType) {
         case RepresentationType::Canonical:
-                if (const auto *pathId = std::get_if<int64_t>(&query.queryValue))
+                if (const auto *pathId = std::get_if<int64_t>(&query.queryValue)) {
+                        NF_LOG_DEBUG("path id: " << *pathId);
                         return queryPhotosByPathId(*pathId);
+                }
                 break;
         case RepresentationType::DateTime:
                 break;
@@ -199,9 +208,7 @@ NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode*
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)
 {
         NF_LOG_DEBUG("called");
-        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
-                                                     NfLibraryTreeNode::NodeType::Root);
-
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root", NfLibraryTreeNode::NodeType::Root);
         auto* source = dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
 
         if (!source) {
@@ -231,8 +238,8 @@ void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord
                         if (!child) {
                                 child = parent->addChild();
                                 child->setName(name);
-                                child->setType(
-                                               NfLibraryTreeNode::NodeType::Folder);
+                                child->setType(NfLibraryTreeNode::NodeType::Folder);
+                                child->setValue(folder.id);
                         }
 
                         parent = child;

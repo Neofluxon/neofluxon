@@ -22,10 +22,12 @@
  */
 
 #include "NfFolderView.h"
+#include "NfUiState.h"
 #include "NfUiFolderModeState.h"
 #include "NfFolderModel.h"
 #include "NfBrowserModel.h"
 #include "NfBrowserView.h"
+#include "core/NfPhotoSource.h"
 
 #include <QVBoxLayout>
 
@@ -37,18 +39,24 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
                            QWidget* parent)
         : QWidget(parent)
         , m_context{ctx}
-        , m_state{m_context.uiState()->libraryModeState()}
+        , m_state{m_context.uiState()->folderModeState()}
         , m_model{new NfFolderModel(std::move(ctx), this)}
         , m_mainLayout{nullptr}
         , m_browserView{nullptr}
-        , m_photoPreviewView{nullptr}
 {
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
 
-        m_browserView = new NfBrowserView(m_state->browser(), this);
-        m_browserView->setModel(m_model->browser());
+        m_browserView = new NfBrowserView(m_state->browser(),
+                                          m_model->browser(),
+                                          this);
+
+        QObject::connect(m_state,
+                         &NfUiFolderModeState::pathChanged,
+                         m_model,
+                         &NfFolderModel::setPath);
+
         m_mainLayout->addWidget(m_browserView);
 }
 

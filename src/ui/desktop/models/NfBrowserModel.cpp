@@ -50,14 +50,6 @@ NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
                          &NfPhotoProvider::previewsLoaded,
                          this,
                          &NfBrowserModel::onPreviewsLoaded);
-        QObject::connect(
-                         m_context->uiState->folderModeState(),
-                         &NfUiFolderModeState::pathChanged,
-                         this,
-                         [this](const std::filesystem::path &path)
-                         {
-                                 setSource(NfFilesystemPhotoSource{path});
-                         });
  }
 
 void NfBrowserModel::setSource(NfPhotoSource source)

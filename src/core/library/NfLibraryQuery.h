@@ -33,7 +33,7 @@
 namespace NfCore {
 
 struct NfLibraryQuery {
-    using QueryValue = std::variant<int64_t, std::string>;
+    using QueryValue = std::variant<int, int64_t, std::string>;
     int64_t libraryId = -1;
     NfLibraryRepresentation::RepresentationType representationType{};
     QueryValue queryValue;

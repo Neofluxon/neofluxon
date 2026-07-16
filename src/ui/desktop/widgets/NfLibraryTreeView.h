@@ -28,6 +28,7 @@
 
 namespace NfUi {
 class NfContext;
+class NfUiLibraryModeState;
 }
 
 namespace NfDesktop {
@@ -49,6 +50,7 @@ class NfLibraryTreeView : public QTreeView {
 
  private:
         NfLibraryTreeModel* m_model;
+        NfUi::NfUiLibraryModeState *m_state;
 };
 
 } // namespace NfDesktop
