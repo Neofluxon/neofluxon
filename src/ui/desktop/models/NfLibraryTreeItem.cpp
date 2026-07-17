@@ -98,23 +98,26 @@ NfLibraryTreeItem::Value NfLibraryTreeItem::value() const
 NfLibraryQuery NfLibraryTreeItem::makeQuery() const
 {
         NfLibraryQuery query;
-        const NfLibraryTreeItem* node = this;
-        while (node) {
-                if (node->type() == NodeType::Library) {
+        query.queryValue = value();
+
+        for (const NfLibraryTreeItem* node = this; node; node = node->parent()) {
+                switch (node->type()) {
+                case NodeType::Library:
                         query.libraryId = std::get<int64_t>(node->value());
+                        return query;
+
+                case NodeType::Representation:
+                        if (const auto value = node->value();
+                            const auto* rep = std::get_if<int>(&value)) {
+                                query.representationType =
+                                        static_cast<RepresentationType>(*rep);
+                        }
+                        break;
+
+                default:
                         break;
                 }
-
-                if (node->type() == NodeType::Representation) {
-                        const auto value = node->value();
-                        if (const auto* nodeVal = std::get_if<int>(&value))
-                                query.representationType = static_cast<RepresentationType>(*nodeVal);
-                }
-
-                node = node->parent();
         }
-
-        query.queryValue = value();
 
         return query;
 }

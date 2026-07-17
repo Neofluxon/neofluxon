@@ -38,10 +38,6 @@ NfLibrary::NfLibrary(NfLibraryDatabase *db, int64_t id)
         : m_db{db}
         , m_id{id}
 {
-        //auto rec = m_db->getLibraryRecord(id);
-        //m_name = rec->name;
-        //for (const auto& repId: rec->representationsIds())
-        //        m_representations.push_back(std::make_unique<NfRepresentation>(db, repId));
 }
 
 NfLibrary::~NfLibrary()
@@ -53,37 +49,11 @@ int64_t NfLibrary::id() const
         return m_id;
 }
 
-void NfLibrary::setName(std::string_view name)
-{
-        //m_name = name;
-}
-
 std::string NfLibrary::name() const noexcept
 {
         using Mode = NfLibraryDatabase::Transaction::Mode;
         NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
         return m_db->library(m_id)->name;
-}
-
-NfLibraryRepresentation* NfLibrary::addRepresentation()
-{
-        /*auto representation = std::make_unique<NfLibraryRepresentation>();
-        auto* ptr = representation.get();
-        m_representations.push_back(std::move(representation));
-
-        return nullptr ptr;*/
-        return nullptr;
-}
-
-void NfLibrary::removeRepresentation(NfLibraryRepresentation* representation)
-{
-        /*auto it = std::remove_if(m_representations.begin(),
-                                 m_representations.end(),
-                                 [representation](const auto& item) {
-                                         return item.get() == representation;
-        });
-
-        m_representations.erase(it, m_representations.end());*/
 }
 
 std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations() const
@@ -110,7 +80,6 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         auto info = NfPhotoMetadataExtractor(photo).summaryInfo();
 
         NfLibraryDatabase::Transaction tx(m_db);
-
         auto folderId = m_db->addFolder(photo.path().parent_path(), id());
         if (folderId < 0) {
                 NF_LOG_ERROR("Failed to add folder: " << photo.path());

@@ -46,10 +46,7 @@ public:
         ~NfLibrary();
 
         int64_t id() const;
-        void setName(std::string_view name);
         std::string name() const noexcept;
-        NfLibraryRepresentation* addRepresentation();
-        void removeRepresentation(NfLibraryRepresentation* representation);
         std::vector<std::unique_ptr<NfLibraryRepresentation>> representations() const;
         void addPhoto(const NfPhoto& photo);
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;

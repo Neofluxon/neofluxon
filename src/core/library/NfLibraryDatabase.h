@@ -80,20 +80,16 @@ public:
         NfLibraryDatabase& operator=(const NfLibraryDatabase&) = delete;
         NfLibraryDatabase(NfLibraryDatabase&&) = delete;
         NfLibraryDatabase& operator=(NfLibraryDatabase&&) = delete;
-
         const std::filesystem::path& path() const;
-
         bool open();
         void close();
         bool initializeSchema();
-
         int64_t addLibrary(const std::string_view name);
         bool libraryExists(int64_t id) const;
         std::unique_ptr<NfLibraryEntry> library(int64_t id) const;
         std::unique_ptr<NfLibraryEntry> library(std::string_view name) const;
         std::vector<int64_t> libraryIds() const;
         std::vector<NfLibraryEntry> libraries() const;
-
         int64_t addFolder(const std::filesystem::path& path, int64_t libraryId);
         int64_t addImage(int64_t folderId,
                          const std::string& fileName,
@@ -106,7 +102,6 @@ public:
         int64_t addLens(std::string_view lens);
         std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int64_t libraryId,
                                                                         NfLibraryRepresentation::RepresentationType repType);
-        //        std::vector<std::unique_ptr<NfRepresentationRecord>> getRepresentations(int libraryId) const;
         int64_t getOrCreateEquipment(const std::string& type,
                                      const std::string& make,
                                      const std::string& model);

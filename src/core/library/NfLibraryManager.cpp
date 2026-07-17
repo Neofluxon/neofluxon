@@ -48,9 +48,14 @@ NfLibraryManager::~NfLibraryManager()
 std::vector<std::unique_ptr<NfLibrary>>
 NfLibraryManager::libraries() const
 {
-        std::vector<std::unique_ptr<NfLibrary>> libraries;
+        using Transaction = NfLibraryDatabase::Transaction;
+        std::vector<int64_t> librariesIds;
+        {
+                Transaction tx(m_database.get(), Transaction::Mode::LockOnly);
+                librariesIds = m_database->libraryIds();
+        }
 
-        auto librariesIds = m_database->libraryIds();
+        std::vector<std::unique_ptr<NfLibrary>> libraries;
         for (const auto &id: librariesIds)
                 libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
 
@@ -79,7 +84,6 @@ NfLibraryManager::addLibrary(std::string_view name)
 std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 {
         using Transaction = NfLibraryDatabase::Transaction;
-
         {
                 NfLibraryDatabase::Transaction tx(m_database.get(),
                                                   Transaction::Mode::LockOnly);
@@ -92,8 +96,6 @@ std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 
 void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id)
 {
-        NF_LOG_DEBUG("import path: " << path);
-
         auto library = getLibrary(id);
         if (!library) {
                 NF_LOG_ERROR("library doesn't exist: id = " << id);
