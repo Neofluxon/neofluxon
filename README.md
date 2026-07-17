@@ -33,10 +33,12 @@ The main planned features include:
 
 The project is currently under early development, and no official release is available yet.
 
-The following features are currently implemented for testing purposes:
+The following features are currently implemented for testing purposes only:
 
 - Filesystem browsing for RAW photos.
 - Display of thumbnails and previews (grid layout or filmstrip with preview).
+- Import folder to the library
+- Browse thumbnails for folder representation of the library
 - Keyboard navigation for previewing images.
 - Supported image formats:
   - Canon (`.cr2`, `.cr3`).
