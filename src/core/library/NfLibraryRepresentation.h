@@ -41,8 +41,8 @@ class NfLibraryRepresentation {
 public:
         enum class RepresentationType {
                 None,
-                DateTime,
                 Canonical,
+                DateTime,
                 Equipment,
                 Collections
         };

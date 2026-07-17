@@ -82,13 +82,10 @@ NfLibraryTreeNode* NfLibraryRepresentation::getTree()
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &query) const
 {
-        NF_LOG_DEBUG("called");
         switch (query.representationType) {
         case RepresentationType::Canonical:
-                if (const auto *pathId = std::get_if<int64_t>(&query.queryValue)) {
-                        NF_LOG_DEBUG("path id: " << *pathId);
+                if (const auto *pathId = std::get_if<int64_t>(&query.queryValue))
                         return queryPhotosByPathId(*pathId);
-                }
                 break;
         case RepresentationType::DateTime:
                 break;
@@ -143,7 +140,6 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
         if (!source)
                 return;
 
-        NF_LOG_DEBUG("datetime entries: " << source->entries.size());
         for (const auto& entry : source->entries) {
                 std::time_t t = static_cast<std::time_t>(entry.timestamp / 1000000000LL);
                 std::tm tm{};
@@ -208,9 +204,10 @@ NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode*
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)
 {
         NF_LOG_DEBUG("called");
-        m_tree = std::make_unique<NfLibraryTreeNode>("Root", NfLibraryTreeNode::NodeType::Root);
-        auto* source = dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
+        auto nodeType = NfLibraryTreeNode::NodeType::Root;
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root", nodeType);
 
+        const auto* source = dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
         if (!source) {
                 NF_LOG_DEBUG("source record is null");
                 return;

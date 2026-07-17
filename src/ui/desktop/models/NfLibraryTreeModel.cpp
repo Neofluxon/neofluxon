@@ -92,7 +92,6 @@ QVariant NfLibraryTreeModel::data(const QModelIndex& index, int role) const
                 return {};
 
         auto* item = static_cast<NfLibraryTreeItem*>(index.internalPointer());
-
         switch (role) {
         case Qt::DisplayRole:
                 return item->name();
@@ -121,14 +120,14 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::buildTree()
 {
-        m_root = std::make_unique<NfLibraryTreeItem>("Library",
-                                                     NfLibraryTreeItem::NodeType::Root);
+        auto nodeType = NfLibraryTreeItem::NodeType::Root;
+        m_root = std::make_unique<NfLibraryTreeItem>("Libraries", nodeType);
 
         const auto libraries = m_library->libraries();
         for (const auto& library : libraries) {
 
                 auto name = QString::fromUtf8(library->name().c_str());
-                auto nodeType = NfLibraryTreeItem::NodeType::Library;
+                nodeType = NfLibraryTreeItem::NodeType::Library;
                 auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
                                                                        nodeType,
                                                                        m_root.get());
@@ -167,15 +166,15 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<Nf
 {
         for (const auto& child : children) {
                 auto nodeType = NfLibraryTreeItem::NodeType::Node;
-                auto node = std::make_unique<NfLibraryTreeItem>(QString::fromStdString(child->name()),
+                auto name = QString::fromStdString(child->name());
+                auto node = std::make_unique<NfLibraryTreeItem>(name,
                                                                 nodeType,
                                                                 parentItem);
-                NF_LOG_DEBUG("child name: " << child->name());
+
                 const auto value = child->getValue();
-                if (const auto* val = std::get_if<int64_t>(&value)) {
-                        NF_LOG_DEBUG("path id: " << *val);
-                }
-                node->setValue(child->getValue());
+                if (const auto* val = std::get_if<int64_t>(&value))
+                        node->setValue(child->getValue());
+
                 if (!child->children().empty())
                         populateChildNodes(child->children(), node.get());
 
