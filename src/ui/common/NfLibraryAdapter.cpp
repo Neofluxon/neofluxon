@@ -35,11 +35,16 @@ NfLibraryAdapter::NfLibraryAdapter(NfLibraryManager *library,
         : QObject(parent)
         , m_library{library}
 {
+        m_library->setFolderImportedCallback([this]() {
+                emit folderImported();
+        });
 }
 
 NfLibraryAdapter::~NfLibraryAdapter()
 {
         NF_LOG_DEBUG("called");
+
+        m_library->setFolderImportedCallback({});
 }
 
 void NfLibraryAdapter::addLibrary(std::string_view name)

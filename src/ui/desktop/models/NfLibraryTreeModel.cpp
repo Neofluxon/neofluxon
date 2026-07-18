@@ -41,6 +41,11 @@ NfLibraryTreeModel::NfLibraryTreeModel(const NfContext& ctx, QObject* parent)
         , m_library{ctx.library}
 {
         buildTree();
+
+        QObject::connect(m_library,
+                         &NfLibraryAdapter::folderImported,
+                         this,
+                         &NfLibraryTreeModel::updateTree);
 }
 
 NfLibraryTreeModel::~NfLibraryTreeModel() = default;
@@ -110,6 +115,13 @@ Qt::ItemFlags NfLibraryTreeModel::flags(const QModelIndex& index) const
         return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
+void NfLibraryTreeModel::updateTree()
+{
+        beginResetModel();
+        buildTree();
+        endResetModel();
+}
+
 NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) const
 {
         if (index.isValid())
@@ -156,6 +168,7 @@ void NfLibraryTreeModel::populateRepresentation(NfLibraryRepresentation* rep,
                                                 NfLibraryTreeItem* parent)
 {
         parent->setValue(static_cast<int>(rep->type()));
+
         auto* repTree = rep->getTree();
         if (repTree)
                 populateChildNodes(repTree->children(), parent);

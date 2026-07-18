@@ -134,6 +134,7 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 
 void NfBrowserModel::onThumbnailsLoaded(const std::vector<NfPhotoId> &ids)
 {
+        NF_LOG_DEBUG("THUB LOADED: " << ids.size());
         std::ranges::for_each(ids, [this](auto& id) {
                 if (auto it = m_itemsMap.find(id); it != m_itemsMap.end()) {
                         const auto& idx = it->second;

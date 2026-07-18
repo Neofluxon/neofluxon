@@ -109,6 +109,10 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
 
                 auto* importTask = dynamic_cast<NfLibraryFolderImportTask*>(result);
                 if (importTask) {
+                        std::scoped_lock lock(m_mutex);
+                        if (m_folderImportedCb)
+                                m_folderImportedCb();
+
                         NF_LOG_DEBUG("library import finished");
                 }
                 });
@@ -134,6 +138,11 @@ NfLibraryManager::queryPhotos(const NfLibraryQuery& query) const
         }
 
         return result;
+}
+
+void NfLibraryManager::setFolderImportedCallback(FolderImportedCallback cb)
+{
+        m_folderImportedCb = std::move(cb);
 }
 
 } // namespace NfCore

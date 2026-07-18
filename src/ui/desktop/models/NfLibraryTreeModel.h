@@ -60,6 +60,9 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         Qt::ItemFlags flags(const QModelIndex& index) const override;
 
+protected slots:
+        void updateTree();
+
  private:
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
         void buildTree();

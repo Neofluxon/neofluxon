@@ -32,6 +32,7 @@
 #include <mutex>
 #include <string_view>
 #include <optional>
+#include <functional>
 
 namespace NfCore {
 
@@ -42,6 +43,7 @@ class NfLibraryQuery;
 
 class NfLibraryManager {
 public:
+        using FolderImportedCallback = std::function<void()>;
         NfLibraryManager(NfScheduler *scheduler);
         ~NfLibraryManager();
         std::vector<std::unique_ptr<NfLibrary>> libraries() const;
@@ -49,10 +51,13 @@ public:
         std::optional<std::unique_ptr<NfLibrary>> addLibrary(std::string_view name);
         std::unique_ptr<NfLibrary> getLibrary(uint64_t id) const;
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
+        void setFolderImportedCallback(FolderImportedCallback cb);
 
 private:
         NfScheduler* m_scheduler;
         std::unique_ptr<NfLibraryDatabase> m_database;
+        std::mutex m_mutex;
+        FolderImportedCallback m_folderImportedCb;
 };
 
 #endif // NF_LIBRARY_MANAGER_H

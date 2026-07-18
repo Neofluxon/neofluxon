@@ -114,12 +114,13 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t id) c
 void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 {
         NF_LOG_DEBUG("called");
+
         switch (static_cast<RepresentationType>(rep->type)) {
-        case RepresentationType::DateTime:
-                populateDateTimeTree(rep);
-                break;
         case RepresentationType::Canonical:
                 populateCanonicalTree(rep);
+                break;
+        case RepresentationType::DateTime:
+                populateDateTimeTree(rep);
                 break;
         case RepresentationType::Equipment:
                 break;

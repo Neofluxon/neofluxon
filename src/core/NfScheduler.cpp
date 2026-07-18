@@ -22,6 +22,7 @@
  */
 
 #include "NfScheduler.h"
+#include "NfLogger.h"
 
 #include <algorithm>
 
@@ -82,6 +83,8 @@ NfTask* NfScheduler::nextTask()
 
         m_runningTasks.insert({id, std::move(m_pendingTasks[id])});
         m_pendingTasks.erase(id);
+
+        NF_LOG_DEBUG("TAKE ID: " << id);
 
         return m_runningTasks[id].get();
 }
