@@ -34,6 +34,7 @@ set(CORE_HEADERS
         NfPhoto.h
         NfPhotoSummary.h
         NfPhotoMetadataExtractor.h
+        NfDirectoryIterator.h
         NfPhotoDirectoryIterator.h
         NfPhotoLoader.h
         NfPngImageDecoder.h
@@ -73,6 +74,7 @@ set(CORE_SOURCES
         NfPhotoId.cpp
         NfPhoto.cpp
         NfPhotoMetadataExtractor.cpp
+        NfDirectoryIterator.cpp
         NfPhotoDirectoryIterator.cpp
         NfPhotoLoader.cpp
         NfPngImageDecoder.cpp

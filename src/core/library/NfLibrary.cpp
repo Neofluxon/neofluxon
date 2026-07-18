@@ -73,6 +73,18 @@ std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations(
         return reps;
 }
 
+void NfLibrary::addFolder(const std::filesystem::path& folder)
+{
+        NfLibraryDatabase::Transaction tx(m_db);
+        auto folderId = m_db->addFolder(folder, id());
+        if (folderId < 0) {
+                NF_LOG_ERROR("Failed to add folder: " << folder);
+                return;
+        }
+
+        tx.commit();
+}
+
 void NfLibrary::addPhoto(const NfPhoto& photo)
 {
         NF_LOG_DEBUG("add photo: " << photo.path());
@@ -136,6 +148,13 @@ std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
                      std::make_move_iterator(photos.end()));
 
        return result;
+}
+
+bool NfLibrary::folderExists(std::filesystem::path &folder) const
+{
+        using Mode = NfLibraryDatabase::Transaction::Mode;
+        NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
+        return m_db->getFolderIdByPath(folder) != -1;
 }
 
 int64_t NfLibrary::storeCamera(std::string_view maker,

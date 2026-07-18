@@ -24,6 +24,7 @@
 #include "NfLibraryFolderImportTask.h"
 #include "NfLibrary.h"
 #include "NfPhoto.h"
+#include "NfDirectoryIterator.h"
 #include "NfPhotoDirectoryIterator.h"
 #include "NfPhotoMetadataExtractor.h"
 #include "NfPhotoSummary.h"
@@ -40,22 +41,53 @@ NfLibraryFolderImportTask::NfLibraryFolderImportTask(const std::filesystem::path
 
 NfLibraryFolderImportTask::~NfLibraryFolderImportTask() = default;
 
-        NfTask::TaskStatus NfLibraryFolderImportTask::execute()
+NfTask::TaskStatus NfLibraryFolderImportTask::execute()
 {
         NF_LOG_DEBUG("scan folder: " << m_path);
 
-        NfPhotoDirectoryIterator iterator;
-        iterator.setPath(m_path);
-
-        while (auto it = iterator.next()) {
-                if (isCancelled())
-                        return TaskStatus::Cancelled;
-                m_library->addPhoto(*it);
+        if (m_library->folderExists(m_path)) {
+                NF_LOG_DEBUG("folder already exists, skip:" << m_path);
+                return TaskStatus::Success;
         }
 
-        NF_LOG_DEBUG("scan folder finished: " << m_path);
+        NfDirectoryIterator dirIterator;
+        dirIterator.setPath(m_path);
+
+        // Import photos from the root path.
+        importPhotosFromDirectory(m_path);
+
+        while (auto dir = dirIterator.next()) {
+                if (isCancelled())
+                        return TaskStatus::Cancelled;
+
+                if (m_library->folderExists(*dir)) {
+                        NF_LOG_DEBUG("folder already exists, skip:" << *dir);
+                        continue;
+                }
+
+                importPhotosFromDirectory(*dir);
+        }
+
+        NF_LOG_DEBUG("folder import finished: " << m_path);
 
         return TaskStatus::Success;
+}
+
+void NfLibraryFolderImportTask::importPhotosFromDirectory(const std::filesystem::path& path)
+{
+        NF_LOG_DEBUG("import photos from path: " << path);
+
+        m_library->addFolder(path);
+
+        NfPhotoDirectoryIterator photoIterator;
+        photoIterator.setPath(path, false);
+
+        while (auto photo = photoIterator.next()) {
+                if (isCancelled())
+                        return;
+
+                m_library->addPhoto(*photo);
+        }
 }
 
 } // namespace NfCore

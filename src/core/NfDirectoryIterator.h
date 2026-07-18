@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryFolderImportTask.h
+ * File name: NfPhotoDirectoryIterator.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,36 +21,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_IMPORT_TASK_H
-#define NF_LIBRARY_IMPORT_TASK_H
+#ifndef NF_DIRECTORY_ITERATOR_H
+#define NF_DIRECTORY_ITERATOR_H
 
-#include "NfTask.h"
-
-#include <memory>
 #include <filesystem>
+#include <optional>
 
 namespace NfCore {
 
-class NfLibrary;
-
-class NfLibraryFolderImportTask : public NfTask {
+class NfDirectoryIterator
+{
 public:
-        NfLibraryFolderImportTask(const std::filesystem::path &folderPath,
-                                  std::unique_ptr<NfLibrary> library);
-        NfLibraryFolderImportTask(NfLibraryFolderImportTask&&) noexcept = default;
-        NfLibraryFolderImportTask& operator=(NfLibraryFolderImportTask&&) noexcept = default;
-        NfLibraryFolderImportTask(const NfLibraryFolderImportTask&) = delete;
-        NfLibraryFolderImportTask& operator=(const NfLibraryFolderImportTask&) = delete;
-        ~NfLibraryFolderImportTask();
-        NfTask::TaskStatus execute() override;
+        NfDirectoryIterator();
+
+        void setPath(const std::filesystem::path& path,
+                     bool recursive = true);
+
+        void setRecursive(bool recursive);
+
+        std::optional<std::filesystem::path> next();
 
 private:
-        void importPhotosFromDirectory(const std::filesystem::path& path);
-
+        bool m_recursive{true};
         std::filesystem::path m_path;
-        std::unique_ptr<NfLibrary> m_library;
+        std::filesystem::directory_iterator m_dirIterator;
+        std::filesystem::directory_iterator m_dirEnd;
+        std::filesystem::recursive_directory_iterator m_recursiveIterator;
+        std::filesystem::recursive_directory_iterator m_recursiveEnd;
 };
 
 } // namespace NfCore
 
-#endif // NF_LIBRARY_IMPORT_TASK_H
+#endif // NF_DIRECTORY_ITERATOR_H

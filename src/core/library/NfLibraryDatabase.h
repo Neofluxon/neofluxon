@@ -97,6 +97,8 @@ public:
                          int64_t cameraId,
                          int64_t lensId);
         std::vector<std::filesystem::path> getImagePathsByFolderId(const int64_t folderId) const;
+        int64_t getFolderIdByPath(std::filesystem::path &folder) const;
+
         int64_t addCamera(std::string_view maker,
                           std::string_view model);
         int64_t addLens(std::string_view lens);

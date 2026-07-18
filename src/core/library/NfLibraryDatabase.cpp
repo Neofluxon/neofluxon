@@ -491,6 +491,33 @@ NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
         return result;
 }
 
+int64_t NfLibraryDatabase::getFolderIdByPath(std::filesystem::path &folder) const
+{
+        const char* sql = R"(
+        SELECT id
+        FROM folders
+        WHERE path = ?;)";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        const auto path = folder.generic_string();
+        sqlite3_bind_text(stmt,
+                          1,
+                          path.c_str(),
+                          -1,
+                          SQLITE_TRANSIENT);
+
+        int64_t result = -1;
+        if (sqlite3_step(stmt) == SQLITE_ROW)
+                result = static_cast<int64_t>(sqlite3_column_int64(stmt, 0));
+
+        sqlite3_finalize(stmt);
+
+        return result;
+}
+
 int64_t NfLibraryDatabase::addCamera(std::string_view maker,
                                      std::string_view model)
 {
