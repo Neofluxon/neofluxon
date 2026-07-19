@@ -24,28 +24,42 @@
 #ifndef NF_LIBRARY_BROWSER_H
 #define NF_LIBRARY_BROWSER_H
 
+#include "NfLibraryContext.h"
+
 #include <QWidget>
 
-#include <filesystem>
+class QVBoxLayout;
 
-class QTreeView;
-class QFileSystemModel;
+namespace NfUi {
+class NfUiLibraryModeState;
+}
 
 namespace NfDesktop {
+
+class NfLibraryListView;
+class NfRepresentationListView;
+class NfLibraryTreeView;
 
 class NfLibraryBrowser : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit NfLibraryBrowser(QWidget* parent = nullptr);
-
-signals:
-    void folderSelected(const std::filesystem::path& path);
+    explicit NfLibraryBrowser(NfUi::NfLibraryContext ctx,
+                              QWidget *parent = nullptr);
 
 private:
-    QFileSystemModel* m_model;
-    QTreeView* m_treeView;
+    void setupUi();
+
+private:
+    NfUi::NfLibraryContext m_context;
+    NfUi::NfUiLibraryModeState *m_state{nullptr};
+
+    QVBoxLayout *m_mainLayout{nullptr};
+
+    NfLibraryListView *m_libraryListView{nullptr};
+    NfRepresentationListView *m_representationListView{nullptr};
+    NfLibraryTreeView *m_libraryTreeView{nullptr};
 };
 
 } // namespace NfDesktop

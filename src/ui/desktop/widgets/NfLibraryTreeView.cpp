@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfLibraryTreeView.h"
+#include "NfLibraryBrowser.h"
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
 #include "NfContext.h"
@@ -37,7 +37,7 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
+NfLibraryBrowser::NfLibraryBrowser(const NfContext& ctx, QWidget* parent)
         : QTreeView(parent)
         , m_model{new NfLibraryTreeModel(ctx, this)}
         , m_state{ctx.uiState->libraryModeState()}
@@ -47,7 +47,7 @@ NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
         setModel(m_model);
 }
 
-void NfLibraryTreeView::setupView()
+void NfLibraryBrowser::setupView()
 {
         header()->hide();
 
@@ -62,13 +62,13 @@ void NfLibraryTreeView::setupView()
         setIndentation(18);
 }
 
-void NfLibraryTreeView::setupBehavior()
+void NfLibraryBrowser::setupBehavior()
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
         setFocusPolicy(Qt::StrongFocus);
 }
 
-void NfLibraryTreeView::currentChanged(const QModelIndex& current,
+void NfLibraryBrowser::currentChanged(const QModelIndex& current,
                                        const QModelIndex& previous)
 {
         QTreeView::currentChanged(current, previous);
