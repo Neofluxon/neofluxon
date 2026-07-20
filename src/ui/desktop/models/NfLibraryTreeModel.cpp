@@ -23,7 +23,7 @@
 
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
-#include "NfContext.h"
+#include "NfLibraryContext.h"
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibraryManager.h"
 #include "core/library/NfLibrary.h"

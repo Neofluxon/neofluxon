@@ -36,6 +36,7 @@ class NfUiLibraryModeState;
 
 namespace NfDesktop {
 
+class NfLibraryTreeModel;
 class NfLibraryListView;
 class NfRepresentationListView;
 class NfLibraryTreeView;
@@ -53,10 +54,9 @@ private:
 
 private:
     NfUi::NfLibraryContext m_context;
-    NfUi::NfUiLibraryModeState *m_state{nullptr};
-
+    NfUi::NfUiLibraryModeState *m_state;
+    NfLibraryTreeModel *m_model;
     QVBoxLayout *m_mainLayout{nullptr};
-
     NfLibraryListView *m_libraryListView{nullptr};
     NfRepresentationListView *m_representationListView{nullptr};
     NfLibraryTreeView *m_libraryTreeView{nullptr};

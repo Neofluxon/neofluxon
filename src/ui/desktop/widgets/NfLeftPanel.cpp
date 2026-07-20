@@ -28,7 +28,7 @@
 #include "NfMainMenu.h"
 #include "NfPathBrowser.h"
 #include "NfLibraryAdapter.h"
-#include "NfLibraryTreeView.h"
+#include "NfLibraryBrowser.h"
 #include "core/NfLogger.h"
 
 #include <QVBoxLayout>

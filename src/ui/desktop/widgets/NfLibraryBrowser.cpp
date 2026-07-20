@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryBrowser.h"
+#include "NfLibraryTreeModel.h"
 #include "NfLibraryListView.h"
 #include "NfRepresentationListView.h"
 #include "NfLibraryTreeView.h"
@@ -36,6 +37,7 @@ NfLibraryBrowser::NfLibraryBrowser(NfUi::NfLibraryContext ctx,
     : QWidget(parent)
     , m_context{std::move(ctx)}
     , m_state{m_context.uiLibraryModeState}
+    , m_model{new NfLibraryTreeModel(m_context, this)}
 {
         setupUi();
 }
@@ -46,9 +48,9 @@ void NfLibraryBrowser::setupUi()
     m_mainLayout->setContentsMargins(0, 0, 0, 0);
     m_mainLayout->setSpacing(6);
 
-    m_libraryListView = new NfLibraryListView(m_context, this);
-    m_representationListView = new NfRepresentationListView(m_context, this);
-    m_libraryTreeView = new NfLibraryTreeView(m_context.context, this);
+    m_libraryListView = new NfLibraryListView(m_context, m_model, this);
+    m_representationListView = new NfRepresentationListView(m_context, m_model, this);
+    m_libraryTreeView = new NfLibraryTreeView(m_context.context, m_model, this);
 
     m_mainLayout->addWidget(m_libraryListView);
     m_mainLayout->addWidget(m_representationListView);
