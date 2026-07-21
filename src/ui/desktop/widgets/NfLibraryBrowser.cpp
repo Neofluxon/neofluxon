@@ -26,17 +26,20 @@
 #include "NfLibraryListView.h"
 #include "NfRepresentationListView.h"
 #include "NfLibraryTreeView.h"
+#include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
 
 #include <QVBoxLayout>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
-NfLibraryBrowser::NfLibraryBrowser(NfUi::NfLibraryContext ctx,
+NfLibraryBrowser::NfLibraryBrowser(NfLibraryContext ctx,
                                    QWidget *parent)
     : QWidget(parent)
     , m_context{std::move(ctx)}
-    , m_state{m_context.uiLibraryModeState}
+    , m_state{m_context.uiState()->libraryModeState()}
     , m_model{new NfLibraryTreeModel(m_context, this)}
 {
         setupUi();
@@ -44,21 +47,42 @@ NfLibraryBrowser::NfLibraryBrowser(NfUi::NfLibraryContext ctx,
 
 void NfLibraryBrowser::setupUi()
 {
-    m_mainLayout = new QVBoxLayout(this);
-    m_mainLayout->setContentsMargins(0, 0, 0, 0);
-    m_mainLayout->setSpacing(6);
+        m_mainLayout = new QVBoxLayout(this);
+        m_mainLayout->setContentsMargins(0, 0, 0, 0);
+        m_mainLayout->setSpacing(6);
 
-    m_libraryListView = new NfLibraryListView(m_context, m_model, this);
-    m_representationListView = new NfRepresentationListView(m_context, m_model, this);
-    m_libraryTreeView = new NfLibraryTreeView(m_context.context, m_model, this);
+        m_libraryListView = new NfLibraryListView(m_context, m_model, this);
+        m_representationListView = new NfRepresentationListView(m_context, m_model, this);
+        m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
 
-    m_mainLayout->addWidget(m_libraryListView);
-    m_mainLayout->addWidget(m_representationListView);
-    m_mainLayout->addWidget(m_libraryTreeView, 1);
+        m_libraryListView->setRootIndex(QModelIndex());
+        QObject::connect(m_libraryListView->selectionModel(),
+                         &QItemSelectionModel::currentChanged,
+                         this, [this](const QModelIndex &current, const QModelIndex &) {
+                                 if (current.isValid())
+                                         m_representationListView->setRootIndex(current);
+                                 else
+                                         m_representationListView->setRootIndex(QModelIndex());
 
-    m_mainLayout->setStretch(0, 0);
-    m_mainLayout->setStretch(1, 0);
-    m_mainLayout->setStretch(2, 1);
+                                 m_libraryTreeView->setRootIndex(QModelIndex());
+                         });
+
+        QObject::connect(m_representationListView->selectionModel(),
+                         &QItemSelectionModel::currentChanged,
+                         this, [this](const QModelIndex &current, const QModelIndex &) {
+                                 if (current.isValid())
+                                         m_libraryTreeView->setRootIndex(current);
+                                 else
+                                         m_libraryTreeView->setRootIndex(QModelIndex());
+                         });
+
+        m_mainLayout->addWidget(m_libraryListView);
+        m_mainLayout->addWidget(m_representationListView);
+        m_mainLayout->addWidget(m_libraryTreeView, 1);
+
+        m_mainLayout->setStretch(0, 0);
+        m_mainLayout->setStretch(1, 0);
+        m_mainLayout->setStretch(2, 1);
 }
 
 } // namespace NfDesktop

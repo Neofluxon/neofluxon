@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryContext.h
+ * File name: NfLibraryListView.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,29 +21,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_CONTEXT_H
-#define NF_LIBRARY_CONTEXT_H
+#include "NfLibraryListView.h"
+#include "NfLibraryTreeModel.h"
 
-#include "NfContext.h"
+using namespace NfUi;
 
-namespace NfUi {
+namespace NfDesktop {
 
-struct NfContext;
-class NfUiState;
-class NfLibraryAdapter;
+NfLibraryListView::NfLibraryListView(const NfLibraryContext& ctx,
+                                     NfLibraryTreeModel* model,
+                                     QWidget* parent)
+        : QListView(parent)
+        , m_context{ctx}
+        , m_model{model}
+{
+        setEditTriggers(QAbstractItemView::NoEditTriggers);
+        setModel(m_model);
+}
 
-class NfLibraryContext {
- public:
-        explicit NfLibraryContext(NfContext* ctx)
-                : m_context{ctx} {}
-        NfUiState* uiState() const { return m_context->uiState; }
-        NfContext* prent() const { return m_context; }
-        NfLibraryAdapter* library() const { return m_context->library; }
-
- private:
-        NfContext* m_context;
-};
-
-} // namespace NfUi
-
-#endif // NF_LIBRARY_CONTEXT_H
+} // namespace NfDesktop

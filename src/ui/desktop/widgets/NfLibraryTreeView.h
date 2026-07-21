@@ -27,7 +27,7 @@
 #include <QTreeView>
 
 namespace NfUi {
-class NfContext;
+class NfLibraryContext;
 class NfUiLibraryModeState;
 }
 
@@ -39,7 +39,9 @@ class NfLibraryTreeView : public QTreeView {
     Q_OBJECT
 
  public:
-        explicit NfLibraryTreeView(const NfUi::NfContext &ctx, QWidget* parent = nullptr);
+        explicit NfLibraryTreeView(const NfUi::NfLibraryContext &ctx,
+                                   NfLibraryTreeModel* model,
+                                   QWidget* parent = nullptr);
         ~NfLibraryTreeView() override = default;
 
  protected:

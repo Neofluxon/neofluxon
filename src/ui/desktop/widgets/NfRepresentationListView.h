@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryContext.h
+ * File name: NfRepresentationListView.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,29 +21,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_CONTEXT_H
-#define NF_LIBRARY_CONTEXT_H
+#ifndef NF_REPRESENTATION_LIST_VIEW_H
+#define NF_REPRESENTATION_LIST_VIEW_H
 
-#include "NfContext.h"
+#include "NfLibraryContext.h"
 
-namespace NfUi {
+#include <QListView>
 
-struct NfContext;
-class NfUiState;
-class NfLibraryAdapter;
+namespace NfDesktop {
 
-class NfLibraryContext {
- public:
-        explicit NfLibraryContext(NfContext* ctx)
-                : m_context{ctx} {}
-        NfUiState* uiState() const { return m_context->uiState; }
-        NfContext* prent() const { return m_context; }
-        NfLibraryAdapter* library() const { return m_context->library; }
+class NfLibraryTreeModel;
 
- private:
-        NfContext* m_context;
+class NfRepresentationListView : public QListView {
+    Q_OBJECT
+public:
+    explicit NfRepresentationListView(const NfUi::NfLibraryContext& ctx,
+                                      NfLibraryTreeModel* model,
+                                      QWidget* parent = nullptr);
+    ~NfRepresentationListView() override = default;
+
+private:
+    NfUi::NfLibraryContext m_context;
+    NfLibraryTreeModel* m_model;
 };
 
-} // namespace NfUi
+} // namespace NfDesktop
 
-#endif // NF_LIBRARY_CONTEXT_H
+#endif // NF_REPRESENTATION_LIST_VIEW_H

@@ -21,10 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfLibraryBrowser.h"
+#include "NfLibraryTreeView.h"
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
-#include "NfContext.h"
+#include "NfLibraryContext.h"
 #include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfLogger.h"
@@ -37,17 +37,19 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryBrowser::NfLibraryBrowser(const NfContext& ctx, QWidget* parent)
+NfLibraryTreeView::NfLibraryTreeView(const NfLibraryContext& ctx,
+                                     NfLibraryTreeModel* model,
+                                     QWidget* parent)
         : QTreeView(parent)
-        , m_model{new NfLibraryTreeModel(ctx, this)}
-        , m_state{ctx.uiState->libraryModeState()}
+        , m_model{model}
+        , m_state{ctx.uiState()->libraryModeState()}
 {
         setupView();
         setupBehavior();
         setModel(m_model);
 }
 
-void NfLibraryBrowser::setupView()
+void NfLibraryTreeView::setupView()
 {
         header()->hide();
 
@@ -62,13 +64,13 @@ void NfLibraryBrowser::setupView()
         setIndentation(18);
 }
 
-void NfLibraryBrowser::setupBehavior()
+void NfLibraryTreeView::setupBehavior()
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
         setFocusPolicy(Qt::StrongFocus);
 }
 
-void NfLibraryBrowser::currentChanged(const QModelIndex& current,
+void NfLibraryTreeView::currentChanged(const QModelIndex& current,
                                        const QModelIndex& previous)
 {
         QTreeView::currentChanged(current, previous);

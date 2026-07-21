@@ -36,9 +36,9 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeModel::NfLibraryTreeModel(const NfContext& ctx, QObject* parent)
+NfLibraryTreeModel::NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx, QObject* parent)
         : QAbstractItemModel(parent)
-        , m_library{ctx.library}
+        , m_library{ctx.library()}
 {
         buildTree();
 

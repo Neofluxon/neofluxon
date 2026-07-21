@@ -23,6 +23,7 @@
 
 #include "NfLeftPanel.h"
 #include "NfContext.h"
+#include "NfLibraryContext.h"
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
 #include "NfMainMenu.h"
@@ -42,7 +43,7 @@ namespace NfDesktop {
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
         , m_pathBrowser{new NfPathBrowser(this)}
-        , m_libraryBrowser{new NfLibraryBrowser(*ctx, this)}
+        , m_libraryBrowser{new NfLibraryBrowser(NfLibraryContext(m_context), this)}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);
