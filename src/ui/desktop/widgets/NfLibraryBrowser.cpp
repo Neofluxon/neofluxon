@@ -55,16 +55,15 @@ void NfLibraryBrowser::setupUi()
         m_representationListView = new NfRepresentationListView(m_context, m_model, this);
         m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
 
-        m_libraryListView->setRootIndex(QModelIndex());
         QObject::connect(m_libraryListView->selectionModel(),
                          &QItemSelectionModel::currentChanged,
                          this, [this](const QModelIndex &current, const QModelIndex &) {
-                                 if (current.isValid())
-                                         m_representationListView->setRootIndex(current);
-                                 else
-                                         m_representationListView->setRootIndex(QModelIndex());
-
-                                 m_libraryTreeView->setRootIndex(QModelIndex());
+                                 m_representationListView->setRootIndex(current);
+                                 if (current.isValid()) {
+                                         QModelIndex firstRep = m_model->index(0, 0, current);
+                                         if (firstRep.isValid())
+                                                 m_representationListView->setCurrentIndex(firstRep);
+                                 }
                          });
 
         QObject::connect(m_representationListView->selectionModel(),
@@ -75,6 +74,10 @@ void NfLibraryBrowser::setupUi()
                                  else
                                          m_libraryTreeView->setRootIndex(QModelIndex());
                          });
+
+        auto firstLibrary = m_model->index(0, 0);
+        if (firstLibrary.isValid())
+                m_libraryListView->setCurrentIndex(firstLibrary);
 
         m_mainLayout->addWidget(m_libraryListView);
         m_mainLayout->addWidget(m_representationListView);
