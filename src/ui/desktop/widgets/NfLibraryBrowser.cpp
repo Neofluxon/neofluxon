@@ -60,7 +60,7 @@ void NfLibraryBrowser::setupUi()
                          this, [this](const QModelIndex &current, const QModelIndex &) {
                                  m_representationListView->setRootIndex(current);
                                  if (current.isValid()) {
-                                         QModelIndex firstRep = m_model->index(0, 0, current);
+                                         auto firstRep = m_model->index(0, 0, current);
                                          if (firstRep.isValid())
                                                  m_representationListView->setCurrentIndex(firstRep);
                                  }

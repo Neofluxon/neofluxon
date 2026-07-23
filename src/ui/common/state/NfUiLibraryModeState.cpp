@@ -36,9 +36,6 @@ NfUiLibraryModeState::NfUiLibraryModeState(QObject* parent)
 
 void NfUiLibraryModeState::setQuery(const NfLibraryQuery& q)
 {
-        if (m_query == q)
-                return;
-
         m_query = q;
         emit queryChanged(m_query);
 }
