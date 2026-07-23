@@ -70,23 +70,24 @@ NfPhotoScanner::createTask(const NfLibraryPhotoSource& source)
         auto task = std::make_unique<NfLibraryPhotoScanTask>(source, m_library);
         task->setGenerationId(m_generationId);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
-                NF_LOG_DEBUG("NfLibraryPhotoScanTask result");
-                        if (status != NfTask::TaskStatus::Success)
+                NF_LOG_DEBUG("called");
+
+                if (status != NfTask::TaskStatus::Success)
+                        return;
+
+                auto* libraryTask = dynamic_cast<NfLibraryPhotoScanTask*>(result);
+                if (libraryTask) {
+                        std::scoped_lock lock(m_mutex);
+
+                        if (libraryTask->generationId() != m_generationId)
                                 return;
-                        NF_LOG_DEBUG("NfLibraryPhotoScanTask result1");
-                        auto* libraryTask = dynamic_cast<NfLibraryPhotoScanTask*>(result);
-                        if (libraryTask) {
-                                std::scoped_lock lock(m_mutex);
 
-                                if (libraryTask->generationId() != m_generationId)
-                                        return;
-
-                                auto photos = libraryTask->takePhotos();
-                                NF_LOG_DEBUG("photos: " << photos.size());
-                                m_loadedPhotos.insert(m_loadedPhotos.end(),
-                                                      std::make_move_iterator(photos.begin()),
-                                                      std::make_move_iterator(photos.end()));
-                        }
+                        auto photos = libraryTask->takePhotos();
+                        NF_LOG_DEBUG("photos from the library: " << photos.size());
+                        m_loadedPhotos.insert(m_loadedPhotos.end(),
+                                              std::make_move_iterator(photos.begin()),
+                                              std::make_move_iterator(photos.end()));
+                }
         });
 
         return task;
