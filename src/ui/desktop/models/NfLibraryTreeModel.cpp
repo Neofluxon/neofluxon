@@ -31,6 +31,8 @@
 #include "core/NfLogger.h"
 #include "core/library/NfLibraryTreeNode.h"
 
+#include <QIcon>
+
 using namespace NfCore;
 using namespace NfUi;
 
@@ -94,12 +96,47 @@ int NfLibraryTreeModel::columnCount(const QModelIndex&) const
 QVariant NfLibraryTreeModel::data(const QModelIndex& index, int role) const
 {
         if (!index.isValid())
-                return {};
+        return {};
 
         auto* item = static_cast<NfLibraryTreeItem*>(index.internalPointer());
+        if (!item)
+                return {};
+
         switch (role) {
         case Qt::DisplayRole:
                 return item->name();
+
+        case Qt::DecorationRole: {
+                if (item->type() == NfLibraryTreeItem::NodeType::Representation) {
+                        // Safely extract the int value from std::variant
+                        auto val = item->value();
+                        if (const auto* valPtr = std::get_if<int>(&val)) {
+                                auto repType = static_cast<NfLibraryTreeItem::RepresentationType>(*valPtr);
+
+                                switch (repType) {
+                                case NfLibraryTreeItem::RepresentationType::Canonical:
+                                        return QIcon(":/icons/folder.svg");
+
+                                case NfLibraryTreeItem::RepresentationType::DateTime:
+                                        return QIcon(":/icons/calendar.svg");
+
+                                        //case NfLibraryTreeItem::RepresentationType::Equipment:
+                                        //return QIcon(":/icons/equipment.svg");
+
+                                        //                                case NfLibraryTreeItem::RepresentationType::KeywordsTree:
+                                        //                                        return QIcon(":/icons/keywords_tree.svg");
+
+                                        //                                case NfLibraryTreeItem::RepresentationType::Collections:
+                                        //                                        return QIcon(":/icons/collections.svg");
+
+                                default:
+                                        break;
+                                }
+                        }
+                }
+                break;
+        }
+
         default:
                 break;
         }
