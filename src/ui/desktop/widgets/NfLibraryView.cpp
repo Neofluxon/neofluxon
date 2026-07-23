@@ -52,11 +52,11 @@ NfLibraryView::NfLibraryView(NfLibraryContext ctx,
         m_mainLayout->setSpacing(0);
 
         m_browserView = new NfBrowserView(m_state->browser(), m_model->browser(), this);
-
         QObject::connect(m_state,
                          &NfUiLibraryModeState::queryChanged,
                          m_model,
                          &NfLibraryModel::setQuery);
+        m_model->setQuery(m_state->query());
 
         m_mainLayout->addWidget(m_browserView);
 }

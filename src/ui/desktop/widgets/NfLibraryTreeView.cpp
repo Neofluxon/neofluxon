@@ -24,7 +24,7 @@
 #include "NfLibraryTreeView.h"
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
-#include "NfContext.h"
+#include "NfLibraryContext.h"
 #include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfLogger.h"
@@ -37,10 +37,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeView::NfLibraryTreeView(const NfContext& ctx, QWidget* parent)
+NfLibraryTreeView::NfLibraryTreeView(const NfLibraryContext& ctx,
+                                     NfLibraryTreeModel* model,
+                                     QWidget* parent)
         : QTreeView(parent)
-        , m_model{new NfLibraryTreeModel(ctx, this)}
-        , m_state{ctx.uiState->libraryModeState()}
+        , m_model{model}
+        , m_state{ctx.uiState()->libraryModeState()}
 {
         setupView();
         setupBehavior();

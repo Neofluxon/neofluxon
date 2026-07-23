@@ -40,6 +40,7 @@ namespace NfDesktop {
 
 class NfPathBrowser;
 class NfLibraryTreeView;
+class NfLibraryBrowser;
 
 class NfLeftPanel : public NfPanel {
   Q_OBJECT
@@ -56,7 +57,7 @@ protected slots:
 private:
         NfContext *m_context;
         NfPathBrowser* m_pathBrowser;
-        NfLibraryTreeView* m_libraryTree;
+        NfLibraryBrowser* m_libraryBrowser;
         QStackedWidget* m_stack;
 };
 

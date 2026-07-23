@@ -7,7 +7,10 @@ set(WIDGETS_HEADERS
     NfPanel.h
     NfFolderActionDelegate.h
     NfPathBrowser.h
+    NfLibraryListView.h
+    NfRepresentationListView.h
     NfLibraryTreeView.h
+    NfLibraryBrowser.h
     NfSettingsDialog.h
     NfBrowserView.h
     NfFolderView.h
@@ -25,7 +28,10 @@ set(WIDGETS_SOURCES
     NfPanel.cpp
     NfFolderActionDelegate.cpp
     NfPathBrowser.cpp
+    NfLibraryListView.cpp
+    NfRepresentationListView.cpp
     NfLibraryTreeView.cpp
+    NfLibraryBrowser.cpp
     NfSettingsDialog.cpp
     NfBrowserView.cpp
     NfFolderView.cpp

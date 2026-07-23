@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryBrowser.h
+ * File name: NfLibraryBrowser.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -22,61 +22,70 @@
  */
 
 #include "NfLibraryBrowser.h"
+#include "NfLibraryTreeModel.h"
+#include "NfLibraryListView.h"
+#include "NfRepresentationListView.h"
+#include "NfLibraryTreeView.h"
+#include "NfUiState.h"
+#include "NfUiLibraryModeState.h"
 
 #include <QVBoxLayout>
-#include <QLabel>
-#include <QTreeView>
-#include <QFileSystemModel>
-#include <QDir>
+
+using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryBrowser::NfLibraryBrowser(QWidget* parent)
-        : QWidget(parent)
+NfLibraryBrowser::NfLibraryBrowser(NfLibraryContext ctx,
+                                   QWidget *parent)
+    : QWidget(parent)
+    , m_context{std::move(ctx)}
+    , m_state{m_context.uiState()->libraryModeState()}
+    , m_model{new NfLibraryTreeModel(m_context, this)}
 {
-        auto layout = new QVBoxLayout(this);
+        setupUi();
+}
 
-        // Title
-        auto title = new QLabel(tr("Folders"), this);
-        QFont f = title->font();
-        f.setBold(true);
-        title->setFont(f);
+void NfLibraryBrowser::setupUi()
+{
+        m_mainLayout = new QVBoxLayout(this);
+        m_mainLayout->setContentsMargins(0, 0, 0, 0);
+        m_mainLayout->setSpacing(6);
 
-        layout->addWidget(title);
+        m_libraryListView = new NfLibraryListView(m_context, m_model, this);
+        m_representationListView = new NfRepresentationListView(m_context, m_model, this);
+        m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
 
-        // File system model
-        m_model = new QFileSystemModel(this);
-        m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
-        m_model->setRootPath(QDir::homePath()); // or "/" for full system
-
-        // Tree view
-        m_treeView = new QTreeView(this);
-        m_treeView->setHeaderHidden(true);
-        m_treeView->setRootIsDecorated(true);
-        m_treeView->setModel(m_model);
-
-        // Optional: hide unnecessary columns
-        m_treeView->setColumnHidden(1, true); // Size
-        m_treeView->setColumnHidden(2, true); // Type
-        m_treeView->setColumnHidden(3, true); // Date modified
-
-        // Set root index
-        m_treeView->setRootIndex(m_model->index(QDir::rootPath()));
-
-        // Behavior
-        m_treeView->setHeaderHidden(true);
-        m_treeView->setAnimated(true);
-        m_treeView->setIndentation(16);
-
-        layout->addWidget(m_treeView);
-
-        layout->setContentsMargins(0, 0, 0, 0);
-
-        QObject::connect(m_treeView, &QTreeView::doubleClicked,
-                         this, [this](const QModelIndex& index)
-                         {
-                                 emit folderSelected(m_model->filePath(index).toStdString());
+        QObject::connect(m_libraryListView->selectionModel(),
+                         &QItemSelectionModel::currentChanged,
+                         this, [this](const QModelIndex &current, const QModelIndex &) {
+                                 m_representationListView->setRootIndex(current);
+                                 if (current.isValid()) {
+                                         auto firstRep = m_model->index(0, 0, current);
+                                         if (firstRep.isValid())
+                                                 m_representationListView->setCurrentIndex(firstRep);
+                                 }
                          });
+
+        QObject::connect(m_representationListView->selectionModel(),
+                         &QItemSelectionModel::currentChanged,
+                         this, [this](const QModelIndex &current, const QModelIndex &) {
+                                 if (current.isValid())
+                                         m_libraryTreeView->setRootIndex(current);
+                                 else
+                                         m_libraryTreeView->setRootIndex(QModelIndex());
+                         });
+
+        auto firstLibrary = m_model->index(0, 0);
+        if (firstLibrary.isValid())
+                m_libraryListView->setCurrentIndex(firstLibrary);
+
+        m_mainLayout->addWidget(m_libraryListView);
+        m_mainLayout->addWidget(m_representationListView);
+        m_mainLayout->addWidget(m_libraryTreeView, 1);
+
+        m_mainLayout->setStretch(0, 0);
+        m_mainLayout->setStretch(1, 0);
+        m_mainLayout->setStretch(2, 1);
 }
 
 } // namespace NfDesktop

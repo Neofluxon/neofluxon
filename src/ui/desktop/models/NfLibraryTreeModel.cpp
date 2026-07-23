@@ -23,7 +23,7 @@
 
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryTreeItem.h"
-#include "NfContext.h"
+#include "NfLibraryContext.h"
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibraryManager.h"
 #include "core/library/NfLibrary.h"
@@ -36,9 +36,9 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeModel::NfLibraryTreeModel(const NfContext& ctx, QObject* parent)
+NfLibraryTreeModel::NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx, QObject* parent)
         : QAbstractItemModel(parent)
-        , m_library{ctx.library}
+        , m_library{ctx.library()}
 {
         buildTree();
 

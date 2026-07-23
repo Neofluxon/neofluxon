@@ -30,6 +30,7 @@ namespace NfUi {
 
 struct NfContext;
 class NfUiState;
+class NfLibraryAdapter;
 
 class NfLibraryContext {
  public:
@@ -37,6 +38,7 @@ class NfLibraryContext {
                 : m_context{ctx} {}
         NfUiState* uiState() const { return m_context->uiState; }
         NfContext* prent() const { return m_context; }
+        NfLibraryAdapter* library() const { return m_context->library; }
 
  private:
         NfContext* m_context;
