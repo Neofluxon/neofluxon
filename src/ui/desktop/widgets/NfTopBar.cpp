@@ -36,11 +36,13 @@ NfTopBar::NfTopBar(QWidget *parent)
 
 	auto topBarLayout = new QHBoxLayout(this);
 
+        QIcon logoIcon(":/logo.svg");
 	auto logoLabel = new QLabel(this);
 	logoLabel->setAttribute(Qt::WA_TranslucentBackground);
-	logoLabel->setPixmap(QPixmap(":/logo.png"));
-	topBarLayout->addWidget(logoLabel);
-
+	logoLabel->setPixmap(logoIcon.pixmap(24, 24));
+        logoLabel->setFixedSize(24, 24);
+        topBarLayout->addWidget(logoLabel, 0, Qt::AlignLeft);
+        topBarLayout->addStretch(1);
 }
 
 } // namespace NfDesktop
