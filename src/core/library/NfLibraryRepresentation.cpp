@@ -205,42 +205,113 @@ NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode*
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)
 {
         NF_LOG_DEBUG("called");
-        auto nodeType = NfLibraryTreeNode::NodeType::Root;
-        m_tree = std::make_unique<NfLibraryTreeNode>("Root", nodeType);
+
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
+                                                     NfLibraryTreeNode::NodeType::Root);
 
         const auto* source = dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
+
         if (!source) {
                 NF_LOG_DEBUG("source record is null");
                 return;
         }
 
+        if (source->folders.empty())
+                return;
+
+        // Find imported root folders
+        std::vector<NfFolderEntry> roots;
         for (const auto& folder : source->folders) {
-                auto* parent = m_tree.get();
+                bool isRoot = true;
 
-                std::filesystem::path p = folder.path;
-                for (const auto& part : p) {
-                        std::string name = part.string();
-
-                        if (name.empty())
+                for (const auto& other : source->folders) {
+                        if (folder.path == other.path)
                                 continue;
 
-                        NfLibraryTreeNode* child = nullptr;
+                        std::error_code ec;
+                        auto relative = std::filesystem::relative(
+                                                                  folder.path,
+                                                                  other.path,
+                                                                  ec);
 
-                        for (const auto& c : parent->children()) {
-                                if (c->name() == name) {
-                                        child = c.get();
-                                        break;
+                        if (ec)
+                                continue;
+
+                        // folder is inside another folder
+                        if (!relative.empty() &&
+                            *relative.begin() != "..") {
+                                isRoot = false;
+                                break;
+                        }
+                }
+
+                if (isRoot)
+                        roots.push_back(folder);
+        }
+
+        NF_LOG_DEBUG("found roots: " << roots.size());
+
+        // Build tree for each root
+        for (const auto& root : roots) {
+                const std::filesystem::path rootPath = root.path;
+
+                for (const auto& folder : source->folders) {
+                        std::error_code ec;
+                        auto relative = std::filesystem::relative(
+                                                                  folder.path,
+                                                                  rootPath,
+                                                                  ec);
+
+                        if (ec)
+                                continue;
+
+                        // Skip folders that are not inside this root
+                        if (!relative.empty() &&
+                            *relative.begin() == "..")
+                                continue;
+
+
+                        auto* parent = m_tree.get();
+
+                        // Add root folder name
+                        std::filesystem::path treePath = rootPath.filename();
+
+                        if (!relative.empty() && relative != ".") {
+                                treePath /= relative;
+                        }
+
+                        for (const auto& part : treePath) {
+
+                                const std::string name = part.string();
+
+                                if (name.empty() || name == ".")
+                                        continue;
+
+
+                                NfLibraryTreeNode* child = nullptr;
+
+                                // Find existing child
+                                for (const auto& c : parent->children()) {
+                                        if (c->name() == name) {
+                                                child = c.get();
+                                                break;
+                                        }
                                 }
+
+
+                                // Create missing child
+                                if (!child) {
+                                        child = parent->addChild();
+                                        child->setName(name);
+                                        child->setType(NfLibraryTreeNode::NodeType::Folder);
+                                }
+
+
+                                parent = child;
                         }
 
-                        if (!child) {
-                                child = parent->addChild();
-                                child->setName(name);
-                                child->setType(NfLibraryTreeNode::NodeType::Folder);
-                                child->setValue(folder.id);
-                        }
-
-                        parent = child;
+                        // Only the real folder node gets the database id
+                        parent->setValue(folder.id);
                 }
         }
 }

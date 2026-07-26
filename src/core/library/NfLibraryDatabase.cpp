@@ -688,11 +688,10 @@ void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libr
 {
         auto* record = static_cast<NfCanonicalSourceRecord*>(source);
         const char* sql =
-                "SELECT DISTINCT f.id, f.path "
-                "FROM folders f "
-                "INNER JOIN images i ON f.id = i.folder_id "
-                "WHERE f.library_id = ? "
-                "ORDER BY f.path ASC;";
+                "SELECT id, path "
+                "FROM folders "
+                "WHERE library_id = ? "
+                "ORDER BY path ASC;";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
