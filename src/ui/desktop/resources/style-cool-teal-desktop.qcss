@@ -1,6 +1,8 @@
 QWidget {
+    font-family: "Noto Sans";
     background-color: #1e1f28;
-    color: #e6eaf2;
+    color: #aeb5c0;
+    font-size: 13px;
 }
 
 QPushButton:hover {
