@@ -100,12 +100,11 @@ NfLibraryQuery NfLibraryTreeItem::makeQuery() const
         NfLibraryQuery query;
         query.queryValue = value();
 
-        for (const NfLibraryTreeItem* node = this; node; node = node->parent()) {
+        for (const auto* node = this; node; node = node->parent()) {
                 switch (node->type()) {
                 case NodeType::Library:
                         query.libraryId = std::get<int64_t>(node->value());
                         return query;
-
                 case NodeType::Representation:
                         if (const auto value = node->value();
                             const auto* rep = std::get_if<int>(&value)) {
