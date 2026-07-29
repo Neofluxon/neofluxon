@@ -90,6 +90,8 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
                         return queryPhotosByPathId(*pathId);
                 break;
         case RepresentationType::DateTime:
+                if (const auto *dateTime = std::get_if<int64_t>(&query.queryValue))
+                        return queryPhotosByPathId(*pathId);
                 break;
         case RepresentationType::Equipment:
                 break;
@@ -164,8 +166,11 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
 
                 // Year
                 {
+                        DateRange value = {}
                         std::string year = yearBuf;
-                        parent = findOrCreateChild(parent, year,
+                        parent = findOrCreateChild(parent,
+                                                   year,
+                                                   value,
                                                    NfLibraryTreeNode::NodeType::DateYear);
                 }
 
@@ -201,7 +206,70 @@ NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode*
         node->setName(name);
         node->setType(nodeType);
 
+        setNodeValue(nodeType);
+
         return node;
+}
+
+#include <chrono>
+
+NfLibraryTreeNode::DateRange NfLibraryRepresentation::getYearRange(const std::tm& tm)
+{
+        using namespace std::chrono;
+
+        int yearValue = tm.tm_year + 1900;
+
+        sys_time<nanoseconds> start =
+                sys_days{year{yearValue} / January / 1};
+
+        sys_time<nanoseconds> end =
+                sys_days{year{yearValue + 1} / January / 1};
+
+        return {
+                start.time_since_epoch().count(),
+                end.time_since_epoch().count()
+        };
+}
+
+
+NfLibraryTreeNode::DateRange NfLibraryRepresentation::getMonthRange(const std::tm& tm)
+{
+        using namespace std::chrono;
+
+        year_month monthValue{
+                year{tm.tm_year + 1900},
+                month{static_cast<unsigned>(tm.tm_mon + 1)}
+        };
+
+        sys_time<nanoseconds> start =
+                sys_days{monthValue / day{1}};
+
+        sys_time<nanoseconds> end =
+                sys_days{(monthValue + months{1}) / day{1}};
+
+        return {
+                start.time_since_epoch().count(),
+                end.time_since_epoch().count()
+        };
+}
+
+
+NfLibraryTreeNode::DateRange NfLibraryRepresentation::getDayRange(const std::tm& tm)
+{
+        using namespace std::chrono;
+
+        sys_days dayValue =
+                year{tm.tm_year + 1900} /
+                month{static_cast<unsigned>(tm.tm_mon + 1)} /
+                day{static_cast<unsigned>(tm.tm_mday)};
+
+        sys_time<nanoseconds> start = dayValue;
+        sys_time<nanoseconds> end = dayValue + days{1};
+
+        return {
+                start.time_since_epoch().count(),
+                end.time_since_epoch().count()
+        };
 }
 
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)

@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <utility>
 #include <map>
 
 namespace NfCore {
@@ -63,7 +64,12 @@ public:
                 Keyword
         };
 
-        using NodeValue = std::variant<int, int64_t, std::string>;
+        using DateRange = std::pair<int64_t, int64_t>;
+        using NodeValue = std::variant<std::monostate,
+                                       int,
+                                       int64_t,
+                                       std::string,
+                                       DateRange>;
 
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();
