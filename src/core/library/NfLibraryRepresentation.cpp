@@ -29,6 +29,8 @@
 #include "NfLogger.h"
 
 #include <unordered_map>
+#include <chrono>
+#include <format>
 
 namespace NfCore {
 
@@ -138,75 +140,76 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 
 void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord* rep)
 {
-        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
-                                                     NfLibraryTreeNode::NodeType::Root);
+        using NodeType NfLibraryTreeNode::NodeType::Root;
+        using namespace ch = std::chrono;
+
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root", NodeType::Root);
 
         auto* source = dynamic_cast<const NfDatetimeSourceRecord*>(rep->sourceData.get());
         if (!source)
                 return;
 
         for (const auto& entry : source->entries) {
-                std::time_t t = static_cast<std::time_t>(entry.timestamp / 1000000000LL);
-                std::tm tm{};
-#ifdef _WIN32
-                localtime_s(&tm, &t);
-#else
-                localtime_r(&t, &tm);
-#endif
+                ch::sys_time<ch::nanoseconds> tp{
+                        ch::nanoseconds{entry.timestamp}
+                };
 
-                char yearBuf[8];
-                char monthBuf[8];
-                char dayBuf[8];
+                ch::zoned_time local{ch::current_zone(), tp};
+                auto localDay = ch::floor<ch::days>(local.get_local_time());
 
-                std::strftime(yearBuf, sizeof(yearBuf), "%Y", &tm);
-                std::strftime(monthBuf, sizeof(monthBuf), "%m", &tm);
-                std::strftime(dayBuf, sizeof(dayBuf), "%d", &tm);
+                ch::year_month_day ymd{localDay};
+                ch::year year = ymd.year();
+                ch::month month = ymd.month();
+                ch::day day = ymd.day();
 
-                NfLibraryTreeNode* parent = m_tree.get();
+                auto* parent = m_tree.get();
 
                 // Year
                 {
-                        DateRange value = {}
-                        std::string year = yearBuf;
+                        auto name = std::to_string(int(year));
                         parent = findOrCreateChild(parent,
-                                                   year,
-                                                   value,
-                                                   NfLibraryTreeNode::NodeType::DateYear);
+                                                   name,
+                                                   NodeType::DateYear);
+                        parent->setNodeValue(NfTimeUtils::getYearRange(year));
                 }
 
                 // Month
                 {
-                        std::string month = monthBuf;
+                        auto name = std::format("{:02}", unsigned(month));
                         parent = findOrCreateChild(parent,
-                                                   month,
-                                                   NfLibraryTreeNode::NodeType::DateMonth);
+                                                   name,
+                                                   NodeType::DateMonth);
+
+                        parent->setNodeValue(NfTimeUtils::getMonthRange(year, month));
                 }
 
                 // Day
                 {
-                        std::string day = dayBuf;
+                        auto name = std::format("{:02}", unsigned(day));
                         parent = findOrCreateChild(parent,
-                                                   day,
-                                                   NfLibraryTreeNode::NodeType::DateDay);
+                                                   name,
+                                                   NodeType::DateDay);
+
+                        parent->setNodeValue(NfTimeUtils::getDayRange(year, month, day));
                 }
         }
 }
 
-NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
-                                                              const std::string& name,
-                                                              NfLibraryTreeNode::NodeType nodeType){
+NfLibraryTreeNode*
+NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
+                                           const std::string& name,
+                                           NfLibraryTreeNode::NodeType nodeType)
+{
         // search existing children
         for (const auto& child : parent->children()) {
                 if (child->name() == name)
                         return child.get();
         }
 
-        // not found -> create
+        // Not found, create
         auto* node = parent->addChild();
         node->setName(name);
         node->setType(nodeType);
-
-        setNodeValue(nodeType);
 
         return node;
 }
