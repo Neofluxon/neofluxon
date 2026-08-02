@@ -106,6 +106,7 @@ add_library(${PROJECT_NAME}::CoreLibrary ALIAS NfCore)
 
 target_include_directories(NfCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/library
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${JPEG_TURBO_INCLUDE_DIRS}

@@ -25,6 +25,8 @@
 #define NF_LIBRARY_QUERY_H
 
 #include "NfLibraryRepresentation.h"
+#include "NfTimeUtils.h"
+#include "NfLibraryTreeNode.h"
 
 #include <cstdint>
 #include <string>
@@ -33,11 +35,11 @@
 namespace NfCore {
 
 struct NfLibraryQuery {
-    using QueryValue = std::variant<int, int64_t, std::string>;
-    int64_t libraryId = -1;
-    NfLibraryRepresentation::RepresentationType representationType{};
-    QueryValue queryValue;
-    bool operator==(const NfLibraryQuery&) const = default;
+        using QueryValue = NfLibraryTreeNode::NodeValue;
+        int64_t libraryId = -1;
+        NfLibraryRepresentation::RepresentationType representationType{};
+        QueryValue queryValue;
+        bool operator==(const NfLibraryQuery&) const = default;
 };
 
 } // namespace NfCore

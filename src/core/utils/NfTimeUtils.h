@@ -34,6 +34,7 @@ namespace NfCore {
 struct NfDateRange {
         int64_t start_ticks{0};
         int64_t end_ticks{0};
+        constexpr bool operator==(const NfDateRange&) const = default;
 };
 
 class NfTimeUtils {

@@ -26,6 +26,7 @@
 #include "NfSourceRecords.h"
 #include "NfLibraryTreeNode.h"
 #include "NfLibraryQuery.h"
+#include "NfTimeUtils.h"
 #include "NfLogger.h"
 
 #include <unordered_map>
@@ -88,20 +89,27 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 {
         switch (query.representationType) {
         case RepresentationType::Canonical:
+                NF_LOG_DEBUG("Representation: Canonical");
+
                 if (const auto *pathId = std::get_if<int64_t>(&query.queryValue))
                         return queryPhotosByPathId(*pathId);
                 break;
         case RepresentationType::DateTime:
-                if (const auto *dateTime = std::get_if<int64_t>(&query.queryValue))
-                        return queryPhotosByPathId(*pathId);
+                NF_LOG_DEBUG("Representation: DateTime");
+
+                if (const auto *dateRange = std::get_if<NfDateRange>(&query.queryValue))
+                        return queryPhotosByDateRange(*dateRange);
                 break;
         case RepresentationType::Equipment:
+                NF_LOG_DEBUG("Representation: Equipment");
                 break;
         case RepresentationType::Collections:
+                NF_LOG_DEBUG("Representation: Collections");
                 break;
         case RepresentationType::None:
         default:
                 break;
+                NF_LOG_DEBUG("Representation: None");
         }
 
         return {};
@@ -109,8 +117,22 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t id) const
 {
+        NF_LOG_DEBUG("called");
         std::vector<NfPhoto> photos;
         auto imagePaths = m_database->getImagePathsByFolderId(id);
+        for (const auto &path : imagePaths)
+                photos.emplace_back(path);
+
+        return photos;
+}
+
+std::vector<NfPhoto>
+NfLibraryRepresentation::queryPhotosByDateRange(const NfDateRange &dateRange) const
+{
+        NF_LOG_DEBUG("range: " << dateRange.start_ticks << ", " << dateRange.end_ticks);
+
+        std::vector<NfPhoto> photos;
+        auto imagePaths = m_database->getImagePathsByDate(dateRange);
         for (const auto &path : imagePaths)
                 photos.emplace_back(path);
 
@@ -140,8 +162,8 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 
 void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord* rep)
 {
-        using NodeType NfLibraryTreeNode::NodeType::Root;
-        using namespace ch = std::chrono;
+        using NodeType = NfLibraryTreeNode::NodeType;
+        namespace ch = std::chrono;
 
         m_tree = std::make_unique<NfLibraryTreeNode>("Root", NodeType::Root);
 
@@ -170,7 +192,7 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
                         parent = findOrCreateChild(parent,
                                                    name,
                                                    NodeType::DateYear);
-                        parent->setNodeValue(NfTimeUtils::getYearRange(year));
+                        parent->setValue(NfTimeUtils::getYearRange(year));
                 }
 
                 // Month
@@ -180,7 +202,7 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
                                                    name,
                                                    NodeType::DateMonth);
 
-                        parent->setNodeValue(NfTimeUtils::getMonthRange(year, month));
+                        parent->setValue(NfTimeUtils::getMonthRange(year / month));
                 }
 
                 // Day
@@ -190,7 +212,7 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
                                                    name,
                                                    NodeType::DateDay);
 
-                        parent->setNodeValue(NfTimeUtils::getDayRange(year, month, day));
+                        parent->setValue(NfTimeUtils::getDayRange(year / month / day));
                 }
         }
 }
@@ -212,67 +234,6 @@ NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
         node->setType(nodeType);
 
         return node;
-}
-
-#include <chrono>
-
-NfLibraryTreeNode::DateRange NfLibraryRepresentation::getYearRange(const std::tm& tm)
-{
-        using namespace std::chrono;
-
-        int yearValue = tm.tm_year + 1900;
-
-        sys_time<nanoseconds> start =
-                sys_days{year{yearValue} / January / 1};
-
-        sys_time<nanoseconds> end =
-                sys_days{year{yearValue + 1} / January / 1};
-
-        return {
-                start.time_since_epoch().count(),
-                end.time_since_epoch().count()
-        };
-}
-
-
-NfLibraryTreeNode::DateRange NfLibraryRepresentation::getMonthRange(const std::tm& tm)
-{
-        using namespace std::chrono;
-
-        year_month monthValue{
-                year{tm.tm_year + 1900},
-                month{static_cast<unsigned>(tm.tm_mon + 1)}
-        };
-
-        sys_time<nanoseconds> start =
-                sys_days{monthValue / day{1}};
-
-        sys_time<nanoseconds> end =
-                sys_days{(monthValue + months{1}) / day{1}};
-
-        return {
-                start.time_since_epoch().count(),
-                end.time_since_epoch().count()
-        };
-}
-
-
-NfLibraryTreeNode::DateRange NfLibraryRepresentation::getDayRange(const std::tm& tm)
-{
-        using namespace std::chrono;
-
-        sys_days dayValue =
-                year{tm.tm_year + 1900} /
-                month{static_cast<unsigned>(tm.tm_mon + 1)} /
-                day{static_cast<unsigned>(tm.tm_mday)};
-
-        sys_time<nanoseconds> start = dayValue;
-        sys_time<nanoseconds> end = dayValue + days{1};
-
-        return {
-                start.time_since_epoch().count(),
-                end.time_since_epoch().count()
-        };
 }
 
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)

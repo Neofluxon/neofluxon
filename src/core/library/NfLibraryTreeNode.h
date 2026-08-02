@@ -24,6 +24,8 @@
 #ifndef NF_LIBRARY_TREE_NODE_H
 #define NF_LIBRARY_TREE_NODE_H
 
+#include "NfTimeUtils.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -64,12 +66,11 @@ public:
                 Keyword
         };
 
-        using DateRange = std::pair<int64_t, int64_t>;
         using NodeValue = std::variant<std::monostate,
                                        int,
                                        int64_t,
                                        std::string,
-                                       DateRange>;
+                                       NfDateRange>;
 
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();

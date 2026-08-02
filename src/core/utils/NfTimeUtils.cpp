@@ -25,13 +25,13 @@
 
 namespace NfCore {
 
-NfDateRange NfTimeUtils::getYearRange(chrono::year yearValue)
+NfDateRange NfTimeUtils::getYearRange(std::chrono::year yearValue)
 {
-        const chrono::system_clock::time_point start_tp{
-                chrono::sys_days{yearValue / chrono::January / 1}
+        const std::chrono::system_clock::time_point start_tp{
+                std::chrono::sys_days{yearValue / std::chrono::January / 1}
         };
-        const chrono::system_clock::time_point end_tp{chrono::sys_days{
-                        (yearValue + chrono::years{1}) / chrono::January / 1}
+        const std::chrono::system_clock::time_point end_tp{std::chrono::sys_days{
+                        (yearValue + std::chrono::years{1}) / std::chrono::January / 1}
         };
 
         return NfDateRange{
@@ -40,13 +40,13 @@ NfDateRange NfTimeUtils::getYearRange(chrono::year yearValue)
         };
 }
 
-NfDateRange NfTimeUtils::getMonthRange(chrono::year_month ym)
+NfDateRange NfTimeUtils::getMonthRange(std::chrono::year_month ym)
 {
-        const chrono::system_clock::time_point start_tp{
-                chrono::sys_days{ym / 1}
+        const std::chrono::system_clock::time_point start_tp{
+                std::chrono::sys_days{ym / 1}
         };
-        const chrono::system_clock::time_point end_tp{
-                chrono::sys_days{(ym + chrono::months{1}) / 1}
+        const std::chrono::system_clock::time_point end_tp{
+                std::chrono::sys_days{(ym + std::chrono::months{1}) / 1}
         };
 
         return NfDateRange{
@@ -55,13 +55,13 @@ NfDateRange NfTimeUtils::getMonthRange(chrono::year_month ym)
         };
 }
 
-NfDateRange NfTimeUtils::getDayRange(chrono::year_month_day ymd)
+NfDateRange NfTimeUtils::getDayRange(std::chrono::year_month_day ymd)
 {
-        const chrono::system_clock::time_point start_tp{
-                chrono::sys_days{ymd}
+        const std::chrono::system_clock::time_point start_tp{
+                std::chrono::sys_days{ymd}
         };
-        const chrono::system_clock::time_point end_tp{
-                chrono::sys_days{chrono::sys_days{ymd} + chrono::days{1}}
+        const std::chrono::system_clock::time_point end_tp{
+                std::chrono::sys_days{std::chrono::sys_days{ymd} + std::chrono::days{1}}
         };
 
         return NfDateRange{
@@ -72,12 +72,12 @@ NfDateRange NfTimeUtils::getDayRange(chrono::year_month_day ymd)
 
 NfDateRange NfTimeUtils::getYearRange(const std::tm& tm)
 {
-        return getYearRange(chrono::year{tm.tm_year + 1900});
+        return getYearRange(std::chrono::year{tm.tm_year + 1900});
 }
 
 int64_t NfTimeUtils::fromFileTime(std::filesystem::file_time_type ftime)
 {
-        const auto sys_tp = chrono::clock_cast<chrono::system_clock>(ftime);
+        const auto sys_tp = std::chrono::clock_cast<std::chrono::system_clock>(ftime);
         return sys_tp.time_since_epoch().count();
 }
 

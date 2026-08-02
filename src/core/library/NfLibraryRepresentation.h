@@ -65,6 +65,7 @@ protected:
                                              const std::string& name,
                                              NfLibraryTreeNode::NodeType nodeType);
         std::vector<NfPhoto> queryPhotosByPathId(uint64_t id) const;
+        std::vector<NfPhoto> queryPhotosByDateRange(const NfDateRange &dateRange) const;
 
 private:
 
