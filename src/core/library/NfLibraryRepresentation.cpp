@@ -26,7 +26,12 @@
 #include "NfSourceRecords.h"
 #include "NfLibraryTreeNode.h"
 #include "NfLibraryQuery.h"
+#include "NfTimeUtils.h"
 #include "NfLogger.h"
+
+#include <unordered_map>
+#include <chrono>
+#include <format>
 
 namespace NfCore {
 
@@ -84,18 +89,27 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 {
         switch (query.representationType) {
         case RepresentationType::Canonical:
+                NF_LOG_DEBUG("Representation: Canonical");
+
                 if (const auto *pathId = std::get_if<int64_t>(&query.queryValue))
                         return queryPhotosByPathId(*pathId);
                 break;
         case RepresentationType::DateTime:
+                NF_LOG_DEBUG("Representation: DateTime");
+
+                if (const auto *dateRange = std::get_if<NfDateRange>(&query.queryValue))
+                        return queryPhotosByDateRange(*dateRange);
                 break;
         case RepresentationType::Equipment:
+                NF_LOG_DEBUG("Representation: Equipment");
                 break;
         case RepresentationType::Collections:
+                NF_LOG_DEBUG("Representation: Collections");
                 break;
         case RepresentationType::None:
         default:
                 break;
+                NF_LOG_DEBUG("Representation: None");
         }
 
         return {};
@@ -103,8 +117,22 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t id) const
 {
+        NF_LOG_DEBUG("called");
         std::vector<NfPhoto> photos;
         auto imagePaths = m_database->getImagePathsByFolderId(id);
+        for (const auto &path : imagePaths)
+                photos.emplace_back(path);
+
+        return photos;
+}
+
+std::vector<NfPhoto>
+NfLibraryRepresentation::queryPhotosByDateRange(const NfDateRange &dateRange) const
+{
+        NF_LOG_DEBUG("range: " << dateRange.start_ticks << ", " << dateRange.end_ticks);
+
+        std::vector<NfPhoto> photos;
+        auto imagePaths = m_database->getImagePathsByDate(dateRange);
         for (const auto &path : imagePaths)
                 photos.emplace_back(path);
 
@@ -134,67 +162,73 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
 
 void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord* rep)
 {
-        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
-                                                     NfLibraryTreeNode::NodeType::Root);
+        using NodeType = NfLibraryTreeNode::NodeType;
+        namespace ch = std::chrono;
+
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root", NodeType::Root);
 
         auto* source = dynamic_cast<const NfDatetimeSourceRecord*>(rep->sourceData.get());
         if (!source)
                 return;
 
         for (const auto& entry : source->entries) {
-                std::time_t t = static_cast<std::time_t>(entry.timestamp / 1000000000LL);
-                std::tm tm{};
-#ifdef _WIN32
-                localtime_s(&tm, &t);
-#else
-                localtime_r(&t, &tm);
-#endif
+                ch::sys_time<ch::nanoseconds> tp{
+                        ch::nanoseconds{entry.timestamp}
+                };
 
-                char yearBuf[8];
-                char monthBuf[8];
-                char dayBuf[8];
+                ch::zoned_time local{ch::current_zone(), tp};
+                auto localDay = ch::floor<ch::days>(local.get_local_time());
 
-                std::strftime(yearBuf, sizeof(yearBuf), "%Y", &tm);
-                std::strftime(monthBuf, sizeof(monthBuf), "%m", &tm);
-                std::strftime(dayBuf, sizeof(dayBuf), "%d", &tm);
+                ch::year_month_day ymd{localDay};
+                ch::year year = ymd.year();
+                ch::month month = ymd.month();
+                ch::day day = ymd.day();
 
-                NfLibraryTreeNode* parent = m_tree.get();
+                auto* parent = m_tree.get();
 
                 // Year
                 {
-                        std::string year = yearBuf;
-                        parent = findOrCreateChild(parent, year,
-                                                   NfLibraryTreeNode::NodeType::DateYear);
+                        auto name = std::to_string(int(year));
+                        parent = findOrCreateChild(parent,
+                                                   name,
+                                                   NodeType::DateYear);
+                        parent->setValue(NfTimeUtils::getYearRange(year));
                 }
 
                 // Month
                 {
-                        std::string month = monthBuf;
+                        auto name = std::format("{:02}", unsigned(month));
                         parent = findOrCreateChild(parent,
-                                                   month,
-                                                   NfLibraryTreeNode::NodeType::DateMonth);
+                                                   name,
+                                                   NodeType::DateMonth);
+
+                        parent->setValue(NfTimeUtils::getMonthRange(year / month));
                 }
 
                 // Day
                 {
-                        std::string day = dayBuf;
+                        auto name = std::format("{:02}", unsigned(day));
                         parent = findOrCreateChild(parent,
-                                                   day,
-                                                   NfLibraryTreeNode::NodeType::DateDay);
+                                                   name,
+                                                   NodeType::DateDay);
+
+                        parent->setValue(NfTimeUtils::getDayRange(year / month / day));
                 }
         }
 }
 
-NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
-                                                              const std::string& name,
-                                                              NfLibraryTreeNode::NodeType nodeType){
+NfLibraryTreeNode*
+NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
+                                           const std::string& name,
+                                           NfLibraryTreeNode::NodeType nodeType)
+{
         // search existing children
         for (const auto& child : parent->children()) {
                 if (child->name() == name)
                         return child.get();
         }
 
-        // not found -> create
+        // Not found, create
         auto* node = parent->addChild();
         node->setName(name);
         node->setType(nodeType);
@@ -205,43 +239,63 @@ NfLibraryTreeNode* NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode*
 void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord* rep)
 {
         NF_LOG_DEBUG("called");
-        auto nodeType = NfLibraryTreeNode::NodeType::Root;
-        m_tree = std::make_unique<NfLibraryTreeNode>("Root", nodeType);
 
-        const auto* source = dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
+        m_tree = std::make_unique<NfLibraryTreeNode>(
+                                                     "Root",
+                                                     NfLibraryTreeNode::NodeType::Root);
+
+        const auto* source =
+                dynamic_cast<const NfCanonicalSourceRecord*>(rep->sourceData.get());
+
         if (!source) {
                 NF_LOG_DEBUG("source record is null");
                 return;
         }
 
-        for (const auto& folder : source->folders) {
+        if (source->folders.empty())
+                return;
+
+        // Sort folders so that parents are processed before children.
+        std::vector<NfFolderEntry> folders = source->folders;
+
+        std::sort(folders.begin(),
+                  folders.end(),
+                  [](const auto& a, const auto& b)
+                  {
+                          return a.path < b.path;
+                  });
+
+        // Maps an imported folder path to its corresponding tree node.
+        std::unordered_map<std::filesystem::path, NfLibraryTreeNode*> nodeMap;
+        nodeMap.reserve(folders.size());
+
+        for (const auto& folder : folders) {
                 auto* parent = m_tree.get();
 
-                std::filesystem::path p = folder.path;
-                for (const auto& part : p) {
-                        std::string name = part.string();
-
-                        if (name.empty())
-                                continue;
-
-                        NfLibraryTreeNode* child = nullptr;
-
-                        for (const auto& c : parent->children()) {
-                                if (c->name() == name) {
-                                        child = c.get();
-                                        break;
-                                }
+                // Find the nearest imported ancestor.
+                auto parentPath = folder.path.parent_path();
+                while (!parentPath.empty()) {
+                        auto it = nodeMap.find(parentPath);
+                        if (it != nodeMap.end()) {
+                                parent = it->second;
+                                break;
                         }
 
-                        if (!child) {
-                                child = parent->addChild();
-                                child->setName(name);
-                                child->setType(NfLibraryTreeNode::NodeType::Folder);
-                                child->setValue(folder.id);
-                        }
+                        auto next = folder.path.parent_path();
 
-                        parent = child;
+                        // Check if this is a root path
+                        if (next == parentPath)
+                                break;
+
+                        parentPath = std::move(next);
                 }
+
+                auto* node = parent->addChild();
+                node->setName(folder.path.filename().string());
+                node->setType(NfLibraryTreeNode::NodeType::Folder);
+                node->setValue(folder.id);
+
+                nodeMap.emplace(folder.path, node);
         }
 }
 

@@ -170,7 +170,7 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 void NfLibraryTreeModel::buildTree()
 {
         auto nodeType = NfLibraryTreeItem::NodeType::Root;
-        m_root = std::make_unique<NfLibraryTreeItem>("Libraries", nodeType);
+        m_root = std::make_unique<NfLibraryTreeItem>(tr("Libraries"), nodeType);
 
         const auto libraries = m_library->libraries();
         for (const auto& library : libraries) {
@@ -220,11 +220,7 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<Nf
                 auto node = std::make_unique<NfLibraryTreeItem>(name,
                                                                 nodeType,
                                                                 parentItem);
-
-                const auto value = child->getValue();
-                if (const auto* val = std::get_if<int64_t>(&value))
-                        node->setValue(child->getValue());
-
+                node->setValue(child->getValue());
                 if (!child->children().empty())
                         populateChildNodes(child->children(), node.get());
 

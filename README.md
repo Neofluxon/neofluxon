@@ -1,10 +1,7 @@
 # Neofluxon
 
-Neofluxon is intended to become a Digital Asset Management (DAM) application for photographers,
-focused on organizing and managing digital assets as part of the photography workflow.
-The goal is to provide a tool for importing, organizing, browsing, searching, and preserving
-photo collections, with possible support for additional workflow features in the
-future (such as non-destructive editing).
+Neofluxon is intended to become a photography workflow application
+that combines Digital Asset Management (DAM) with non-destructive photo editing.
 
 ## Development Goals
 
@@ -12,40 +9,57 @@ The first development goal is the DAM foundation: providing a focused solution f
 
 The main planned features include:
 
-- Support for RAW and standard image formats.
-- Browse the filesystem and import photos as new shoots/sessions, supporting a linear workflow (culling, rating, organization, etc.).
-- Fast browsing and previews, both from the filesystem and from the library, with an initial performance target of smooth browsing for photo collections containing up to 100,000 images.
+- Browse the filesystem and import photos as new shoots/sessions,
+  supporting a linear workflow (culling, rating, organization, etc.).
+
+- Low-latency browsing and previews from both the filesystem and the library,
+  with an initial performance target of maintaining smooth interaction
+  with collections containing up to 100,000 images.
+
 - A library with multiple representations of the same assets:
   - Folder tree.
   - Date/time tree.
   - Equipment tree (camera and lenses).
   - Keywords tree.
   - Collections.
-  - Other
+  - Other representations.
+
 - Support for multiple libraries.
-- Metadata management (ratings, keywords, captions, copyright, GPS).
-- Advanced search and saved searches.
+
+- Metadata management:
+  ratings, keywords, captions, copyright, GPS.
+
+- Search capabilities and saved searches.
+
 - File tracking and duplicate detection.
+
 - File integrity checking.
-- Batch operations for managing multiple photos (metadata, ratings, keywords, organization, etc.).
+
+- Batch operations for managing multiple photos
+  (metadata, ratings, keywords, organization, etc.).
 
 ### Current Development Status
 
 The project is currently under early development, and no official release is available yet.
 
-The following features are currently implemented for testing purposes only:
+The following features have been partially implemented and are currently available for testing purposes only:
 
 - Filesystem browsing for RAW photos.
+
 - Display of thumbnails and previews (grid layout or filmstrip with preview).
-- Import folder to the library
-- Browse thumbnails for folder representation of the library
+
 - Keyboard navigation for previewing images.
+
 - Supported image formats:
-  - Canon (`.cr2`, `.cr3`).
-  - Nikon (`.nef`).
-  - Fujifilm (`.raf`).
-  - Adobe Digital Negative (`.dng`).
-  - JPEG (`.jpg`), PNG (`.png`).
+  - Canon (.cr2, .cr3).
+  - Nikon (.nef).
+  - Fujifilm (.raf).
+  - Adobe Digital Negative (.dng).
+  - JPEG (.jpg), PNG (.png).
+
+- Some library features:
+  - Adding folders to the library.
+  - Navigating the library.
 
 ### Technical Overview
 

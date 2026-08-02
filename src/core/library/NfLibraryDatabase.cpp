@@ -476,15 +476,43 @@ NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
                 return result;
 
         sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(folderId));
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+                const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                if (path)
+                        result.emplace_back(path);
+        }
 
-        while (sqlite3_step(stmt) == SQLITE_ROW)
-                {
-                        const char* path =
-                                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        sqlite3_finalize(stmt);
 
-                        if (path)
-                                result.emplace_back(path);
-                }
+        return result;
+}
+
+std::vector<std::filesystem::path>
+NfLibraryDatabase::getImagePathsByDate(const NfDateRange &dateRange) const
+{
+        std::vector<std::filesystem::path> result;
+
+        constexpr auto sql = R"(
+        SELECT folders.path || '/' || images.file_name
+        FROM images
+        JOIN folders
+            ON images.folder_id = folders.id
+        WHERE images.datetime_taken >= ?
+            AND images.datetime_taken < ?;
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return result;
+
+        sqlite3_bind_int64(stmt, 1, dateRange.start_ticks);
+        sqlite3_bind_int64(stmt, 2, dateRange.end_ticks);
+
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+                const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                if (path)
+                        result.emplace_back(path);
+        }
 
         sqlite3_finalize(stmt);
 
@@ -605,10 +633,10 @@ NfLibraryDatabase::getRepresentationRecord(int64_t libraryId,
 
         switch (repType) {
         case RepresentationType::DateTime:
-                record->name = "DateTime";
+                record->name = "Date";
                 break;
         case RepresentationType::Canonical:
-                record->name = "Canonical";
+                record->name = "Folders";
                 break;
         case RepresentationType::Equipment:
                 record->name = "Equipment";
@@ -688,11 +716,10 @@ void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libr
 {
         auto* record = static_cast<NfCanonicalSourceRecord*>(source);
         const char* sql =
-                "SELECT DISTINCT f.id, f.path "
-                "FROM folders f "
-                "INNER JOIN images i ON f.id = i.folder_id "
-                "WHERE f.library_id = ? "
-                "ORDER BY f.path ASC;";
+                "SELECT id, path "
+                "FROM folders "
+                "WHERE library_id = ? "
+                "ORDER BY path ASC;";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {

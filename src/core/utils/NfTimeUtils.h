@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryQuery.h
+ * File name: NfTimeUtils.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,27 +21,34 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_QUERY_H
-#define NF_LIBRARY_QUERY_H
+#ifndef NF_TIME_UTILS_H
+#define NF_TIME_UTILS_H
 
-#include "NfLibraryRepresentation.h"
-#include "NfTimeUtils.h"
-#include "NfLibraryTreeNode.h"
-
+#include <chrono>
 #include <cstdint>
-#include <string>
-#include <variant>
+#include <filesystem>
+#include <ctime>
 
 namespace NfCore {
 
-struct NfLibraryQuery {
-        using QueryValue = NfLibraryTreeNode::NodeValue;
-        int64_t libraryId = -1;
-        NfLibraryRepresentation::RepresentationType representationType{};
-        QueryValue queryValue;
-        bool operator==(const NfLibraryQuery&) const = default;
+struct NfDateRange {
+        int64_t start_ticks{0};
+        int64_t end_ticks{0};
+        constexpr bool operator==(const NfDateRange&) const = default;
 };
 
-} // namespace NfCore
+class NfTimeUtils {
+ public:
+        NfTimeUtils() = delete;
+        static NfDateRange getYearRange(std::chrono::year yearValue);
+        static NfDateRange getMonthRange(std::chrono::year_month ym);
+        static NfDateRange getDayRange(std::chrono::year_month_day ymd);
+        static int64_t fromFileTime(std::filesystem::file_time_type ftime);
 
-#endif // NF_LIBRARY_QUERY_H
+        // Legacy std::tm overload (e.g. for EXIF or legacy C APIs)
+        static NfDateRange getYearRange(const std::tm& tm);
+};
+
+} // NfCore
+
+#endif // NF_TIME_UTILS_H

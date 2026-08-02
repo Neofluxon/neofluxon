@@ -100,6 +100,7 @@ NfLibraryQuery NfLibraryTreeItem::makeQuery() const
         NfLibraryQuery query;
         query.queryValue = value();
 
+        // Get the library id and representatioon type.
         for (const auto* node = this; node; node = node->parent()) {
                 switch (node->type()) {
                 case NodeType::Library:

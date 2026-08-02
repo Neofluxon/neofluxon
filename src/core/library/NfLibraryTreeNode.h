@@ -24,10 +24,13 @@
 #ifndef NF_LIBRARY_TREE_NODE_H
 #define NF_LIBRARY_TREE_NODE_H
 
+#include "NfTimeUtils.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 #include <variant>
+#include <utility>
 #include <map>
 
 namespace NfCore {
@@ -63,7 +66,11 @@ public:
                 Keyword
         };
 
-        using NodeValue = std::variant<int, int64_t, std::string>;
+        using NodeValue = std::variant<std::monostate,
+                                       int,
+                                       int64_t,
+                                       std::string,
+                                       NfDateRange>;
 
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();
