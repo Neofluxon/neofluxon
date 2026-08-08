@@ -36,11 +36,11 @@ QPushButton:pressed {
     border-top: 3px solid #323546;
     border-left: 1px solid #323546;
     border-right: 1px solid #323546;
-
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-
-    margin-bottom: 2px;
+    margin-bottom: 4px;  
+    padding: 2px;
+    padding-left: 5px;
 }
 
 #NfTopBar QPushButton#btnMinimize,
@@ -168,4 +168,48 @@ QLineEdit, QComboBox, QSlider {
 
 QCheckBox {
     padding: 2px;
+}
+
+/* ================ NfBrowserViewModeBar =============== */
+
+/* Outer bar container */
+NfDesktop--NfBrowserViewModeBar {
+    background-color: #121824;
+    border: 1px solid #232d3f;
+    border-radius: 6px;
+    padding: 1px;
+}
+
+/* Base button style */
+NfDesktop--NfBrowserViewModeBar QToolButton {
+    background-color: transparent;
+    color: #94a3b8;
+    border: 1px solid transparent; /* Reserve 1px border space to prevent layout jump */
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 0px 12px;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+/* Hover state */
+NfDesktop--NfBrowserViewModeBar QToolButton:hover {
+    background-color: #1e293b;
+    color: #f8fafc;
+}
+
+/* Active / Checked state */
+NfDesktop--NfBrowserViewModeBar QToolButton:checked {
+    background-color: #1a2332;
+    color: #38bdf8;
+}
+
+/* Active + Hover state */
+NfDesktop--NfBrowserViewModeBar QToolButton:checked:hover {
+    background-color: #222d3f;
+}
+
+NfDesktop--NfBrowserViewModeBar QToolButton:focus {
+    outline: none;
 }

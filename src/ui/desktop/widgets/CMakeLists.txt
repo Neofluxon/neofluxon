@@ -17,6 +17,7 @@ set(WIDGETS_HEADERS
     NfLibraryView.h
     NfPhotoPreviewView.h
     NfTopBar.h
+    NfBrowserViewModeBar.h
 )
 
 set(WIDGETS_SOURCES
@@ -38,6 +39,7 @@ set(WIDGETS_SOURCES
     NfLibraryView.cpp
     NfPhotoPreviewView.cpp
     NfTopBar.cpp
+    NfBrowserViewModeBar.cpp
 )
 
 add_library(NfDesktopWidgets STATIC

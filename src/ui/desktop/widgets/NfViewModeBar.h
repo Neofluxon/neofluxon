@@ -1,5 +1,5 @@
 /**
- * File name: NfTopBar.cpp
+ * File name: NfBrowserViewModeBar.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,39 +21,46 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfTopBar.h"
-#include "NfBrowserViewModeBar.h"
+#ifndef NF_BROWSER_VIEWMODEBAR_H
+#define NF_BROWSER_VIEWMODEBAR_H
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPixmap>
+#include "NfUiBrowserState.h"
+
+#include <QWidget>
+#include <QMap>
+
+class QButtonGroup;
+class QToolButton;
+
+namespace NfUi {
+class NfUiBrowserState;
+}
 
 namespace NfDesktop {
 
-NfTopBar::NfTopBar(QWidget *parent)
-	: NfStyledWidget(parent)
+class NfBrowserViewModeBar : public QWidget
 {
-	setObjectName("NfTopBar");
-        setFixedHeight(48);
+    Q_OBJECT
 
-	auto topBarLayout = new QHBoxLayout(this);
-        topBarLayout->setContentsMargins(0, 0, 0, 0);
+public:
+    explicit NfBrowserViewModeBar(QWidget* parent = nullptr);
+    ~NfBrowserViewModeBar() override = default;
 
-        // Logo
-        QIcon logoIcon(":/logo.svg");
-	auto logoLabel = new QLabel(this);
-	logoLabel->setAttribute(Qt::WA_TranslucentBackground);
-	logoLabel->setPixmap(logoIcon.pixmap(24, 24));
-        logoLabel->setFixedSize(24, 24);
-        topBarLayout->addWidget(logoLabel, 0, Qt::AlignLeft);
-        topBarLayout->addStretch(1);
+    NfUi::NfUiBrowserState* getState() const;
 
-        // Browser view mode bar
-        auto bar = new NfBrowserViewModeBar(this);
-        topBarLayout->addWidget(bar, 0, Qt::AlignLeft);
-        bar->show();
+public slots:
+    void setState(NfUi::NfUiBrowserState *state);
 
-        topBarLayout->addStretch(1);
-}
+private:
+    void setupUi();
+    void setupStyle();
+    void createModeButton(NfViewMode mode, const QString& text, const QIcon& icon = QIcon());
+
+    NfUi::NfUiBrowserState* m_state;
+    QButtonGroup* m_buttonGroup{nullptr};
+    QMap<NfViewMode, QToolButton*> m_buttons;
+};
 
 } // namespace NfDesktop
+
+#endif // NF_BROWSER_VIEWMODEBAR_H
