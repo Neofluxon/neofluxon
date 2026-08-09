@@ -23,15 +23,23 @@
 
 #include "NfTopBar.h"
 #include "NfBrowserViewModeBar.h"
+#include "NfContext.h"
+#include "NfUiShootsModeState.h"
+#include "NfUiFolderModeState.h"
+#include "NfUiLibraryModeState.h"
+#include "NfUiBrowserState.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
-NfTopBar::NfTopBar(QWidget *parent)
+NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
 	: NfStyledWidget(parent)
+        , m_context{ctx}
 {
 	setObjectName("NfTopBar");
         setFixedHeight(48);
@@ -49,11 +57,57 @@ NfTopBar::NfTopBar(QWidget *parent)
         topBarLayout->addStretch(1);
 
         // Browser view mode bar
-        auto bar = new NfBrowserViewModeBar(this);
-        topBarLayout->addWidget(bar, 0, Qt::AlignLeft);
-        bar->show();
-
+        m_browserViewModeBar = new NfBrowserViewModeBar(this);
+        topBarLayout->addWidget(m_browserViewModeBar, 0, Qt::AlignLeft);
         topBarLayout->addStretch(1);
+
+        QObject::connect(m_context->uiState,
+                         &NfUiState::modeChanged,
+                         this,
+                         &NfTopBar::onModeChanged);
+
+        onModeChanged(m_context->uiState->mode());
+}
+
+void NfTopBar::onModeChanged(NfUiMode mode)
+{
+        switch (mode) {
+        case NfUiMode::Shoots:
+                showShootsControls();
+                break;
+
+        case NfUiMode::Folders:
+                showFolderControls();
+                break;
+
+        case NfUiMode::Library:
+                showLibraryControls();
+                break;
+    }
+}
+
+void NfTopBar::showShootsControls()
+{
+        //auto state = m_context->uiState->shootsModeState()->browser();
+        //showBrowserViewModeBar(state);
+}
+
+void NfTopBar::showFolderControls()
+{
+        auto state = m_context->uiState->folderModeState()->browser();
+        showBrowserViewModeBar(state);
+}
+
+void NfTopBar::showLibraryControls()
+{
+        auto state = m_context->uiState->libraryModeState()->browser();
+        showBrowserViewModeBar(state);
+}
+
+void NfTopBar::showBrowserViewModeBar(NfUiBrowserState* state)
+{
+        m_browserViewModeBar->setState(state);
+        m_browserViewModeBar->show();
 }
 
 } // namespace NfDesktop

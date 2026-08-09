@@ -83,8 +83,8 @@ void NfBrowserViewModeBar::setupUi()
                         m_state->setViewMode(static_cast<ViewMode>(id));
         });
 
-        createModeButton(ViewMode::Grid, tr("Grid"));
-        createModeButton(ViewMode::Preview, tr("Preview"));
+        createModeButton(ViewMode::Grid, tr("Grid"), QIcon(":/icons/viewmode_grid.svg"));
+        createModeButton(ViewMode::Preview, tr("Preview"), QIcon(":/icons/viewmode_preview.svg"));
 
         for (auto* button : m_buttons)
         mainLayout->addWidget(button);

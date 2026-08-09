@@ -25,15 +25,37 @@
 #define NF_TOPBAR_H
 
 #include "NfStyledWidget.h"
+#include "NfUiState.h"
+
+namespace NfUi {
+class NfContext;
+class NfUiBrowserState;
+}
 
 namespace NfDesktop {
+
+class NfBrowserViewModeBar;
 
 class NfTopBar : public NfStyledWidget {
         Q_OBJECT
 
 public:
-        explicit NfTopBar(QWidget *parent = nullptr);
+        explicit NfTopBar(NfUi::NfContext* ctx, QWidget *parent = nullptr);
         virtual ~NfTopBar() = default;
+
+protected:
+        void showShootsControls();
+        void showFolderControls();
+        void showLibraryControls();
+
+protected slots:
+        void onModeChanged(NfUi::NfUiMode mode);
+
+private:
+        void showBrowserViewModeBar(NfUi::NfUiBrowserState* state);
+
+        NfUi::NfContext* m_context;
+        NfBrowserViewModeBar *m_browserViewModeBar{nullptr};
 };
 
 } // namespace NfDesktop
