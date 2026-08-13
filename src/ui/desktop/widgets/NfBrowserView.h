@@ -37,6 +37,7 @@ class QVBoxLayout;
 namespace NfDesktop {
 
 class NfBrowserModel;
+class NfBreadcrumbView;
 class NfThumbnailsView;
 class NfPhotoPreviewView;
 
@@ -62,9 +63,10 @@ protected:
 private:
         NfUi::NfUiBrowserState *m_state;
         NfBrowserModel* m_model;
-        QVBoxLayout* m_mainLayout;
-        NfThumbnailsView* m_thumbnailsView;
-        NfPhotoPreviewView* m_photoPreviewView;
+        QVBoxLayout* m_mainLayout{nullptr};
+        NfBreadcrumbView *m_breadcrumbBar{nullptr};
+        NfThumbnailsView* m_thumbnailsView{nullptr};
+        NfPhotoPreviewView* m_photoPreviewView{nullptr};
 };
 
 } // namespace NfDesktop

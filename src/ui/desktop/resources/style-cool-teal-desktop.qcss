@@ -38,7 +38,7 @@ QPushButton:pressed {
     border-right: 1px solid #323546;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-    margin-bottom: 4px;  
+    margin-bottom: 4px;
     padding: 2px;
     padding-left: 5px;
 }
@@ -211,5 +211,54 @@ NfDesktop--NfBrowserViewModeBar QToolButton:checked:hover {
 }
 
 NfDesktop--NfBrowserViewModeBar QToolButton:focus {
+    outline: none;
+}
+
+/* ================ NfBreadcrumbView ==================== */
+
+/* Container widget */
+NfDesktop--NfBreadcrumbView {
+    min-height: 36px;
+    max-height: 36px;
+    border-radius: 6px;
+    padding: 0px;
+}
+
+/* Individual breadcrumb items & navigation arrow buttons */
+NfDesktop--NfBreadcrumbView QToolButton {
+    background-color: transparent;
+    color: #94a3b8;
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 3px 8px;
+    margin: 0;
+}
+
+/* Hover state */
+NfDesktop--NfBreadcrumbView QToolButton:hover {
+    background-color: #1e293b;
+    color: #f8fafc;
+ }
+
+/* Pressed state */
+NfDesktop--NfBreadcrumbView QToolButton:pressed {
+    background-color: #0b0d12;
+    color: #38bdf8;
+}
+
+/* Active path item (Checked state) */
+NfDesktop--NfBreadcrumbView QToolButton:checked {
+    background-color: #1a2332;
+    color: #38bdf8;
+    font-weight: bold;
+}
+
+/* Disabled navigation arrows (when at start/end of model) */
+NfDesktop--NfBreadcrumbView QToolButton:disabled {
+    background-color: transparent;
+    color: #475569;
+}
+
+NfDesktop--NfBreadcrumbView QToolButton:focus {
     outline: none;
 }

@@ -22,6 +22,7 @@
  */
 
 #include "NfBreadcrumbView.h"
+#include "core/NfLogger.h"
 
 #include <QHBoxLayout>
 #include <QToolButton>
@@ -31,57 +32,22 @@
 namespace NfDesktop {
 
 NfBreadcrumbView::NfBreadcrumbView(QWidget* parent)
-    : QWidget(parent)
+        : QWidget(parent)
 {
+        setAttribute(Qt::WA_StyledBackground, true);
+
         auto* mainLayout = new QHBoxLayout(this);
         mainLayout->setContentsMargins(0, 0, 0, 0);
         mainLayout->setSpacing(2);
-
-        m_leftButton = new QToolButton(this);
-        m_leftButton->setArrowType(Qt::LeftArrow);
-        QObject::connect(m_leftButton, &QToolButton::clicked, this, [this]() {
-                if (!m_model || !m_currentIndex.isValid())
-                        return;
-
-                int currentRow = m_currentIndex.row();
-                if (currentRow > 0) {
-                        auto prevIndex = m_model->index(currentRow - 1,
-                                                        0,
-                                                        m_currentIndex.parent());
-                        setCurrentIndex(prevIndex);
-                        emit activated(prevIndex);
-                }
-                emit leftButtonClicked();
-        });
-
-        m_rightButton = new QToolButton(this);
-        m_rightButton->setArrowType(Qt::RightArrow);
-        QObject::connect(m_rightButton, &QToolButton::clicked, this, [this]() {
-                if (!m_model || !m_currentIndex.isValid())
-                        return;
-
-                int currentRow = m_currentIndex.row();
-                int totalRows = m_model->rowCount(m_currentIndex.parent());
-                if (currentRow < totalRows - 1) {
-                        auto nextIndex = m_model->index(currentRow + 1,
-                                                        0,
-                                                        m_currentIndex.parent());
-                        setCurrentIndex(nextIndex);
-                        emit activated(nextIndex);
-                }
-                emit rightButtonClicked();
-        });
 
         m_container = new QWidget(this);
         m_containerLayout = new QHBoxLayout(m_container);
         m_containerLayout->setContentsMargins(0, 0, 0, 0);
         m_containerLayout->setSpacing(2);
         m_containerLayout->setAlignment(Qt::AlignLeft);
-
-        mainLayout->addWidget(m_leftButton);
         mainLayout->addWidget(m_container, 1);
-        mainLayout->addWidget(m_rightButton);
 
+        rebuildLayout();
         updateArrowStates();
 }
 
@@ -166,7 +132,7 @@ void NfBreadcrumbView::clearLayout()
 
 void NfBreadcrumbView::updateArrowStates()
 {
-        if (!m_model || !m_currentIndex.isValid()) {
+        /*if (!m_model || !m_currentIndex.isValid()) {
                 m_leftButton->setEnabled(false);
                 m_rightButton->setEnabled(false);
                 return;
@@ -176,46 +142,48 @@ void NfBreadcrumbView::updateArrowStates()
         int totalRows = m_model->rowCount(m_currentIndex.parent());
 
         m_leftButton->setEnabled(currentRow > 0);
-        m_rightButton->setEnabled(currentRow < totalRows - 1);
+        m_rightButton->setEnabled(currentRow < totalRows - 1);*/
 }
 
 void NfBreadcrumbView::rebuildLayout()
 {
         clearLayout();
+        NF_LOG_DEBUG("called");
 
-        if (!m_model || !m_currentIndex.isValid())
-                return;
+        //if (!m_model || !m_currentIndex.isValid())
+        //        return;
 
         int activeRow = m_currentIndex.row();
         auto parentIdx = m_currentIndex.parent();
-        int totalRows = m_model->rowCount(parentIdx);
+        int totalRows = 5;//m_model->rowCount(parentIdx);
 
         // Left arrow button
         auto* leftButton = new QToolButton(m_container);
         leftButton->setArrowType(Qt::LeftArrow);
         leftButton->setEnabled(activeRow > 0);
-        QObect::connect(leftButton,
-                        &QToolButton::clicked,
-                        this,
-                        [this, activeRow, parentIdx]() {
-                                if (activeRow > 0) {
-                                        auto prevIndex = m_model->index(activeRow - 1, 0, parentIdx);
-                                        setCurrentIndex(prevIndex);
-                                        emit activated(prevIndex);
-                                }
-                                emit leftButtonClicked();
-                        });
+        /*QObject::connect(leftButton,
+                         &QToolButton::clicked,
+                         this,
+                         [this, activeRow, parentIdx]() {
+                                 if (activeRow > 0) {
+                                         auto prevIndex = m_model->index(activeRow - 1, 0, parentIdx);
+                                         setCurrentIndex(prevIndex);
+                                         emit activated(prevIndex);
+                                 }
+                                 emit leftButtonClicked();
+                                 });*/
         m_containerLayout->addWidget(leftButton);
 
         // Breadcrump items
         for (int r = 0; r < totalRows; ++r) {
-                        auto idx = m_model->index(r, 0, parentIdx);
+                /*auto idx = m_model->index(r, 0, parentIdx);
                         if (!idx.isValid())
-                                continue;
+                        continue;*/
 
                         auto* button = new QToolButton(m_container);
-                        const auto text = m_model->data(idx, m_displayRole).toString();
-                        const auto icon = m_model->data(idx, m_iconRole).value<QIcon>();
+                        const auto text = QStringLiteral("2005-%1").arg(r); //m_model->data(idx, m_displayRole).toString();
+                        NF_LOG_DEBUG("item: " << text.toStdString());
+                        const auto icon = QIcon();//m_model->data(idx, m_iconRole).value<QIcon>();
 
                         button->setText(text);
                         if (!icon.isNull()) {
@@ -228,10 +196,10 @@ void NfBreadcrumbView::rebuildLayout()
                                 button->setChecked(true);
                         }
 
-                        QObejct::connect(button, &QToolButton::clicked, this, [this, idx]() {
+                        /*QObject::connect(button, &QToolButton::clicked, this, [this, idx]() {
                                 setCurrentIndex(idx);
                                 emit activated(idx);
-                        });
+                                });*/
 
                         m_containerLayout->addWidget(button);
                 }
@@ -240,7 +208,7 @@ void NfBreadcrumbView::rebuildLayout()
         auto* rightButton = new QToolButton(m_container);
         rightButton->setArrowType(Qt::RightArrow);
         rightButton->setEnabled(activeRow < totalRows - 1);
-        QObject::connect(rightButton,
+        /*QObject::connect(rightButton,
                          &QToolButton::clicked,
                          this,
                          [this, activeRow, totalRows, parentIdx]() {
@@ -250,7 +218,7 @@ void NfBreadcrumbView::rebuildLayout()
                                          emit activated(nextIndex);
                                  }
                                  emit rightButtonClicked();
-                         });
+                                 });*/
         m_containerLayout->addWidget(rightButton);
 
         m_containerLayout->addStretch(1);

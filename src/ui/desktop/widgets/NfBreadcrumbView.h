@@ -32,6 +32,8 @@ class QHBoxLayout;
 class QToolButton;
 class QAbstractItemModel;
 
+namespace NfDesktop {
+
 class NfBreadcrumbView : public QWidget
 {
         Q_OBJECT

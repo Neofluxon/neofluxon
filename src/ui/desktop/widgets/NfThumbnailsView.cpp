@@ -39,10 +39,10 @@ NfThumbnailsView::NfThumbnailsView(QWidget* parent)
 {
         setObjectName("NfThumbnailsView");
 
-        connect(verticalScrollBar(),
-                &QScrollBar::valueChanged,
-                this,
-                &NfThumbnailsView::onScrollChanged);
+        QObject::connect(verticalScrollBar(),
+                         &QScrollBar::valueChanged,
+                         this,
+                         &NfThumbnailsView::onScrollChanged);
 
         setMouseTracking(true);
 
