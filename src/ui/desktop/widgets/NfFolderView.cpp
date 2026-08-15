@@ -48,6 +48,11 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
 
+        m_breadcrumbBar = new NfBreadcrumbView(m_state->browser(), this);
+        m_breadcrumbBar->setObjectName("BrowserBreadcrumb");
+        m_breadcrumbBar->setModel(m_model->breadcrump());
+        m_mainLayout->addWidget(m_breadcrumbBar);
+
         m_browserView = new NfBrowserView(m_state->browser(),
                                           m_model->browser(),
                                           this);

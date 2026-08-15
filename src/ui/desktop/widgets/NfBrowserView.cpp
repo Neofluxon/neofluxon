@@ -46,10 +46,6 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
 
-        m_breadcrumbBar = new NfBreadcrumbView(this);
-        m_breadcrumbBar->setObjectName("BrowserBreadcrumb");
-        m_mainLayout->addWidget(m_breadcrumbBar);
-
         m_thumbnailsView = new NfThumbnailsView(this);
         m_thumbnailsView->setModel(m_model);
         m_mainLayout->addWidget(m_thumbnailsView);

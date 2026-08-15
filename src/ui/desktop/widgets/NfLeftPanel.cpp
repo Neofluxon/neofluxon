@@ -39,7 +39,7 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-        NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
+NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
         , m_pathBrowser{new NfPathBrowser(this)}
