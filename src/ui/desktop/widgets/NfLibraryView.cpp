@@ -27,6 +27,7 @@
 #include "NfLibraryModel.h"
 #include "NfBrowserModel.h"
 #include "NfBrowserView.h"
+//#include "NfBreadcrumbView.h"
 #include "core/library/NfLibraryQuery.h"
 #include "core/NfPhotoSource.h"
 
@@ -50,6 +51,11 @@ NfLibraryView::NfLibraryView(NfLibraryContext ctx,
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
+
+        //      auto breadcrumbBar = new NfBreadcrumbView(m_state->browser(), this);
+        //breadcrumbBar->setObjectName("BrowserBreadcrumb");
+        //breadcrumbBar->setModel(m_model->breadcrump());
+        //m_mainLayout->addWidget(breadcrumbBar);
 
         m_browserView = new NfBrowserView(m_state->browser(), m_model->browser(), this);
         QObject::connect(m_state,

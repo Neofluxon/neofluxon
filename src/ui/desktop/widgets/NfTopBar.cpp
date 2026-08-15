@@ -57,9 +57,9 @@ NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
         topBarLayout->addStretch(1);
 
         // Browser view mode bar
-        m_browserViewModeBar = new NfBrowserViewModeBar(this);
-        topBarLayout->addWidget(m_browserViewModeBar, 0, Qt::AlignLeft);
-        topBarLayout->addStretch(1);
+        //m_browserViewModeBar = new NfBrowserViewModeBar(this);
+        //topBarLayout->addWidget(m_browserViewModeBar, 0, Qt::AlignLeft);
+        //topBarLayout->addStretch(1);
 
         QObject::connect(m_context->uiState,
                          &NfUiState::modeChanged,
@@ -106,8 +106,8 @@ void NfTopBar::showLibraryControls()
 
 void NfTopBar::showBrowserViewModeBar(NfUiBrowserState* state)
 {
-        m_browserViewModeBar->setState(state);
-        m_browserViewModeBar->show();
+        //m_browserViewModeBar->setState(state);
+        //m_browserViewModeBar->show();
 }
 
 } // namespace NfDesktop

@@ -24,7 +24,6 @@
 #include "NfBrowserView.h"
 #include "NfUiBrowserState.h"
 #include "NfBrowserModel.h"
-#include "NfBreadcrumbView.h"
 #include "NfThumbnailsView.h"
 #include "NfPhotoPreviewView.h"
 

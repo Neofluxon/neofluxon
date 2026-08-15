@@ -85,9 +85,14 @@ void NfBrowserViewModeBar::setupUi()
 
         createModeButton(ViewMode::Grid, tr("Grid"), QIcon(":/icons/viewmode_grid.svg"));
         createModeButton(ViewMode::Preview, tr("Preview"), QIcon(":/icons/viewmode_preview.svg"));
+        int x = static_cast<int>(ViewMode::Preview);
+        createModeButton(static_cast<ViewMode>(++x), tr("|"));
+        createModeButton(static_cast<ViewMode>(++x), tr("Sort by"));
+        createModeButton(static_cast<ViewMode>(++x), tr("Filter"));
+
 
         for (auto* button : m_buttons)
-        mainLayout->addWidget(button);
+                mainLayout->addWidget(button);
 }
 
 void NfBrowserViewModeBar::createModeButton(ViewMode mode,

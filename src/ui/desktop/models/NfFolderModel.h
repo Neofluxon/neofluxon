@@ -37,6 +37,7 @@ class NfBrowserModel;
 namespace NfDesktop {
 
 class NfBrowserModel;
+class NfBreadcrumpModel;
 
 class NfFolderModel : public QObject
 {
@@ -51,6 +52,7 @@ public:
  private:
         NfUi::NfFolderContext m_context;
         NfBrowserModel *m_browserModel;
+        NfBreadcrumpModel *m_breadcrumModel;
 };
 
 } // namespace NfDesktop

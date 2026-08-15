@@ -174,10 +174,10 @@ QCheckBox {
 
 /* Outer bar container */
 NfDesktop--NfBrowserViewModeBar {
-    background-color: #121824;
-    border: 1px solid #232d3f;
+/*    background-color: #121824;
+    border: 1px solid #232d3f;*/
     border-radius: 6px;
-    padding: 1px;
+    padding: 2px;
 }
 
 /* Base button style */
@@ -186,7 +186,7 @@ NfDesktop--NfBrowserViewModeBar QToolButton {
     color: #94a3b8;
     border: 1px solid transparent; /* Reserve 1px border space to prevent layout jump */
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 14px;
     padding: 0px 12px;
     margin: 0;
     height: 100%;

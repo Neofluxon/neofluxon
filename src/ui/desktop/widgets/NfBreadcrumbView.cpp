@@ -29,6 +29,8 @@
 #include <QLabel>
 #include <QAbstractItemModel>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
 NfBreadcrumbView::NfBreadcrumbView(QWidget* parent)

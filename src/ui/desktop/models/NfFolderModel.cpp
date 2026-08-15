@@ -35,6 +35,7 @@ NfFolderModel::NfFolderModel(NfFolderContext ctx, QObject *parent)
         : QObject(parent)
         , m_context{std::move(ctx)}
         , m_browserModel{new NfBrowserModel(m_context.prent(), this)}
+          //        , m_breadcrumModel{new NfBreadcrumpModel(this)}
 {
 }
 
