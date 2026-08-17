@@ -262,3 +262,34 @@ NfDesktop--NfBreadcrumbView QToolButton:disabled {
 NfDesktop--NfBreadcrumbView QToolButton:focus {
     outline: none;
 }
+
+/* Container resets */
+NfDesktop--NfBrowserSortBar,
+NfDesktop--NfBrowserFilterBar {
+    background: transparent;
+    border: none;
+}
+
+/* Flat interactive QToolButtons */
+NfDesktop--NfBrowserSortBar QToolButton,
+NfDesktop--NfBrowserFilterBar QToolButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #a0a5b5;
+    padding: 2px 6px;
+}
+
+NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserSortBar QToolButton:hover,
+NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserSortBar QToolButton:pressed,
+NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:pressed {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.10);
+    border-radius: 4px;
+}
