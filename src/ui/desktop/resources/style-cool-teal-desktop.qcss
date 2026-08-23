@@ -14,6 +14,17 @@ QPushButton:pressed {
     color: #0b0d12;
 }
 
+QTreeView::item:selected,
+QListView::item:selected {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
+}
+
+QTreeView::item:hover,
+QListView::item:hover {
+    background-color: #242632;
+}
+
 #container {
     border-radius: 8px;
 }
@@ -293,3 +304,52 @@ NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:pressed {
     background-color: rgba(255, 255, 255, 0.10);
     border-radius: 4px;
 }
+
+/* ================ NfDesktop::NfThumbnailsView ==================== */
+
+NfDesktop--NfThumbnailsView {
+    background-color: #20222e; /* Base viewport */
+    border: none;
+    outline: none;
+    padding: 8px;
+
+    /* Palette roles consumed by NfThumbnailDelegate */
+    qproperty-palette: palette(
+        base #1e1f28,             /* Image placeholder box */
+        button #242632,           /* Normal card background */
+        midlight #2a2c3a,         /* Hover card background */
+        highlight #1a2332,        /* Selected card background */
+        dark #323546,             /* Normal border color */
+        link #38bdf8,             /* Hover border color */
+        window-text #aeb5c0,      /* Default footer text color */
+        highlighted-text #ffffff  /* Selected footer text color */
+    );
+}
+
+/* Base Thumbnail Card */
+NfDesktop--NfThumbnailsView::item {
+    background-color: #242632;
+    color: #aeb5c0;
+    padding: 8px;
+    margin: 4px;
+}
+
+NfDesktop--NfThumbnailsView::item:hover {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
+}
+
+NfDesktop--NfThumbnailsView::item:selected {
+    background-color: #1a2332;
+    color: #ffffff;
+}
+
+NfDesktop--NfThumbnailsView::item:selected:hover {
+    background-color: #222d3f;
+}
+
+NfDesktop--NfThumbnailsView::item:selected:!active {
+    background-color: #282a36;
+    color: #94a3b8;
+}
+

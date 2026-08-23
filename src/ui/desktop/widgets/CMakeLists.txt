@@ -1,5 +1,6 @@
 set(WIDGETS_HEADERS
     NfStyledWidget.h
+    NfThumbnailDelegate.h
     NfThumbnailsView.h
     NfCentralWidget.h
     NfLeftPanel.h
@@ -26,6 +27,7 @@ set(WIDGETS_HEADERS
 
 set(WIDGETS_SOURCES
     NfStyledWidget.cpp
+    NfThumbnailDelegate.cpp
     NfThumbnailsView.cpp
     NfCentralWidget.cpp
     NfLeftPanel.cpp
