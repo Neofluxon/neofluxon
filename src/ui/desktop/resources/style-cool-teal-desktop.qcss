@@ -308,22 +308,10 @@ NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:pressed {
 /* ================ NfDesktop::NfThumbnailsView ==================== */
 
 NfDesktop--NfThumbnailsView {
-    background-color: #20222e; /* Base viewport */
+    background-color: #20222e;
     border: none;
     outline: none;
     padding: 8px;
-
-    /* Palette roles consumed by NfThumbnailDelegate */
-    qproperty-palette: palette(
-        base #1e1f28,             /* Image placeholder box */
-        button #242632,           /* Normal card background */
-        midlight #2a2c3a,         /* Hover card background */
-        highlight #1a2332,        /* Selected card background */
-        dark #323546,             /* Normal border color */
-        link #38bdf8,             /* Hover border color */
-        window-text #aeb5c0,      /* Default footer text color */
-        highlighted-text #ffffff  /* Selected footer text color */
-    );
 }
 
 /* Base Thumbnail Card */
@@ -332,24 +320,46 @@ NfDesktop--NfThumbnailsView::item {
     color: #aeb5c0;
     padding: 8px;
     margin: 4px;
+    border-radius: 4px;
+    /* Subtle 1px light top/left highlight + dark bottom/right shadow */
+    border-top: 1px solid #2e303f;
+    border-left: 1px solid #2e303f;
+    border-right: 2px solid #181922;
+    border-bottom: 2px solid #181922;
 }
 
 NfDesktop--NfThumbnailsView::item:hover {
     background-color: #2a2c3a;
     color: #e6eaf2;
+    border-top: 1px solid #35384a;
+    border-left: 1px solid #35384a;
+    border-right: 2px solid #13141c;
+    border-bottom: 2px solid #13141c;
 }
 
 NfDesktop--NfThumbnailsView::item:selected {
     background-color: #1a2332;
     color: #ffffff;
+    border-top: 1px solid #253247;
+    border-left: 1px solid #253247;
+    border-right: 2px solid #0f1520;
+    border-bottom: 2px solid #0f1520;
 }
 
 NfDesktop--NfThumbnailsView::item:selected:hover {
     background-color: #222d3f;
+    border-top: 1px solid #2e3d56;
+    border-left: 1px solid #2e3d56;
+    border-right: 2px solid #141b27;
+    border-bottom: 2px solid #141b27;
 }
 
 NfDesktop--NfThumbnailsView::item:selected:!active {
     background-color: #282a36;
     color: #94a3b8;
+    border-top: 1px solid #323544;
+    border-left: 1px solid #323544;
+    border-right: 2px solid #181921;
+    border-bottom: 2px solid #181921;
 }
 

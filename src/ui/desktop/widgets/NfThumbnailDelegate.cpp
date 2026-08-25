@@ -25,6 +25,7 @@
 
 #include <QPainter>
 #include <QPainterPath>
+#include <QApplication>
 
 namespace NfDesktop {
 
@@ -49,81 +50,55 @@ void NfThumbnailDelegate::paint(QPainter* painter,
                                 const QStyleOptionViewItem& option,
                                 const QModelIndex& index) const
 {
-        painter->save();
-        painter->setRenderHint(QPainter::Antialiasing);
-        painter->setRenderHint(QPainter::SmoothPixmapTransform);
+    // 1. Initialize option structure with item state (hover, selection, focus)
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
 
-        // Card boundary with margin relative to grid slot
-        auto cardRect = option.rect.adjusted(3, 3, -3, -3);
+    // 2. Prevent QStyle from drawing default icon/text (we will draw custom pixmap)
+    opt.features &= ~QStyleOptionViewItem::HasDecoration;
+    opt.features &= ~QStyleOptionViewItem::HasDisplay;
 
-        bool isSelected = option.state & QStyle::State_Selected;
-        bool isHovered  = option.state & QStyle::State_MouseOver;
+    // 3. Let QSS paint the item container (background-color, border, radius, margins)
+    QStyle* style = opt.widget ? opt.widget->style() : QApplication::style();
+    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
 
-        // --- 1. Fetch Dynamic Palette Colors from QSS / QStyle ---
-        auto group = (option.state & QStyle::State_Active)
-                ? QPalette::Normal
-                : QPalette::Inactive;
+    // 4. Calculate bounding area inside the QSS-styled item
+    painter->save();
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setRenderHint(QPainter::SmoothPixmapTransform);
 
-        // Fill background using QSS Selection / AlternateBase / Button color roles
-        QColor bgColor;
-        if (isSelected) {
-                bgColor = option.palette.color(group, QPalette::Highlight);
-        } else if (isHovered) {
-                bgColor = option.palette.color(group, QPalette::Midlight);
-        } else {
-                bgColor = option.palette.color(group, QPalette::Button);
-        }
+    int footerHeight = 30;
+    QRect cardRect = opt.rect; // Driven by QSS padding/margin
+    QRect imgBoundingBox(cardRect.left() + 6,
+                         cardRect.top() + 6,
+                         cardRect.width() - 12,
+                         cardRect.height() - footerHeight - 8);
 
-        // Pen color driven by Highlighting/Link or WindowText roles
-        QColor borderColor = isSelected ? option.palette.color(group, QPalette::Highlight)
-                : isHovered  ? option.palette.color(group, QPalette::Link)
-                : option.palette.color(group, QPalette::Dark);
+    auto pixmap = index.data(Qt::DecorationRole).value<QPixmap>();
 
-        // --- 2. Draw Card Container ---
-        QPainterPath cardPath;
-        cardPath.addRoundedRect(cardRect, 6, 6);
-        painter->fillPath(cardPath, bgColor);
+    if (!pixmap.isNull()) {
+        auto scaledSize = pixmap.size().scaled(imgBoundingBox.size(), Qt::KeepAspectRatio);
 
-        QPen borderPen(borderColor, isSelected ? 2 : 1);
-        painter->setPen(borderPen);
-        painter->drawPath(cardPath);
+        QRect imgRect(
+            imgBoundingBox.left() + (imgBoundingBox.width() - scaledSize.width()) / 2,
+            imgBoundingBox.top() + (imgBoundingBox.height() - scaledSize.height()) / 2,
+            scaledSize.width(),
+            scaledSize.height());
 
-        // --- 3. Image Area Setup ---
-        int footerHeight = 30;
-        QRect imgBoundingBox(cardRect.left() + 6,
-                             cardRect.top() + 6,
-                             cardRect.width() - 12,
-                             cardRect.height() - footerHeight - 8);
+        QPainterPath imgClipPath;
+        imgClipPath.addRoundedRect(imgRect, 4, 4);
+        
+        painter->setClipPath(imgClipPath);
+        painter->drawPixmap(imgRect, pixmap);
+    } else {
+        // Draw placeholder background
+        auto group = (opt.state & QStyle::State_Active) ? QPalette::Normal : QPalette::Inactive;
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(opt.palette.color(group, QPalette::Base));
+        painter->drawRoundedRect(imgBoundingBox, 4, 4);
+    }
 
-        auto pixmap = index.data(Qt::DecorationRole).value<QPixmap>();
-
-        if (!pixmap.isNull()) {
-                // Fit aspect ratio inside the bounding box
-                auto scaledSize = pixmap.size().scaled(imgBoundingBox.size(),
-                                                       Qt::KeepAspectRatio);
-
-                // Center pixmap inside the image box
-                QRect imgRect(
-                              imgBoundingBox.left() + (imgBoundingBox.width() - scaledSize.width()) / 2,
-                              imgBoundingBox.top() + (imgBoundingBox.height() - scaledSize.height()) / 2,
-                              scaledSize.width(),
-                              scaledSize.height());
-
-                // Clip image corners slightly if it hits top corners
-                QPainterPath imgClipPath;
-                imgClipPath.addRoundedRect(imgRect, 4, 4);
-                painter->save();
-                painter->setClipPath(imgClipPath);
-                painter->drawPixmap(imgRect, pixmap);
-                painter->restore();
-        } else {
-                // Placeholder background drawn using the Base palette role from QSS
-                painter->setPen(Qt::NoPen);
-                painter->setBrush(option.palette.color(group, QPalette::Base));
-                painter->drawRoundedRect(imgBoundingBox, 4, 4);
-        }
-
-        painter->restore();
+    painter->restore();
 }
 
 } // namespace NfDesktop
