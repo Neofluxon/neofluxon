@@ -37,6 +37,7 @@
 #include <memory>
 #include <cstdint>
 #include <unordered_map>
+#include <mutex>
 
 namespace NfCore {
 
