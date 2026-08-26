@@ -35,7 +35,7 @@ namespace NfDesktop {
 NfThumbnailsView::NfThumbnailsView(QWidget* parent)
         : QListView(parent)
         , m_layoutMode{LayoutMode::GridView}
-        , m_thumbnailSize{180}
+        , m_thumbnailSize{180, 120}
 
 {
         setObjectName("NfThumbnailsView");
@@ -74,14 +74,14 @@ NfThumbnailsView::LayoutMode NfThumbnailsView::layoutMode() const
         return m_layoutMode;
 }
 
-void NfThumbnailsView::setThumbnailSize(int size)
+void NfThumbnailsView::setThumbnailSize(const QSize &thumSize)
 {
-        m_thumbnailSize = size;
-        setIconSize(QSize(m_thumbnailSize, m_thumbnailSize));
-        setGridSize(QSize(m_thumbnailSize + 5, m_thumbnailSize + 5));
+        m_thumbnailSize = thumSize;
+        setIconSize(m_thumbnailSize);
+        setGridSize(m_thumbnailSize);
 }
 
-int NfThumbnailsView::thumbnailSize() const
+const QSize& NfThumbnailsView::thumbnailSize() const
 {
         return m_thumbnailSize;
 }
@@ -89,23 +89,19 @@ int NfThumbnailsView::thumbnailSize() const
 void NfThumbnailsView::updateLayout()
 {
         setViewMode(QListView::IconMode);
-    setFlow(QListView::LeftToRight);
-    // Prevents items from re-arranging/resizing positions
-    setMovement(QListView::Static);
-    // Forces to strictly respect fixed item sizes
-    setUniformItemSizes(true);
+        setFlow(QListView::LeftToRight);
+        setMovement(QListView::Static);
+        setUniformItemSizes(true);
 
-    if (m_layoutMode == LayoutMode::GridView) {
-        setWrapping(true);
-        setResizeMode(QListView::Adjust);
-    } else {
-        setWrapping(false);
-        // Lock fixed size for horizontal filmstrip
-        setResizeMode(QListView::Fixed);
-    }
+        if (m_layoutMode == LayoutMode::GridView) {
+                setWrapping(true);
+                setResizeMode(QListView::Adjust);
+        } else {
+                setWrapping(false);
+                setResizeMode(QListView::Fixed);
+        }
 
-    // Re-apply grid size after layout mode changes
-    setThumbnailSize(m_thumbnailSize);
+        setThumbnailSize(m_thumbnailSize);
 }
 
 void NfThumbnailsView::resizeEvent(QResizeEvent* event)

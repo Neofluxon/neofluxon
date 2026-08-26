@@ -363,7 +363,7 @@ NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:pressed {
     border-radius: 4px;
 }
 
-/* ================ NfDesktop::NfThumbnailsView ==================== */
+/* ================ NfThumbnailsView ==================== */
 
 NfDesktop--NfThumbnailsView {
     background-color: #20222e;
@@ -372,14 +372,10 @@ NfDesktop--NfThumbnailsView {
     padding: 8px;
 }
 
-/* Base Thumbnail Card */
 NfDesktop--NfThumbnailsView::item {
     background-color: #242632;
     color: #aeb5c0;
-    padding: 8px;
-    margin: 4px;
-    border-radius: 4px;
-    /* Subtle 1px light top/left highlight + dark bottom/right shadow */
+    border-radius: 2px;
     border-top: 1px solid #2e303f;
     border-left: 1px solid #2e303f;
     border-right: 2px solid #181922;
@@ -387,7 +383,7 @@ NfDesktop--NfThumbnailsView::item {
 }
 
 NfDesktop--NfThumbnailsView::item:hover {
-    background-color: #2a2c3a;
+    background-color: #292b37;
     color: #e6eaf2;
     border-top: 1px solid #35384a;
     border-left: 1px solid #35384a;
@@ -396,28 +392,16 @@ NfDesktop--NfThumbnailsView::item:hover {
 }
 
 NfDesktop--NfThumbnailsView::item:selected {
-    background-color: #1a2332;
-    color: #ffffff;
-    border-top: 1px solid #253247;
-    border-left: 1px solid #253247;
-    border-right: 2px solid #0f1520;
-    border-bottom: 2px solid #0f1520;
+    background-color: #303440;
+    border: 1px solid #596273;
 }
 
 NfDesktop--NfThumbnailsView::item:selected:hover {
-    background-color: #222d3f;
-    border-top: 1px solid #2e3d56;
-    border-left: 1px solid #2e3d56;
-    border-right: 2px solid #141b27;
-    border-bottom: 2px solid #141b27;
+    background-color: #353947;
+    border: 1px solid #687284;
 }
 
 NfDesktop--NfThumbnailsView::item:selected:!active {
-    background-color: #282a36;
-    color: #94a3b8;
-    border-top: 1px solid #323544;
-    border-left: 1px solid #323544;
-    border-right: 2px solid #181921;
-    border-bottom: 2px solid #181921;
+    background-color: #2c2f3a;
+    border: 1px solid #484e5b;
 }
-

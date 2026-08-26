@@ -22,6 +22,7 @@
  */
 
 #include "NfThumbnailDelegate.h"
+#include "core/NfLogger.h"
 
 #include <QPainter>
 #include <QPainterPath>
@@ -35,70 +36,63 @@ enum CustomRoles {
 };
 
 NfThumbnailDelegate::NfThumbnailDelegate(QObject* parent)
-        : QStyledItemDelegate(parent) {}
+        : QStyledItemDelegate(parent)
+        , m_padding{4}
+{
+}
 
 QSize NfThumbnailDelegate::sizeHint(const QStyleOptionViewItem& option,
                                     [[maybe_unused]] const QModelIndex& index) const
 {
-        int w = option.decorationSize.width() + 16;
-        int h = option.decorationSize.height() + 40;
-
-        return QSize(w, h);
+        return option.decorationSize;
 }
 
 void NfThumbnailDelegate::paint(QPainter* painter,
                                 const QStyleOptionViewItem& option,
                                 const QModelIndex& index) const
 {
-    // 1. Initialize option structure with item state (hover, selection, focus)
-    QStyleOptionViewItem opt = option;
-    initStyleOption(&opt, index);
+        QStyleOptionViewItem opt = option;
+        initStyleOption(&opt, index);
 
-    // 2. Prevent QStyle from drawing default icon/text (we will draw custom pixmap)
-    opt.features &= ~QStyleOptionViewItem::HasDecoration;
-    opt.features &= ~QStyleOptionViewItem::HasDisplay;
+        // Prevent QStyle from drawing default icon/text
+        opt.features &= ~QStyleOptionViewItem::HasDecoration;
+        opt.features &= ~QStyleOptionViewItem::HasDisplay;
 
-    // 3. Let QSS paint the item container (background-color, border, radius, margins)
-    QStyle* style = opt.widget ? opt.widget->style() : QApplication::style();
-    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
+        // Let QSS paint the item container (background-color, border, radius, margins)
+        auto* style = opt.widget ? opt.widget->style() : QApplication::style();
+        style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
 
-    // 4. Calculate bounding area inside the QSS-styled item
-    painter->save();
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform);
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        painter->setRenderHint(QPainter::SmoothPixmapTransform);
 
-    int footerHeight = 30;
-    QRect cardRect = opt.rect; // Driven by QSS padding/margin
-    QRect imgBoundingBox(cardRect.left() + 6,
-                         cardRect.top() + 6,
-                         cardRect.width() - 12,
-                         cardRect.height() - footerHeight - 8);
+        auto thumbnailRect = QRect(opt.rect.left() + m_padding,
+                                   opt.rect.top() + m_padding,
+                                   opt.rect.width() - 2 * m_padding,
+                                   opt.rect.height() - 2 * m_padding);
 
-    auto pixmap = index.data(Qt::DecorationRole).value<QPixmap>();
+        auto pixmap = index.data(Qt::DecorationRole).value<QPixmap>();
+        if (!pixmap.isNull()) {
+                auto scaledSize = pixmap.size().scaled(thumbnailRect.size(), Qt::KeepAspectRatio);
+                QRect imgRect(thumbnailRect.left() + (thumbnailRect.width() - scaledSize.width()) / 2,
+                              thumbnailRect.top() + (thumbnailRect.height() - scaledSize.height()) / 2,
+                              scaledSize.width(),
+                              scaledSize.height());
 
-    if (!pixmap.isNull()) {
-        auto scaledSize = pixmap.size().scaled(imgBoundingBox.size(), Qt::KeepAspectRatio);
+                QPainterPath imgClipPath;
+                imgClipPath.addRoundedRect(imgRect, 2, 2);
+                painter->setClipPath(imgClipPath);
 
-        QRect imgRect(
-            imgBoundingBox.left() + (imgBoundingBox.width() - scaledSize.width()) / 2,
-            imgBoundingBox.top() + (imgBoundingBox.height() - scaledSize.height()) / 2,
-            scaledSize.width(),
-            scaledSize.height());
+                painter->drawPixmap(imgRect, pixmap);
+        } else {
+                // Draw placeholder background
+                auto group = (opt.state & QStyle::State_Active) ? QPalette::Normal : QPalette::Inactive;
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(opt.palette.color(group, QPalette::Base));
+                painter->drawRoundedRect(thumbnailRect, 4, 4);
+        }
 
-        QPainterPath imgClipPath;
-        imgClipPath.addRoundedRect(imgRect, 4, 4);
-        
-        painter->setClipPath(imgClipPath);
-        painter->drawPixmap(imgRect, pixmap);
-    } else {
-        // Draw placeholder background
-        auto group = (opt.state & QStyle::State_Active) ? QPalette::Normal : QPalette::Inactive;
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(opt.palette.color(group, QPalette::Base));
-        painter->drawRoundedRect(imgBoundingBox, 4, 4);
-    }
-
-    painter->restore();
+        painter->restore();
 }
 
 } // namespace NfDesktop
