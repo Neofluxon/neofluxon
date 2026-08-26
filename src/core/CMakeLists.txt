@@ -1,4 +1,4 @@
-find_package(OpenMP REQUIRED)
+#find_package(OpenMP REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
@@ -118,7 +118,7 @@ target_include_directories(NfCore PUBLIC
 
 target_link_libraries(NfCore PRIVATE
         raw
-        OpenMP::OpenMP_CXX
+#        OpenMP::OpenMP_CXX
         ${JPEG_TURBO_LIBRARIES}
         ${PNG_LIBRARIES}
         ${ZLIB_LIBRARIES}

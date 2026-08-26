@@ -24,7 +24,7 @@
 #include "NfRawImageDecoder.h"
 #include "NfLogger.h"
 
-#include <omp.h>
+//#include <omp.h>
 
 namespace NfCore {
 
@@ -147,7 +147,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
 {
-        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
+        //        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
 
         LibRaw rawProcessor;
 
