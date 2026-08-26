@@ -29,6 +29,64 @@ QListView::item:hover {
     border-radius: 8px;
 }
 
+QScrollBar:vertical {
+    background: transparent;
+
+    width: 10px;
+
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #404452;
+
+    min-height: 40px;
+
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #555b6e;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+
+    height: 10px;
+
+    margin: 2px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #404452;
+    min-width: 40px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #555b6e;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0;
+}
+
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+    background: transparent;
+}
+
 /* Top bar and panels */
 
 #NfTopBar, #NfPanel, #NfMainMenu {
