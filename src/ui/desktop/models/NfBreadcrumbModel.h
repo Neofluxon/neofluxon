@@ -1,5 +1,5 @@
 /**
- * File name: NfTopBar.h
+ * File name: NfBreadcrumbModel.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,43 +21,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_TOPBAR_H
-#define NF_TOPBAR_H
+#ifndef NF_BREADCRUMB_MODEL_H
+#define NF_BREADCRUMB_MODEL_H
 
-#include "NfStyledWidget.h"
-#include "NfUiState.h"
+#include "core/NfPhotoSource.h"
 
-namespace NfUi {
-class NfContext;
-class NfUiBrowserState;
-}
+#include <QAbstractListModel>
 
 namespace NfDesktop {
 
-class NfBrowserViewModeBar;
-
-class NfTopBar : public NfStyledWidget {
+class NfBreadcrumbModel : public QAbstractListModel {
         Q_OBJECT
 
 public:
-        explicit NfTopBar(NfUi::NfContext* ctx, QWidget *parent = nullptr);
-        virtual ~NfTopBar() = default;
+        enum Roles {
+                DisplayNameRole = Qt::DisplayRole,
+                PhotoSourceRole = Qt::UserRole + 1
+        };
+        Q_ENUM(Roles)
 
-protected:
-        void showShootsControls();
-        void showFolderControls();
-        void showLibraryControls();
-
-protected slots:
-        void onModeChanged(NfUi::NfUiMode mode);
+        explicit NfBreadcrumbModel(QObject* parent = nullptr);
+        ~NfBreadcrumbModel() = default;
+        void setSource(const NfPhotoSource& source);
+        [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        [[nodiscard]] QVariant data(const QModelIndex& index,
+                                    int role = Qt::DisplayRole) const override;
+        [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
 private:
-        void showBrowserViewModeBar(NfUi::NfUiBrowserState* state);
-
-        NfUi::NfContext* m_context;
-        NfBrowserViewModeBar *m_browserViewModeBar{nullptr};
+        NfPhotoSource m_source;
+        std::vector<NfPhotoSource> m_pathList;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_TOPBAR_H
+#endif // NF_BREADCRUMBMODEL_H

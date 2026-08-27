@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserModel.h
+ * File name: NfBrowserSortBar.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FOLDER_MODEL_H
-#define NF_FOLDER_MODEL_H
+#ifndef NF_BROWSER_SORTBAR_H
+#define NF_BROWSER_SORTBAR_H
 
-#include "NfFolderContext.h"
+#include "NfStyledWidget.h"
 
-#include <QObject>
-
-#include <filesystem>
-
-namespace NfUi {
-class NfBrowserModel;
-}
+#include <QToolButton>
 
 namespace NfDesktop {
 
-class NfBrowserModel;
-class NfBreadcrumpModel;
-
-class NfFolderModel : public QObject
+class NfBrowserSortBar : public NfStyledWidget
 {
         Q_OBJECT
 
 public:
-        explicit NfFolderModel(NfUi::NfFolderContext ctx, QObject *parent = nullptr);
-        ~NfFolderModel() = default;
-        void setPath(const std::filesystem::path& path);
-        NfBrowserModel* browser() const;
+        explicit NfBrowserSortBar(QWidget* parent = nullptr);
+        ~NfBrowserSortBar() override = default;
 
- private:
-        NfUi::NfFolderContext m_context;
-        NfBrowserModel *m_browserModel;
-        NfBreadcrumpModel *m_breadcrumModel;
+private:
+        void setupUi();
+
+        QToolButton* m_button{nullptr};
 };
 
 } // namespace NfDesktop
 
-#endif // NF_FOLDER_MODEL_H
+#endif // NF_BROWSER_SORTBAR_H
+

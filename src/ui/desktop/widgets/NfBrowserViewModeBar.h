@@ -1,5 +1,5 @@
 /**
- * File name: NfTopBar.h
+ * File name: NfBrowserViewModeBar.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,43 +21,48 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_TOPBAR_H
-#define NF_TOPBAR_H
+#ifndef NF_BROWSER_VIEWMODEBAR_H
+#define NF_BROWSER_VIEWMODEBAR_H
 
+#include "NfUiBrowserState.h"
 #include "NfStyledWidget.h"
-#include "NfUiState.h"
+
+#include <QMap>
+
+class QButtonGroup;
+class QToolButton;
 
 namespace NfUi {
-class NfContext;
 class NfUiBrowserState;
 }
 
 namespace NfDesktop {
 
-class NfBrowserViewModeBar;
-
-class NfTopBar : public NfStyledWidget {
-        Q_OBJECT
+class NfBrowserViewModeBar : public NfStyledWidget
+{
+    Q_OBJECT
 
 public:
-        explicit NfTopBar(NfUi::NfContext* ctx, QWidget *parent = nullptr);
-        virtual ~NfTopBar() = default;
+        using ViewMode = NfUi::NfUiBrowserState::ViewMode;
+        explicit NfBrowserViewModeBar(QWidget* parent = nullptr);
+        ~NfBrowserViewModeBar() override = default;
+        NfUi::NfUiBrowserState* getState() const;
 
-protected:
-        void showShootsControls();
-        void showFolderControls();
-        void showLibraryControls();
-
-protected slots:
-        void onModeChanged(NfUi::NfUiMode mode);
+public slots:
+        void setState(NfUi::NfUiBrowserState *state);
 
 private:
-        void showBrowserViewModeBar(NfUi::NfUiBrowserState* state);
+        void setupUi();
+        void setupStyle();
+        void createModeButton(ViewMode mode,
+                              const QString& text,
+                              const QIcon& icon = QIcon());
 
-        NfUi::NfContext* m_context;
-        NfBrowserViewModeBar *m_browserViewModeBar{nullptr};
+        NfUi::NfUiBrowserState* m_state{nullptr};
+        QButtonGroup* m_buttonGroup{nullptr};
+        QMap<ViewMode, QToolButton*> m_buttons;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_TOPBAR_H
+#endif // NF_BROWSER_VIEWMODEBAR_H

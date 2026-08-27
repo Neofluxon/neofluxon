@@ -34,15 +34,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-        NfBrowserView::NfBrowserView(NfUiBrowserState *state,
-                                     NfBrowserModel *model,
-                                     QWidget* parent)
+NfBrowserView::NfBrowserView(NfUiBrowserState *state,
+                             NfBrowserModel *model,
+                             QWidget* parent)
         : QWidget(parent)
         , m_state{state}
         , m_model{model}
-        , m_mainLayout{nullptr}
-        , m_thumbnailsView{nullptr}
-        , m_photoPreviewView{nullptr}
 {
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);

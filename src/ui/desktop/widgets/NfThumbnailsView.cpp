@@ -23,6 +23,7 @@
 
 #include "NfThumbnailsView.h"
 #include "NfBrowserModel.h"
+#include "NfThumbnailDelegate.h"
 
 #include <QWheelEvent>
 #include <QResizeEvent>
@@ -34,15 +35,18 @@ namespace NfDesktop {
 NfThumbnailsView::NfThumbnailsView(QWidget* parent)
         : QListView(parent)
         , m_layoutMode{LayoutMode::GridView}
-        , m_thumbnailSize{42}
+        , m_thumbnailSize{180, 120}
 
 {
         setObjectName("NfThumbnailsView");
+        setAttribute(Qt::WA_StyledBackground, true);
 
-        connect(verticalScrollBar(),
-                &QScrollBar::valueChanged,
-                this,
-                &NfThumbnailsView::onScrollChanged);
+        setItemDelegate(new NfThumbnailDelegate(this));
+
+        QObject::connect(verticalScrollBar(),
+                         &QScrollBar::valueChanged,
+                         this,
+                         &NfThumbnailsView::onScrollChanged);
 
         setMouseTracking(true);
 
@@ -70,13 +74,14 @@ NfThumbnailsView::LayoutMode NfThumbnailsView::layoutMode() const
         return m_layoutMode;
 }
 
-void NfThumbnailsView::setThumbnailSize(int size)
+void NfThumbnailsView::setThumbnailSize(const QSize &thumSize)
 {
-        m_thumbnailSize = size;
-        setIconSize(QSize(size, size));
+        m_thumbnailSize = thumSize;
+        setIconSize(m_thumbnailSize);
+        setGridSize(m_thumbnailSize);
 }
 
-int NfThumbnailsView::thumbnailSize() const
+const QSize& NfThumbnailsView::thumbnailSize() const
 {
         return m_thumbnailSize;
 }
@@ -85,12 +90,18 @@ void NfThumbnailsView::updateLayout()
 {
         setViewMode(QListView::IconMode);
         setFlow(QListView::LeftToRight);
+        setMovement(QListView::Static);
+        setUniformItemSizes(true);
+
         if (m_layoutMode == LayoutMode::GridView) {
                 setWrapping(true);
                 setResizeMode(QListView::Adjust);
         } else {
                 setWrapping(false);
+                setResizeMode(QListView::Fixed);
         }
+
+        setThumbnailSize(m_thumbnailSize);
 }
 
 void NfThumbnailsView::resizeEvent(QResizeEvent* event)

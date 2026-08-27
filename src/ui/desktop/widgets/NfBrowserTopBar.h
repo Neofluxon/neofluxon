@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserModel.h
+ * File name: NfBrowserTopBar.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FOLDER_MODEL_H
-#define NF_FOLDER_MODEL_H
+#ifndef NF_BROWSER_TOPBAR_H
+#define NF_BROWSER_TOPBAR_H
 
-#include "NfFolderContext.h"
-
-#include <QObject>
-
-#include <filesystem>
-
-namespace NfUi {
-class NfBrowserModel;
-}
+#include "NfStyledWidget.h"
 
 namespace NfDesktop {
 
-class NfBrowserModel;
-class NfBreadcrumpModel;
+        //class NfBrowserBreadcrumbBar;
+class NfBrowserViewModeBar;
+class NfBrowserSortBar;
+class NfBrowserFilterBar;
 
-class NfFolderModel : public QObject
+class NfBrowserTopBar : public NfStyledWidget
 {
         Q_OBJECT
 
 public:
-        explicit NfFolderModel(NfUi::NfFolderContext ctx, QObject *parent = nullptr);
-        ~NfFolderModel() = default;
-        void setPath(const std::filesystem::path& path);
-        NfBrowserModel* browser() const;
+        explicit NfBrowserTopBar(QWidget* parent = nullptr);
+        ~NfBrowserTopBar() override = default;
 
- private:
-        NfUi::NfFolderContext m_context;
-        NfBrowserModel *m_browserModel;
-        NfBreadcrumpModel *m_breadcrumModel;
+private:
+        void setupUi();
+
+        //        NfBrowserBreadcrumbBar* m_breadcrumbBar{nullptr};
+        NfBrowserViewModeBar* m_viewModeBar{nullptr};
+        NfBrowserSortBar* m_sortBar{nullptr};
+        NfBrowserFilterBar* m_filterBar{nullptr};
 };
 
 } // namespace NfDesktop
 
-#endif // NF_FOLDER_MODEL_H
+#endif // NF_BROWSER_TOPBAR_H

@@ -59,8 +59,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         vLayout->setContentsMargins(0,0,0,0);
         vLayout->setSpacing(0);
 
-        auto topBar = new NfTopBar();
-        topBar->setFixedHeight(48);
+        auto topBar = new NfTopBar(m_context);
         vLayout->addWidget(topBar);
 
         auto *hLayout = new QHBoxLayout;

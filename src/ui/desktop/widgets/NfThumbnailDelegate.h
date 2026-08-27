@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserModel.h
+ * File name: NfThumbnailDelegate.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_FOLDER_MODEL_H
-#define NF_FOLDER_MODEL_H
+#ifndef NF_THUMBNAIL_DELEGATE_H
+#define NF_THUMBNAIL_DELEGATE_H
 
-#include "NfFolderContext.h"
-
-#include <QObject>
-
-#include <filesystem>
-
-namespace NfUi {
-class NfBrowserModel;
-}
+#include <QStyledItemDelegate>
 
 namespace NfDesktop {
 
-class NfBrowserModel;
-class NfBreadcrumpModel;
-
-class NfFolderModel : public QObject
-{
+class NfThumbnailDelegate : public QStyledItemDelegate {
         Q_OBJECT
-
 public:
-        explicit NfFolderModel(NfUi::NfFolderContext ctx, QObject *parent = nullptr);
-        ~NfFolderModel() = default;
-        void setPath(const std::filesystem::path& path);
-        NfBrowserModel* browser() const;
+        explicit NfThumbnailDelegate(QObject* parent = nullptr);
+        void paint(QPainter* painter,
+                   const QStyleOptionViewItem& option,
+                   const QModelIndex& index) const override;
+        QSize sizeHint(const QStyleOptionViewItem& option,
+                       const QModelIndex& index) const override;
 
- private:
-        NfUi::NfFolderContext m_context;
-        NfBrowserModel *m_browserModel;
-        NfBreadcrumpModel *m_breadcrumModel;
+private:
+        int m_padding;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_FOLDER_MODEL_H
+#endif // NF_THUMBNAIL_DELEGATE_H

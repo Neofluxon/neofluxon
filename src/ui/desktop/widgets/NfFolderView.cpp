@@ -26,6 +26,8 @@
 #include "NfUiFolderModeState.h"
 #include "NfFolderModel.h"
 #include "NfBrowserModel.h"
+#include "NfBrowserTopBar.h"
+//#include "NfBreadcrumbView.h"
 #include "NfBrowserView.h"
 #include "core/NfPhotoSource.h"
 
@@ -46,7 +48,12 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
 {
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
-        m_mainLayout->setSpacing(0);
+        m_mainLayout->setSpacing(5);
+
+        auto browserTopBar = new NfBrowserTopBar(this);
+        //browserTopBar->setState(m_state->browser());
+        browserTopBar->setFixedSize(450, 32);
+        m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(),
                                           m_model->browser(),

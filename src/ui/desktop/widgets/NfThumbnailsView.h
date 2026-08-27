@@ -47,8 +47,8 @@ public:
         void setLayoutMode(LayoutMode mode);
         LayoutMode layoutMode() const;
 
-        void setThumbnailSize(int size);
-        int thumbnailSize() const;
+        void setThumbnailSize(const QSize &thumSize);
+        const QSize& thumbnailSize() const;
 
 signals:
         void photoActivated(const QModelIndex& index);
@@ -67,7 +67,7 @@ private:
 
 private:
         LayoutMode m_layoutMode;
-        int m_thumbnailSize;
+        QSize m_thumbnailSize;
 };
 
 } // namespace NfDesktop

@@ -1,5 +1,6 @@
 set(WIDGETS_HEADERS
     NfStyledWidget.h
+    NfThumbnailDelegate.h
     NfThumbnailsView.h
     NfCentralWidget.h
     NfLeftPanel.h
@@ -17,10 +18,16 @@ set(WIDGETS_HEADERS
     NfLibraryView.h
     NfPhotoPreviewView.h
     NfTopBar.h
+    NfBrowserTopBar.h
+    NfBrowserSortBar.h
+    NfBrowserFilterBar.h
+    NfBrowserViewModeBar.h
+#    NfBreadcrumbView.h
 )
 
 set(WIDGETS_SOURCES
     NfStyledWidget.cpp
+    NfThumbnailDelegate.cpp
     NfThumbnailsView.cpp
     NfCentralWidget.cpp
     NfLeftPanel.cpp
@@ -38,6 +45,11 @@ set(WIDGETS_SOURCES
     NfLibraryView.cpp
     NfPhotoPreviewView.cpp
     NfTopBar.cpp
+    NfBrowserTopBar.cpp
+    NfBrowserSortBar.cpp
+    NfBrowserFilterBar.cpp
+    NfBrowserViewModeBar.cpp
+ #   NfBreadcrumbView.cpp
 )
 
 add_library(NfDesktopWidgets STATIC

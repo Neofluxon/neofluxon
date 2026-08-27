@@ -29,13 +29,17 @@
 namespace NfUi {
 
 struct NfContext;
-class NfUiState;
+class NfUiFolderModeState;
 
 class NfFolderContext {
  public:
         explicit NfFolderContext(NfContext* ctx)
                 : m_context{ctx} {}
         NfUiState* uiState() const { return m_context->uiState; }
+        //        NfUiFolderModeState*  folderModeState() const
+        //        {
+        //                return m_context->uiState->folderModeState();
+        //        }
         NfContext* prent() const { return m_context; }
 
  private:
