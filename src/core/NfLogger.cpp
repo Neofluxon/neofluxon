@@ -90,7 +90,11 @@ void NfLogger::process(std::stop_token stoken)
                         default: break;
                         }
 
-                        std::println(stderr, "[{}] {}", dbLabel, message);
+                         std::fprintf(stderr, "[%.*s] %.*s\n",
+                                      static_cast<int>(dbLabel.size()),
+                                      dbLabel.data(),
+                                      static_cast<int>(message.size()),
+                                      message.data());
                 }
         }
 
