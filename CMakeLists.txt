@@ -12,8 +12,6 @@ if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
 
     add_compile_options(
         -O3                  # Maximum optimization
-        -march=native        # Vectorize for your specific 16-thread CPU
-        -flto                # Link-time optimization
         -ffast-math          # Faster (but less strict) floating point math
         -fno-plt             # Minor speedup for shared library calls
     )
