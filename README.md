@@ -38,11 +38,6 @@ The main planned features include:
 - Batch operations for managing multiple photos
   (metadata, ratings, keywords, organization, etc.).
 
-The screenshot below shows the current state of the application.
-Work in progress.
-
-![Current Neofluxon view](packaging/screenshot.png)
-
 ### Current Development Status
 
 The project is currently under early development, and no official release is available yet.
@@ -65,6 +60,11 @@ The following features have been partially implemented and are currently availab
 - Some library features:
   - Adding folders to the library.
   - Navigating the library.
+
+The screenshot below shows the current state of the application.
+Work in progress.
+
+![Current Neofluxon view](packaging/screenshot.png)
 
 ### Technical Overview
 
