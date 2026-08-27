@@ -41,7 +41,7 @@ The main planned features include:
 The screenshot below shows the current state of the application.
 Work in progress.
 
-![Current Neofluxon view](packages/screenshot.png)
+![Current Neofluxon view](packaging/screenshot.png)
 
 ### Current Development Status
 
