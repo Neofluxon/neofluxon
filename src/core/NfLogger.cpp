@@ -23,7 +23,7 @@
 
 #include "NfLogger.h"
 
-#include <print>
+#include <cstdio>
 
 namespace NfCore {
 
@@ -94,7 +94,7 @@ void NfLogger::process(std::stop_token stoken)
                 }
         }
 
-        std::println("Nefluxon: Logger Exit");
+        std::fprintf(stderr, "Neofluxon: Logger Exit\n");
 }
 
 } // namespace NfCore
