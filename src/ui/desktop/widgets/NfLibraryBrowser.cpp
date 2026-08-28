@@ -23,6 +23,7 @@
 
 #include "NfLibraryBrowser.h"
 #include "NfLibraryTreeModel.h"
+#include "NfLibraryListHeader.h"
 #include "NfLibraryListView.h"
 #include "NfRepresentationListView.h"
 #include "NfLibraryTreeView.h"
@@ -51,6 +52,7 @@ void NfLibraryBrowser::setupUi()
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(6);
 
+        auto libraryListHeader = new NfLibraryListHeader(this);
         m_libraryListView = new NfLibraryListView(m_context, m_model, this);
         m_representationListView = new NfRepresentationListView(m_context, m_model, this);
         m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
@@ -79,6 +81,7 @@ void NfLibraryBrowser::setupUi()
         if (firstLibrary.isValid())
                 m_libraryListView->setCurrentIndex(firstLibrary);
 
+        m_mainLayout->addWidget(libraryListHeader);
         m_mainLayout->addWidget(m_libraryListView);
         m_mainLayout->addWidget(m_representationListView);
         m_mainLayout->addWidget(m_libraryTreeView, 1);

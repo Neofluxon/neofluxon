@@ -8,6 +8,7 @@ set(WIDGETS_HEADERS
     NfPanel.h
     NfFolderActionDelegate.h
     NfPathBrowser.h
+    NfLibraryListHeader.h
     NfLibraryListView.h
     NfRepresentationListView.h
     NfLibraryTreeView.h
@@ -35,6 +36,7 @@ set(WIDGETS_SOURCES
     NfPanel.cpp
     NfFolderActionDelegate.cpp
     NfPathBrowser.cpp
+    NfLibraryListHeader.cpp
     NfLibraryListView.cpp
     NfRepresentationListView.cpp
     NfLibraryTreeView.cpp

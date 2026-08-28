@@ -405,3 +405,52 @@ NfDesktop--NfThumbnailsView::item:selected:!active {
     background-color: #2c2f3a;
     border: 1px solid #484e5b;
 }
+
+/* ================ NfLibraryListHeader ================= */
+
+NfDesktop--NfLibraryListHeader {
+    min-height: 32px;
+    max-height: 32px;
+    background-color: #292b38;
+    border-bottom: 1px solid #323546;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 0px;
+}
+
+NfDesktop--NfLibraryListHeader QLabel {
+    background: transparent;
+    color: #c5cad4;
+    font-size: 11px;
+    font-weight: 600;
+
+    padding: 0px;
+}
+
+NfDesktop--NfLibraryListHeader QPushButton {
+    min-width: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    max-height: 20px;
+    background-color: transparent;
+    color: #7f8798;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0px;
+}
+
+NfDesktop--NfLibraryListHeader QPushButton:hover {
+    background-color: #2e3140;
+    color: #e6eaf2;
+    border: 1px solid #3a3e50;
+}
+
+NfDesktop--NfLibraryListHeader QPushButton:pressed {
+    background-color: #1a2332;
+    color: #3ddcff;
+    border: 1px solid #3ddcff;
+}
+
+NfDesktop--NfLibraryListHeader QPushButton:focus {
+    outline: none;
+}

@@ -1,5 +1,5 @@
 /**
- * File name: NfBrowserTopBar.cpp
+ * File name: NfLibraryListHeader.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,37 +21,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfBrowserTopBar.h"
-//#include "NfBrowserBreadcrumbBar.h"
-#include "NfBrowserViewModeBar.h"
-#include "NfBrowserSortBar.h"
-#include "NfBrowserFilterBar.h"
+#ifndef NF_LIBRARY_HEADER_H
+#define NF_LIBRARY_HEADER_H
 
-#include <QHBoxLayout>
+#include <QWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QEnterEvent>
 
 namespace NfDesktop {
 
-NfBrowserTopBar::NfBrowserTopBar(QWidget* parent)
-        : NfStyledWidget(parent)
-{
-        setupUi();
-}
+class NfLibraryListHeader : public QWidget {
+        Q_OBJECT
+public:
+        explicit NfLibraryListHeader(QWidget* parent = nullptr);
 
-void NfBrowserTopBar::setupUi()
-{
-        auto* layout = new QHBoxLayout(this);
-        layout->setContentsMargins(0, 0, 0, 0);
-        layout->setSpacing(4);
+signals:
+        void addLibrary();
 
-        //        m_breadcrumbBar = new NfBrowserBreadcrumbBar(this);
-        m_viewModeBar = new NfBrowserViewModeBar(this);
-        m_sortBar = new NfBrowserSortBar(this);
-        m_filterBar = new NfBrowserFilterBar(this);
+protected:
+        void enterEvent(QEnterEvent* event) override;
+        void leaveEvent(QEvent* event) override;
 
-        //        layout->addWidget(m_breadcrumbBar,1);
-        layout->addWidget(m_viewModeBar);
-        layout->addWidget(m_sortBar);
-        layout->addWidget(m_filterBar);
-}
+private:
+        QPushButton* m_addButton;
+};
 
 } // namespace NfDesktop
+
+#endif // NF_LIBRARY_HEADER_H
