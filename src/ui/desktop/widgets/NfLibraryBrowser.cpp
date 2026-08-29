@@ -24,11 +24,14 @@
 #include "NfLibraryBrowser.h"
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryListHeader.h"
+#include "NfNewLibraryDialog.h"
 #include "NfLibraryListView.h"
 #include "NfRepresentationListView.h"
 #include "NfLibraryTreeView.h"
 #include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
+#include "NfLibraryAdapter.h"
+#include "core/NfLogger.h"
 
 #include <QVBoxLayout>
 
@@ -53,6 +56,11 @@ void NfLibraryBrowser::setupUi()
         m_mainLayout->setSpacing(6);
 
         auto libraryListHeader = new NfLibraryListHeader(this);
+        QObject::connect(libraryListHeader,
+                         &NfLibraryListHeader::addLibrary,
+                         this,
+                         &NfLibraryBrowser::addLibrary);
+
         m_libraryListView = new NfLibraryListView(m_context, m_model, this);
         m_representationListView = new NfRepresentationListView(m_context, m_model, this);
         m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
@@ -89,6 +97,16 @@ void NfLibraryBrowser::setupUi()
         m_mainLayout->setStretch(0, 0);
         m_mainLayout->setStretch(1, 0);
         m_mainLayout->setStretch(2, 1);
+}
+
+void NfLibraryBrowser::addLibrary()
+{
+        NfNewLibraryDialog dialog(this);
+        if (dialog.exec() == QDialog::Accepted) {
+                auto name = dialog.name();
+                if (!name.isEmpty())
+                        m_context.library()->addLibrary(name.toStdString());
+        }
 }
 
 } // namespace NfDesktop

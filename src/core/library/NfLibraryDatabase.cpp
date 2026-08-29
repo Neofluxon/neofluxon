@@ -77,7 +77,9 @@ const std::filesystem::path& NfLibraryDatabase::path() const
 
 bool NfLibraryDatabase::open()
 {
-        return sqlite3_open16(m_dbPath.c_str(), &m_db) == SQLITE_OK;
+        auto u8path = m_dbPath.u8string();
+        return sqlite3_open(reinterpret_cast<const char*>(u8path.c_str()),
+                            &m_db) == SQLITE_OK;
 }
 
 void NfLibraryDatabase::close()

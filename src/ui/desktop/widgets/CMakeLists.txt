@@ -17,6 +17,7 @@ set(WIDGETS_HEADERS
     NfBrowserView.h
     NfFolderView.h
     NfLibraryView.h
+    NfNewLibraryDialog.h
     NfPhotoPreviewView.h
     NfTopBar.h
     NfBrowserTopBar.h
@@ -45,6 +46,7 @@ set(WIDGETS_SOURCES
     NfBrowserView.cpp
     NfFolderView.cpp
     NfLibraryView.cpp
+    NfNewLibraryDialog.cpp
     NfPhotoPreviewView.cpp
     NfTopBar.cpp
     NfBrowserTopBar.cpp

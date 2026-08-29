@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryBrowser.h
+ * File name: NfNewLibraryDialog.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,50 +21,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_BROWSER_H
-#define NF_LIBRARY_BROWSER_H
+#ifndef NF_NEW_LIBRARY_DIALOG_H
+#define NF_NEW_LIBRARY_DIALOG_H
 
-#include "NfLibraryContext.h"
+#include <QDialog>
+#include <QString>
 
-#include <QWidget>
-
-class QVBoxLayout;
-
-namespace NfUi {
-class NfUiLibraryModeState;
-}
+class QLineEdit;
 
 namespace NfDesktop {
 
-class NfLibraryTreeModel;
-class NfLibraryListView;
-class NfRepresentationListView;
-class NfLibraryTreeView;
-
-class NfLibraryBrowser : public QWidget
-{
+class NfNewLibraryDialog : public QDialog {
         Q_OBJECT
-
 public:
-        explicit NfLibraryBrowser(NfUi::NfLibraryContext ctx,
-                                  QWidget *parent = nullptr);
-
-protected slots:
-        void addLibrary();
+        explicit NfNewLibraryDialog(QWidget* parent = nullptr);
+        QString name() const;
 
 private:
-        void setupUi();
-
-private:
-        NfUi::NfLibraryContext m_context;
-        NfUi::NfUiLibraryModeState *m_state;
-        NfLibraryTreeModel *m_model;
-        QVBoxLayout *m_mainLayout{nullptr};
-        NfLibraryListView *m_libraryListView{nullptr};
-        NfRepresentationListView *m_representationListView{nullptr};
-        NfLibraryTreeView *m_libraryTreeView{nullptr};
+        QLineEdit* m_nameEdit;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_LIBRARY_BROWSER_H
+#endif // NF_NEW_LIBRARY_DIALOG_H
