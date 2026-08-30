@@ -24,8 +24,8 @@
 #include "NfMainWindow.h"
 #include "NfContext.h"
 #include "NfTopBar.h"
-#include "NfPanel.h"
 #include "NfLeftPanel.h"
+#include "NfRightPanel.h"
 #include "NfStyledWidget.h"
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
@@ -71,7 +71,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
 
         hLayout->addWidget(new NfCentralWidget(m_context, this));
 
-        auto rightPanel = new NfPanel(nullptr, NfPanel::PanelPosition::AlignRight);
+        auto rightPanel = new NfRightPanel(m_context, this);
         hLayout->addWidget(rightPanel);
 
         QWidget *contentWrapper = new QWidget;

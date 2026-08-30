@@ -1,11 +1,14 @@
 set(WIDGETS_HEADERS
     NfStyledWidget.h
+    NfScrollStack.h
+    NfCollapsibleSection.h
     NfThumbnailDelegate.h
     NfThumbnailsView.h
     NfCentralWidget.h
-    NfLeftPanel.h
-    NfMainMenu.h
     NfPanel.h
+    NfLeftPanel.h
+    NfRightPanel.h
+    NfMainMenu.h
     NfFolderActionDelegate.h
     NfPathBrowser.h
     NfLibraryListHeader.h
@@ -24,17 +27,21 @@ set(WIDGETS_HEADERS
     NfBrowserSortBar.h
     NfBrowserFilterBar.h
     NfBrowserViewModeBar.h
-#    NfBreadcrumbView.h
+    # NfBreadcrumbView.h
+    NfImageMetadataPanel.h
 )
 
 set(WIDGETS_SOURCES
     NfStyledWidget.cpp
+    NfScrollStack.cpp
+    NfCollapsibleSection.cpp
     NfThumbnailDelegate.cpp
     NfThumbnailsView.cpp
     NfCentralWidget.cpp
-    NfLeftPanel.cpp
-    NfMainMenu.cpp
     NfPanel.cpp
+    NfLeftPanel.cpp
+    NfRightPanel.cpp
+    NfMainMenu.cpp
     NfFolderActionDelegate.cpp
     NfPathBrowser.cpp
     NfLibraryListHeader.cpp
@@ -54,6 +61,7 @@ set(WIDGETS_SOURCES
     NfBrowserFilterBar.cpp
     NfBrowserViewModeBar.cpp
  #   NfBreadcrumbView.cpp
+    NfImageMetadataPanel.cpp
 )
 
 add_library(NfDesktopWidgets STATIC

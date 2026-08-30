@@ -26,11 +26,10 @@
 
 #include <QWidget>
 
+namespace NfDesktop {
+
 class NfScrollStack;
 class NfCollapsibleSection;
-class QLabel;
-
-namespace NfDesktop {
 
 class NfImageMetadataPanel : public QWidget {
         Q_OBJECT
@@ -41,11 +40,11 @@ public:
 private:
         void setupUi();
 
-        NfScrollStack* m_scrollStack;
-        NfCollapsibleSection* m_imageSection;
-        NfCollapsibleSection* m_histogramSection;
-        NfCollapsibleSection* m_captureSection;
-        NfCollapsibleSection* m_technicalSection;
+        NfScrollStack* m_scrollStack{nullptr};
+        NfCollapsibleSection* m_imageSection{nullptr};
+        NfCollapsibleSection* m_histogramSection{nullptr};
+        NfCollapsibleSection* m_captureSection{nullptr};
+        NfCollapsibleSection* m_technicalSection{nullptr};
 };
 
 } // NfDesktop

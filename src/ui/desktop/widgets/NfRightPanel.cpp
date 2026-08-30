@@ -1,5 +1,5 @@
 /**
- * File name: NfCollapsibleSection.h
+ * File name: NfRightPanel.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,36 +21,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_COLLAPSIBLE_SECTION_H
-#define NF_COLLAPSIBLE_SECTION_H
+#include "NfRightPanel.h"
+#include "NfContext.h"
+#include "NfUiState.h"
+#include "NfImageMetadataPanel.h"
+#include "core/NfLogger.h"
 
-#include <QWidget>
-#include <QString>
+#include <QVBoxLayout>
+#include <QStackedWidget>
 
-class QToolButton;
-class QFrame;
-class QVBoxLayout;
-class QLayout;
+using namespace NfUi;
 
 namespace NfDesktop {
 
-class NfCollapsibleSection : public QWidget {
-        Q_OBJECT
+NfRightPanel::NfRightPanel(NfContext *ctx, QWidget *parent)
+        : NfPanel(parent, NfPanel::PanelPosition::AlignRight)
+        , m_context{ctx}
+        , m_imageMetadata{new NfImageMetadataPanel(this)}
+        , m_stack{new QStackedWidget(this)}
+{
+        auto panelLayout = new QVBoxLayout(this);
+        m_stack->addWidget(m_imageMetadata);
 
-public:
-        explicit NfCollapsibleSection(const QString& title,
-                                      QWidget* parent = nullptr);
-        void setContent(QWidget* widget);
+        panelLayout->addWidget(m_stack);
 
-public slots:
-        void toggle(bool collapsed);
-
-private:
-        QToolButton* m_toggleButton;
-        QFrame* m_contentFrame;
-        QVBoxLayout* m_mainLayout;
-};
+        setLayout(panelLayout);
+}
 
 } // namespace NfDesktop
-
-#endif // NF_COLLAPSIBLE_SECTION_H

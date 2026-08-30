@@ -27,6 +27,8 @@
 #include <QFrame>
 #include <QVBoxLayout>
 
+namespace NfDesktop {
+
 NfCollapsibleSection::NfCollapsibleSection(const QString& title, QWidget* parent)
         : QWidget(parent)
 {
@@ -51,6 +53,19 @@ NfCollapsibleSection::NfCollapsibleSection(const QString& title, QWidget* parent
                          &QToolButton::toggled,
                          this,
                          &NfCollapsibleSection::toggle);
+}
+
+void NfCollapsibleSection::setContent(QWidget* widget)
+{
+        if (m_contentFrame->layout())
+                delete m_contentFrame->layout();
+
+        if (!widget)
+                return;
+
+        auto* layout = new QVBoxLayout(m_contentFrame);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->addWidget(widget);
 }
 
 void NfCollapsibleSection::toggle(bool checked)

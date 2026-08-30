@@ -45,6 +45,6 @@ private:
         QVBoxLayout* m_mainLayout;
 };
 
-} // namespace NfDesktop {
+} // namespace NfDesktop
 
 #endif // NF_SCROLL_STACK_H

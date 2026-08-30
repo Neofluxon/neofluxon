@@ -34,8 +34,6 @@ namespace NfUi {
 struct NfContext;
 }
 
-using namespace NfUi;
-
 namespace NfDesktop {
 
 class NfPathBrowser;
@@ -46,7 +44,7 @@ class NfLeftPanel : public NfPanel {
   Q_OBJECT
 
 public:
-        explicit NfLeftPanel(NfContext *ctx, QWidget *parent = nullptr);
+        explicit NfLeftPanel(NfUi::NfContext *ctx, QWidget *parent = nullptr);
         virtual ~NfLeftPanel() = default;
 
 protected slots:
@@ -55,7 +53,7 @@ protected slots:
         void showImportWidget(const std::filesystem::path &path);
 
 private:
-        NfContext *m_context;
+        NfUi::NfContext *m_context;
         NfPathBrowser* m_pathBrowser;
         NfLibraryBrowser* m_libraryBrowser;
         QStackedWidget* m_stack;

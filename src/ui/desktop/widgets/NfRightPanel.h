@@ -1,5 +1,5 @@
 /**
- * File name: NfCollapsibleSection.h
+ * File name: NfRightPanel.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,36 +21,34 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_COLLAPSIBLE_SECTION_H
-#define NF_COLLAPSIBLE_SECTION_H
+#ifndef NF_RIGHT_PANEL_H
+#define NF_RIGHT_PANEL_H
 
-#include <QWidget>
-#include <QString>
+#include "NfPanel.h"
 
-class QToolButton;
-class QFrame;
-class QVBoxLayout;
-class QLayout;
+class QStackedWidget;
+
+namespace NfUi {
+struct NfContext;
+}
 
 namespace NfDesktop {
 
-class NfCollapsibleSection : public QWidget {
-        Q_OBJECT
+class NfImageMetadataPanel;
+
+class NfRightPanel : public NfPanel {
+  Q_OBJECT
 
 public:
-        explicit NfCollapsibleSection(const QString& title,
-                                      QWidget* parent = nullptr);
-        void setContent(QWidget* widget);
-
-public slots:
-        void toggle(bool collapsed);
+        explicit NfRightPanel(NfUi::NfContext *ctx, QWidget *parent = nullptr);
+        virtual ~NfRightPanel() = default;
 
 private:
-        QToolButton* m_toggleButton;
-        QFrame* m_contentFrame;
-        QVBoxLayout* m_mainLayout;
+        NfUi::NfContext *m_context;
+        QStackedWidget* m_stack;
+        NfImageMetadataPanel* m_imageMetadata;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_COLLAPSIBLE_SECTION_H
+#endif // NF_RIGHT_PANEL_H
