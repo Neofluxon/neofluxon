@@ -44,32 +44,51 @@ void NfImageMetadataPanel::setupUi()
 
         layout->addWidget(m_scrollStack);
 
+        auto* w = new QWidget;
+        w->setFixedHeight(200);
+
         auto* imageSection = new NfCollapsibleSection("Image");
-        imageSection->setContent(new QWidget/*NfImageInfoWidget(m_model)*/);
+        imageSection->setContent(w/*NfImageInfoWidget(m_model)*/);
         m_scrollStack->addWidget(imageSection);
 
+        w = new QWidget;
+        w->setFixedHeight(200);
+
         auto* histogramSection = new NfCollapsibleSection("Histogram");
-        histogramSection->setContent(new QWidget/*NfHistogramWidget(m_model)*/);
+        histogramSection->setContent(w/*NfHistogramWidget(m_model)*/);
         m_scrollStack->addWidget(histogramSection);
 
         auto* captureSection = new NfCollapsibleSection("Capture");
-        captureSection->setContent(new QWidget/*new NfCaptureInfoWidget(m_model)*/);
+        w = new QWidget;
+        w->setFixedHeight(200);
+        captureSection->setContent(w/*new NfCaptureInfoWidget(m_model)*/);
         m_scrollStack->addWidget(captureSection);
 
         auto* locationSection = new NfCollapsibleSection("Location");
-        locationSection->setContent(new QWidget/*new NfLocationInfoWidget(m_model)*/);
+        w = new QWidget;
+        w->setFixedHeight(200);
+        locationSection->setContent(w/*new NfLocationInfoWidget(m_model)*/);
         m_scrollStack->addWidget(locationSection);
 
+        w = new QWidget;
+        w->setFixedHeight(200);
+
         auto* organizationSection = new NfCollapsibleSection("Organization");
-        organizationSection->setContent(new QWidget/*new NfOrganizationInfoWidget(m_model)*/);
+        organizationSection->setContent(w/*new NfOrganizationInfoWidget(m_model)*/);
         m_scrollStack->addWidget(organizationSection);
 
+        w = new QWidget;
+        w->setFixedHeight(200);
+
         auto* descriptionSection = new NfCollapsibleSection("Description");
-        descriptionSection->setContent(new QWidget/*new NfDescriptionInfoWidget(m_model)*/);
+        descriptionSection->setContent(w/*new NfDescriptionInfoWidget(m_model)*/);
         m_scrollStack->addWidget(descriptionSection);
 
+        w = new QWidget;
+        w->setFixedHeight(200);
+
         auto* technicalSection = new NfCollapsibleSection("Technical");
-        technicalSection->setContent(new QWidget/*new NfTechnicalInfoWidget(m_model)*/);
+        technicalSection->setContent(w/*new NfTechnicalInfoWidget(m_model)*/);
         m_scrollStack->addWidget(technicalSection);
 }
 

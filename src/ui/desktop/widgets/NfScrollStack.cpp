@@ -40,6 +40,7 @@ NfScrollStack::NfScrollStack(QWidget* parent)
         m_mainLayout = new QVBoxLayout(m_scrollContent);
         m_mainLayout->setContentsMargins(4, 4, 4, 4);
         m_mainLayout->setSpacing(2);
+        m_mainLayout->setAlignment(Qt::AlignTop);
 
         setWidget(m_scrollContent);
 }

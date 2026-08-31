@@ -454,3 +454,39 @@ NfDesktop--NfLibraryListHeader QPushButton:pressed {
 NfDesktop--NfLibraryListHeader QPushButton:focus {
     outline: none;
 }
+
+NfDesktop--NfCollapsibleSection QToolButton {
+    border: none;
+    background: transparent;
+    padding: 6px 8px;
+    font-weight: 600;
+    color: #aeb5c0;
+    text-align: left;
+    border-radius: 4px;
+}
+
+NfDesktop--NfCollapsibleSection QToolButton:hover {
+    background: #242632;
+    color: #e6eaf2;
+}
+
+NfDesktop--NfCollapsibleSection QToolButton:pressed {
+    background: #1a2332;
+    color: #3ddcff;
+}
+
+NfDesktop--NfCollapsibleSection QToolButton:checked {
+    background: transparent;
+    color: #e6eaf2;
+}
+
+NfDesktop--NfCollapsibleSection QToolButton:checked:hover {
+    background: #242632;
+    color: #e6eaf2;
+}
+
+NfDesktop--NfCollapsibleSection QToolButton:focus {
+    outline: none;
+}
+
+

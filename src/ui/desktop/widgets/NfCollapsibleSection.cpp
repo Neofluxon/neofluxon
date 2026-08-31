@@ -37,17 +37,18 @@ NfCollapsibleSection::NfCollapsibleSection(const QString& title, QWidget* parent
         m_mainLayout->setSpacing(0);
 
         m_toggleButton = new QToolButton(this);
-        m_toggleButton->setText(title);
         m_toggleButton->setCheckable(true);
-        // By default collapsed
-        m_toggleButton->setChecked(false);
+        m_toggleButton->setText(title);
         m_toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        m_toggleButton->setArrowType(Qt::DownArrow);
+        // By default collapsed
+        m_toggleButton->setChecked(false);
+        m_toggleButton->setArrowType(Qt::RightArrow);
 
         m_contentFrame = new QFrame(this);
         m_mainLayout->addWidget(m_toggleButton);
         m_mainLayout->addWidget(m_contentFrame);
+        m_contentFrame->setVisible(false);
 
         QObject::connect(m_toggleButton,
                          &QToolButton::toggled,
@@ -70,8 +71,8 @@ void NfCollapsibleSection::setContent(QWidget* widget)
 
 void NfCollapsibleSection::toggle(bool checked)
 {
-        m_contentFrame->setVisible(checked);
         m_toggleButton->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
+        m_contentFrame->setVisible(checked);
 }
 
 } // namespace NfDesktop
