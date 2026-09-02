@@ -29,6 +29,7 @@ set(WIDGETS_HEADERS
     NfBrowserViewModeBar.h
     # NfBreadcrumbView.h
     NfImageMetadataPanel.h
+    NfMetadataSectionWidget.h
 )
 
 set(WIDGETS_SOURCES
@@ -62,6 +63,7 @@ set(WIDGETS_SOURCES
     NfBrowserViewModeBar.cpp
  #   NfBreadcrumbView.cpp
     NfImageMetadataPanel.cpp
+    NfMetadataSectionWidget.cpp
 )
 
 add_library(NfDesktopWidgets STATIC
