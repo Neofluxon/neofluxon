@@ -37,7 +37,7 @@ NfMetadataSectionWidget::NfMetadataSectionWidget(const QSet<QString>& allowedKey
         setupUi();
 }
 
-void NfMetadataSectionWidget::setModel(NfImageMetadataModel* masterModel)
+void NfMetadataSectionWidget::setModel(NfImageMetadataModel* model)
 {
         if (!masterModel) {
                 m_tableView->setModel(nullptr);

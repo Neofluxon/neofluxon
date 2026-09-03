@@ -1,5 +1,5 @@
 /**
- * File name: NfMetadataSectionWidget.h
+ * File name: NfMetadataFilterProxy.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,35 +21,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_METADATA_SECTION_WIDGET_H
-#define NF_METADATA_SECTION_WIDGET_H
+#ifndef NF_METADATA_FILTER_PROXY_H
+#define NF_METADATA_FILTER_PROXY_H
 
-#include <QWidget>
+#include <QSortFilterProxyModel>
 #include <QSet>
 #include <QString>
 
-class QTableView;
-
 namespace NfDesktop {
 
-class NfImageMetadataModel;
-
-class NfMetadataSectionWidget : public QWidget
+class NfMetadataFilterProxy : public QSortFilterProxyModel
 {
         Q_OBJECT
 
 public:
-        explicit NfMetadataSectionWidget(const QSet<QString>& allowedKeys,
-                                         QWidget* parent = nullptr);
-        void setModel(NfImageMetadataModel* model);
+        explicit NfMetadataFilterProxy(const QSet<QString>& allowedKeys,
+                                       QObject* parent = nullptr);
+        void setAllowedKeys(const QSet<QString>& allowedKeys);
+        QSet<QString> allowedKeys() const;
+
+protected:
+        bool filterAcceptsRow(int source, const QModelIndex& source) const override;
 
 private:
-    void setupUi();
-
-    QSet<QString> m_allowedKeys;
-    QTableView* m_tableView{nullptr};
+        QSet<QString> m_allowedKeys;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_METADATA_SECTION_WIDGET_H
+#endif // NF_METADATA_FILTER_PROXY_H
