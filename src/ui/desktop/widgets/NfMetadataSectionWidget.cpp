@@ -31,22 +31,31 @@
 
 namespace NfDesktop {
 
-NfMetadataSectionWidget::NfMetadataSectionWidget(const QSet<QString>& allowedKeys, QWidget* parent)
-        : QWidget(parent), m_allowedKeys(allowedKeys)
+NfMetadataSectionWidget::NfMetadataSectionWidget(NfImageMetadataModel* model,
+                                                 const QSet<QString>& allowedKeys,
+                                                 QWidget* parent)
+        : QWidget(parent)
+        , m_allowedKeys{allowedKeys}
 {
         setupUi();
+        setModel(model);
 }
 
 void NfMetadataSectionWidget::setModel(NfImageMetadataModel* model)
 {
-        if (!masterModel) {
+        m_model = model;
+        if (!m_model) {
                 m_tableView->setModel(nullptr);
                 return;
         }
 
         auto* proxy = new NfMetadataFilterProxy(m_allowedKeys, this);
-        proxy->setSourceModel(masterModel);
+        proxy->setSourceModel(m_model);
         m_tableView->setModel(proxy);
+
+        auto *header = m_tableView->horizontalHeader();
+        header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        header->setSectionResizeMode(1, QHeaderView::Stretch);
 }
 
 void NfMetadataSectionWidget::setupUi()
@@ -57,8 +66,6 @@ void NfMetadataSectionWidget::setupUi()
         m_tableView = new QTableView(this);
         m_tableView->horizontalHeader()->setVisible(false);
         m_tableView->verticalHeader()->setVisible(false);
-        m_tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        m_tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         m_tableView->setShowGrid(false);
         m_tableView->setSelectionMode(QAbstractItemView::NoSelection);
         m_tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);

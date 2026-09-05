@@ -22,12 +22,21 @@
  */
 
 #include "NfImageMetadataModel.h"
+#include "NfContext.h"
+
+using namespace NfUi;
 
 namespace NfDesktop {
 
-NfImageMetadataModel::NfImageMetadataModel(QObject* parent)
+NfImageMetadataModel::NfImageMetadataModel(NfContext* ctx, QObject* parent)
         : QAbstractTableModel(parent)
+        , m_context{ctx}
 {
+        m_items = {{"Name:", "IMAG_314.CR3", false},
+                   {"Dimentions:", "4000x4000", false},
+                   {"Size:", "2MB", false},
+                   {"Format:", "RAW(CR3)", false},
+                   {"Path:", "/home/user/Images/IMAG_314.CR3", false}};
 }
 
 int NfImageMetadataModel::rowCount(const QModelIndex& parent) const
@@ -40,10 +49,10 @@ int NfImageMetadataModel::rowCount(const QModelIndex& parent) const
 
 int NfImageMetadataModel::columnCount(const QModelIndex& parent) const
 {
-    if (parent.isValid())
-        return 0;
+        if (parent.isValid())
+                return 0;
 
-    return 2;
+        return 2;
 }
 
 QVariant NfImageMetadataModel::data(const QModelIndex& index, int role) const

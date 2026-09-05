@@ -37,7 +37,7 @@ namespace NfDesktop {
 NfRightPanel::NfRightPanel(NfContext *ctx, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignRight)
         , m_context{ctx}
-        , m_imageMetadata{new NfImageMetadataPanel(this)}
+        , m_imageMetadata{new NfImageMetadataPanel(m_context, this)}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);

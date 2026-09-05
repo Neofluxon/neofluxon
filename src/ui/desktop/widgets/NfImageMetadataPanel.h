@@ -26,20 +26,28 @@
 
 #include <QWidget>
 
+namespace NfUi {
+class NfContext;
+}
+
 namespace NfDesktop {
 
 class NfScrollStack;
 class NfCollapsibleSection;
+class NfImageMetadataModel;
 
 class NfImageMetadataPanel : public QWidget {
         Q_OBJECT
 
 public:
-        explicit NfImageMetadataPanel(QWidget* parent = nullptr);
+        explicit NfImageMetadataPanel(NfUi::NfContext* ctx,
+                                      QWidget* parent = nullptr);
 
 private:
         void setupUi();
 
+        NfUi::NfContext* m_context;
+        NfImageMetadataModel* m_model;
         NfScrollStack* m_scrollStack{nullptr};
         NfCollapsibleSection* m_imageSection{nullptr};
         NfCollapsibleSection* m_histogramSection{nullptr};

@@ -27,6 +27,7 @@
 #include <QSortFilterProxyModel>
 #include <QSet>
 #include <QString>
+#include <QModelIndex>
 
 namespace NfDesktop {
 
@@ -41,7 +42,8 @@ public:
         QSet<QString> allowedKeys() const;
 
 protected:
-        bool filterAcceptsRow(int source, const QModelIndex& source) const override;
+        bool filterAcceptsRow(int source_row,
+                              const QModelIndex& source_parent) const override;
 
 private:
         QSet<QString> m_allowedKeys;

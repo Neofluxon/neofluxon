@@ -28,6 +28,10 @@
 #include <QString>
 #include <QVector>
 
+namespace NfUi {
+class NfContext;
+}
+
 namespace NfDesktop {
 
 struct NfMetadataItem {
@@ -45,7 +49,7 @@ public:
                 IsHeaderRole = Qt::UserRole + 1
         };
 
-        explicit NfImageMetadataModel(QObject* parent = nullptr);
+        explicit NfImageMetadataModel(NfUi::NfContext* ctx, QObject* parent = nullptr);
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         int columnCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -56,6 +60,7 @@ public:
         void clear();
 
 private:
+        NfUi::NfContext* m_context;
         QVector<NfMetadataItem> m_items;
 };
 

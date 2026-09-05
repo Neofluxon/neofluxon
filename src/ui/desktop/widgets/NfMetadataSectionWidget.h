@@ -39,13 +39,15 @@ class NfMetadataSectionWidget : public QWidget
         Q_OBJECT
 
 public:
-        explicit NfMetadataSectionWidget(const QSet<QString>& allowedKeys,
+        explicit NfMetadataSectionWidget(NfImageMetadataModel *model,
+                                         const QSet<QString>& allowedKeys,
                                          QWidget* parent = nullptr);
         void setModel(NfImageMetadataModel* model);
 
 private:
     void setupUi();
 
+    NfImageMetadataModel* m_model{nullptr};
     QSet<QString> m_allowedKeys;
     QTableView* m_tableView{nullptr};
 };

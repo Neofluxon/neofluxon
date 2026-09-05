@@ -24,14 +24,21 @@
 #include "NfImageMetadataPanel.h"
 #include "NfScrollStack.h"
 #include "NfCollapsibleSection.h"
+#include "NfImageMetadataModel.h"
 #include "NfMetadataSectionWidget.h"
+#include "NfContext.h"
 
 #include <QVBoxLayout>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
-NfImageMetadataPanel::NfImageMetadataPanel(QWidget* parent)
+NfImageMetadataPanel::NfImageMetadataPanel(NfContext *ctx,
+                                           QWidget* parent)
         : QWidget(parent)
+        , m_context{ctx}
+        , m_model{new NfImageMetadataModel(m_context, this)}
         , m_scrollStack{new NfScrollStack(parent)}
 {
         setupUi();
@@ -53,46 +60,46 @@ void NfImageMetadataPanel::setupUi()
                                                           tr("Format:"),
                                                           tr("Path:")});
         section->setContent(sectionWidget);
-        m_scrollStack->addWidget(imageSection);
+        m_scrollStack->addWidget(section);
 
         auto w = new QWidget;
         w->setFixedHeight(200);
         section = new NfCollapsibleSection(tr("Histogram"));
-        histogramSection->setContent(w);
-        m_scrollStack->addWidget(histogramSection);
+        section->setContent(w);
+        m_scrollStack->addWidget(section);
 
         section = new NfCollapsibleSection(tr("Capture"));
         w = new QWidget;
         w->setFixedHeight(200);
         section->setContent(w);
-        m_scrollStack->addWidget(captureSection);
+        m_scrollStack->addWidget(section);
 
         section = new NfCollapsibleSection(tr("Location"));
         w = new QWidget;
         w->setFixedHeight(200);
         section->setContent(w);
-        m_scrollStack->addWidget(locationSection);
+        m_scrollStack->addWidget(section);
 
         w = new QWidget;
         w->setFixedHeight(200);
 
         section = new NfCollapsibleSection(tr("Organization"));
         section->setContent(w);
-        m_scrollStack->addWidget(organizationSection);
+        m_scrollStack->addWidget(section);
 
         w = new QWidget;
         w->setFixedHeight(200);
 
         section = new NfCollapsibleSection(tr("Description"));
         section->setContent(w);
-        m_scrollStack->addWidget(descriptionSection);
+        m_scrollStack->addWidget(section);
 
         w = new QWidget;
         w->setFixedHeight(200);
 
         section = new NfCollapsibleSection(tr("Technical"));
         section->setContent(w);
-        m_scrollStack->addWidget(technicalSection);
+        m_scrollStack->addWidget(section);
 }
 
 } // NfDesktop
