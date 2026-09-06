@@ -1,5 +1,5 @@
 /**
- * File name: NfPhotoSummary.h
+ * File name: NfPhotoMetadataExtractor.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,15 +21,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_SUMMARY_H
-#define NF_PHOTO_SUMMARY_H
+#ifndef NF_PHOTO_METADATA_H
+#define NF_PHOTO_METADATA_H
 
 #include <chrono>
+#include <cstdint>
+#include <string>
 
 namespace NfCore {
 
-struct NfPhotoSummary
+struct NfPhotoMetadata
 {
+        // Image
+        int width = 0;
+        int height = 0;
+        std::string format;
+        std::int64_t fileSize = 0;
+
+        // Capture
         std::chrono::system_clock::time_point dateTaken;
         std::string cameraMaker;
         std::string cameraModel;
@@ -38,10 +47,33 @@ struct NfPhotoSummary
         double aperture = 0.0;
         double shutterSpeed = 0.0;
         double focalLength = 0.0;
+
+        // Location
+        double latitude = 0.0;
+        double longitude = 0.0;
+        double altitude = 0.0;
+        bool hasGps = false;
+
+        // Organization
         int rating = 0;
+        std::string tags;
+
+        // Description
+        std::string title;
+        std::string description;
+        std::string author;
+        std::string license;
+
+        // Technical
+        int bitDepth = 0;
+        std::string colorSpace;
+        int orientation = 1;
+
+        // Availability
         bool hasExif = false;
 };
 
 } // namespace NfCore
 
-#endif // NF_PHOTO_SUMMARY_H
+#endif // NF_PHOTO_METADATA_H
+

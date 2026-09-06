@@ -26,7 +26,7 @@
 
 #include "NfPhotoSummary.h"
 #include "NfPhoto.h"
-//#include "NfPhotoMetadata.h"
+#include "NfPhotoMetadata.h"
 
 namespace NfCore {
 
@@ -36,7 +36,7 @@ class NfPhotoMetadataExtractor {
  public:
         explicit NfPhotoMetadataExtractor(const NfPhoto& photo);
         NfPhotoSummary summaryInfo() const;
-        //NfPhotoMetadata fullMetadata() const;
+        NfPhotoMetadata metadata() const;
 
   private:
         NfPhoto m_photo;

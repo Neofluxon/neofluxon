@@ -63,11 +63,13 @@ public:
         QPixmap getThumbnail(const NfCore::NfPhoto &photo) const;
         QPixmap getPreview(const NfCore::NfPhoto &photo) const;
         void prefetchThumbnail(const NfCore::NfPhoto &photo);
+        NfCore::NfPhotoMetadata getMetadata(const NfCore::NfPhoto &photo) const;
 
 signals:
         void photosLoaded(const std::vector<NfCore::NfPhoto>& photos);
         void thumbnailsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
         void previewsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
+        void metadataLoaded(const NfCore::PhotoMetadata &metadata);
 
 private slots:
         void onTimeout();

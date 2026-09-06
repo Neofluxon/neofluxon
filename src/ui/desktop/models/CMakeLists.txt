@@ -6,7 +6,7 @@ set(MODEL_HEADERS
     NfLibraryTreeItem.h
     NfLibraryTreeModel.h
     NfMetadataFilterProxy.h
-    NfImageMetadataModel.h
+    NfPhotoMetadataModel.h
 )
 
 set(MODEL_SOURCES
@@ -16,7 +16,7 @@ set(MODEL_SOURCES
     NfLibraryTreeItem.cpp
     NfLibraryTreeModel.cpp
     NfMetadataFilterProxy.cpp
-    NfImageMetadataModel.cpp
+    NfPhotoMetadataModel.cpp
 )
 
 add_library(NfDesktopModels STATIC

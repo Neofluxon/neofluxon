@@ -1,5 +1,5 @@
 /**
- * File name: NfImageMetadataModel.h
+ * File name: NfPhotoMetadataModel.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,8 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_IMAGE_METADATA_MODEL_H
-#define NF_IMAGE_METADATA_MODEL_H
+#ifndef NF_PHOTO_METADATA_MODEL_H
+#define NF_PHOTO_METADATA_MODEL_H
+
+#include "core/NfPhoto.h"
 
 #include <QAbstractTableModel>
 #include <QString>
@@ -40,7 +42,7 @@ struct NfMetadataItem {
         bool isHeader{false};
 };
 
-class NfImageMetadataModel : public QAbstractTableModel
+class NfPhotoMetadataModel : public QAbstractTableModel
 {
         Q_OBJECT
 
@@ -49,21 +51,21 @@ public:
                 IsHeaderRole = Qt::UserRole + 1
         };
 
-        explicit NfImageMetadataModel(NfUi::NfContext* ctx, QObject* parent = nullptr);
+        explicit NfPhotoMetadataModel(NfUi::NfContext* ctx, QObject* parent = nullptr);
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         int columnCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         QVariant headerData(int section,
                             Qt::Orientation orientation,
                             int role = Qt::DisplayRole) const override;
-        void setMetadata(const QVector<NfMetadataItem>& items);
+        void setPhoto(const NfCore::NfPhoto &photo);
         void clear();
 
 private:
         NfUi::NfContext* m_context;
-        QVector<NfMetadataItem> m_items;
+        NfCore::NfPhoto m_photo;
 };
 
 } // namespace NfDesktop
 
-#endif // NF_IMAGE_METADATA_MODEL_H
+#endif // NF_PHOTO_METADATA_MODEL_H

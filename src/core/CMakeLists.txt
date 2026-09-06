@@ -34,6 +34,7 @@ set(CORE_HEADERS
         NfPhotoId.h
         NfPhoto.h
         NfPhotoSummary.h
+        NfPhotoMetadata.h
         NfPhotoMetadataExtractor.h
         NfDirectoryIterator.h
         NfPhotoDirectoryIterator.h
