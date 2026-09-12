@@ -1,5 +1,5 @@
 /**
- * File name: NfPhotoMetadataExtractor.h
+ * File name: NfPhotoMetadata.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor

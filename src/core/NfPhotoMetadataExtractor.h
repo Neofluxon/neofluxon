@@ -24,8 +24,8 @@
 #ifndef NF_PHOTO_METADATA_EXTRACTOR
 #define NF_PHOTO_METADATA_EXTRACTOR
 
-#include "NfPhotoSummary.h"
 #include "NfPhoto.h"
+#include "NfPhotoSummary.h"
 #include "NfPhotoMetadata.h"
 
 namespace NfCore {

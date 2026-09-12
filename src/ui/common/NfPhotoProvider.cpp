@@ -152,6 +152,7 @@ void NfPhotoProvider::onTimeout()
         processNewPhotos();
         processThumbnails();
         processPreviews();
+        processMetadata();
 }
 
 void NfPhotoProvider::processNewPhotos()
@@ -175,6 +176,13 @@ void NfPhotoProvider::processPreviews()
         auto previews = m_photoLoader->takePreviews();
         if (!previews.empty())
                 emit previewsLoaded(previews);
+}
+
+void NfPhotoProvider::processMetadata()
+{
+        auto metadata = m_photoLoader->takeMetadata();
+        if (!metadata.empty())
+                emit metadatatUpdated(...);
 }
 
 } // namespace NfUi

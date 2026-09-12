@@ -32,6 +32,7 @@
 
 namespace NfUi {
 class NfContext;
+class NfPhotoProvider;
 }
 
 namespace NfDesktop {
@@ -63,6 +64,7 @@ public:
 
 private:
         NfUi::NfContext* m_context;
+        NfUi::NfPhotoProvider *m_photoProvider;
         NfCore::NfPhoto m_photo;
 };
 

@@ -23,6 +23,7 @@
 
 #include "NfPhotoMetadataModel.h"
 #include "NfContext.h"
+#include "NfMetadataProvider.h"
 
 using namespace NfCore;
 using namespace NfUi;
@@ -32,11 +33,12 @@ namespace NfDesktop {
 NfPhotoMetadataModel::NfPhotoMetadataModel(NfContext* ctx, QObject* parent)
         : QAbstractTableModel(parent)
         , m_context{ctx}
+        , m_metadataProvider{new NfMetadataProvider(ctx, this)}
 {
-        QObject(om_photoProvider,
-                &NfPhotoProvider::metadataLoaded,
-                this,
-                &NfPhotoMetadataModel::metadataUpdated);
+        QObject::connect(m_metadataProvider,
+                         &NfMetadataProvider::metadataLoaded,
+                         this,
+                         &NfPhotoMetadataModel::metadataUpdated);
 }
 
 int NfPhotoMetadataModel::rowCount(const QModelIndex& parent) const

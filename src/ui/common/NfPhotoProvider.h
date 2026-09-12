@@ -27,6 +27,7 @@
 #include "core/NfPhoto.h"
 #include "core/NfPhotoId.h"
 #include "core/NfPhotoSource.h"
+#include "core/NfPhotoMetadata.h"
 
 #include <QObject>
 #include <QPixmap>
@@ -69,7 +70,7 @@ signals:
         void photosLoaded(const std::vector<NfCore::NfPhoto>& photos);
         void thumbnailsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
         void previewsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
-        void metadataLoaded(const NfCore::PhotoMetadata &metadata);
+        void metadataLoaded(const NfCore::NfPhotoMetadata &metadata);
 
 private slots:
         void onTimeout();

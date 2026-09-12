@@ -40,7 +40,7 @@ class NfPhoto {
                 Png
         };
 
-        explicit NfPhoto(const std::filesystem::path &filePath);
+        explicit NfPhoto(const std::filesystem::path &filePath = {});
         NfPhotoId id() const;
         const std::filesystem::path& path() const;
         std::string name() const;

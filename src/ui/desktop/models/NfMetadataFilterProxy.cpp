@@ -22,7 +22,7 @@
  */
 
 #include "NfMetadataFilterProxy.h"
-#include "NfImageMetadataModel.h"
+#include "NfPhotoMetadataModel.h"
 
 namespace NfDesktop {
 
@@ -51,7 +51,7 @@ bool NfMetadataFilterProxy::filterAcceptsRow(int source_row,
                 return false;
 
         auto index = sourceModel()->index(source_row, 0, source_parent);
-        if (index.data(NfImageMetadataModel::IsHeaderRole).toBool())
+        if (index.data(NfPhotoMetadataModel::IsHeaderRole).toBool())
                 return false;
 
         auto key = index.data(Qt::DisplayRole).toString();
