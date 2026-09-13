@@ -85,28 +85,37 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setSequence(m_sequence++);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
-                if (status != NfTask::TaskStatus::Success)
+                auto* thumbnailTask = dynamic_cast<NfThumbnailTask*>(result);
+                if (!thumbnailTask)
                         return;
 
-                auto* thumbnailTask = dynamic_cast<NfThumbnailTask*>(result);
-                if (thumbnailTask) {
+                const photoId = thumbnailTask->photoId();
+                if (status != NfTask::TaskStatus::Success) {
                         std::scoped_lock lock(m_mutex);
-
-                        // Check if the thumbnail belongs to the current generation.
-                        // If not, ignore it.
-                        if (thumbnailTask->generationId() != m_generationId)
-                                return;
-
-                        auto thumbnail = thumbnailTask->takeThumbnail();
-                        m_thumbnailsCache->add(thumbnail->id(), thumbnail->releaseImage());
-
-                        auto request = requestTypeToPriority(RequestType::Visible);
-                        if (thumbnailTask->priority() == static_cast<int>(request))
-                                m_thumbnailsQueue.push_back(thumbnail->id());
-
-                        m_pendingThumbnailTasks.erase(thumbnail->id());
+                        m_pendingThumbnailTasks.erase(photoId);
+                        return;
                 }
-                });
+
+                // Check if the thumbnail belongs to the current generation.
+                // If not, ignore it.
+                {
+                        std::scoped_lock lock(m_mutex);
+                        if (thumbnailTask->generationId() != m_generationId) {
+                                m_pendingThumbnailTasks.erase(photoId);
+                                return;
+                        }
+                }
+
+                auto thumbnail = thumbnailTask->takeThumbnail();
+                m_thumbnailsCache->add(photoId, thumbnail->releaseImage());
+
+                auto request = requestTypeToPriority(RequestType::Visible);
+                std::scoped_lock lock(m_mutex);
+                if (thumbnailTask->priority() == static_cast<int>(request))
+                        m_thumbnailsQueue.push_back(photoId);
+
+                m_pendingThumbnailTasks.erase(photoId);
+        });
 
         m_pendingThumbnailTasks.insert({photo.id(), task->taskId()});
         m_scheduler->submit(std::move(task));
@@ -121,25 +130,55 @@ void NfPhotoLoader::requestPreview(const NfPhoto &photo,
         task->setPriority(requestTypeToPriority(requestType));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
+        auto* previewTask = dynamic_cast<NfPreviewTask*>(result);
+        if (!previewTask)
+                return;
+
+        if (status != NfTask::TaskStatus::Success)
+                return;
+
+        const auto previewId = previewTask->photoId();
+
+        // Check if the preview belongs to the current generation.
+        // If not, ignore it.
+        {
+                std::scoped_lock lock(m_mutex);
+                if (previewTask->generationId() != m_generationId)
+                        return;
+        }
+
+        auto preview = previewTask->takePreview();
+        m_previewsCache->add(previewId, preview->releaseImage());
+
+        NF_LOG_DEBUG("push preview in the queue: " << previewId.value());
+
+        std::scoped_lock lock(m_mutex);
+        m_previewsQueue.push_back(previewId);
+});
+        task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
 
                 auto* previewTask = dynamic_cast<NfPreviewTask*>(result);
-                if (previewTask) {
+                if (!previewTask)
+                        return;
+
+                {
                         std::scoped_lock lock(m_mutex);
 
                         // Check if the preview belongs to the current generation.
                         // If not, ignore it.
                         if (previewTask->generationId() != m_generationId)
                                 return;
-
-                        auto preview = previewTask->takePreview();
-                        m_previewsCache->add(preview->id(), preview->releaseImage());
-
-                        NF_LOG_DEBUG("push preview in the queue: " << preview->id().value());
-
-                        m_previewsQueue.push_back(preview->id());
                 }
+
+                auto preview = previewTask->takePreview();
+                m_previewsCache->add(preview->id(), preview->releaseImage());
+
+                NF_LOG_DEBUG("push preview in the queue: " << preview->id().value());
+
+                std::scoped_lock lock(m_mutex);
+                m_previewsQueue.push_back(preview->id());
         });
 
         m_scheduler->submit(std::move(task));

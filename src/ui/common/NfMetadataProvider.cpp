@@ -38,7 +38,7 @@ using namespace NfCore;
 namespace NfUi {
 
 NfMetadataProvider::NfMetadataProvider(NeofluxonCore *core,
-                                 QObject* parent)
+                                       QObject* parent)
         : QObject(parent)
         , m_metadataLoader{core->metadataLoader()}
 {

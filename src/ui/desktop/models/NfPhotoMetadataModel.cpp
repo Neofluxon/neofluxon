@@ -33,12 +33,8 @@ namespace NfDesktop {
 NfPhotoMetadataModel::NfPhotoMetadataModel(NfContext* ctx, QObject* parent)
         : QAbstractTableModel(parent)
         , m_context{ctx}
-        , m_metadataProvider{new NfMetadataProvider(ctx, this)}
 {
-        QObject::connect(m_metadataProvider,
-                         &NfMetadataProvider::metadataLoaded,
-                         this,
-                         &NfPhotoMetadataModel::metadataUpdated);
+        m_context->metadataProvider()->subscribe(this);
 }
 
 int NfPhotoMetadataModel::rowCount(const QModelIndex& parent) const

@@ -33,7 +33,8 @@ namespace NfCore {
 class NfTask {
 public:
         enum class Priority : int {
-                Immediate = 0,
+                Critical = 0,
+                Immediate = 10,
                 High      = 20,
                 Normal    = 50,
                 Low       = 80,

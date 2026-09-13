@@ -1,5 +1,5 @@
 /**
- * File name: NfPhotoLoader.h
+ * File name: NfPhotoMetadataLoader.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PHOTO_LOADER_H
-#define NF_PHOTO_LOADER_H
+#ifndef NF_PHOTO_METADATA_LOADER_H
+#define NF_PHOTO_METADATA_LOADER_H
 
 #include "NfPhoto.h"
 #include "NfPhotoId.h"
@@ -30,7 +30,7 @@
 #include "NfPreview.h"
 #include "NfTask.h"
 #include "NfPhotoSource.h"
-#include "NfPhotoLoaderContext.h"
+#include "NfPhotoMetadataLoaderContext.h"
 
 #include <filesystem>
 #include <vector>
@@ -41,46 +41,29 @@
 
 namespace NfCore {
 
-class NfPhotoScanner;
 class NfScheduler;
 class NfImage;
 class NfCache;
 
-class NfPhotoLoader {
+class NfPhotoMetadataLoader {
 public:
-        NfPhotoLoader(NfPhotoLoaderContext ctx);
-        ~NfPhotoLoader();
+        NfPhotoMetadataLoader(NfPhotoMetadataLoaderContext ctx);
+        ~NfPhotoMetadataLoader();
 
-        void setSource(const NfPhotoSource &source);
-        const NfPhotoSource& getSource() const;
-
-        void requestThumbnail(const NfPhoto &photo,
-                              RequestType requestType = RequestType::Visible);
-        void requestPreview(const NfPhoto &photo,
-                            RequestType requestType = NfRequestType::Visible);
-
-        std::vector<NfPhoto> takePhotos();
-        std::vector<NfPhotoId> takeThumbnails();
-        std::vector<NfPhotoId> takePreviews();
+        void requestMetadata(const NfPhoto &photo);
+        std::vector<NfPhotoMetadata> takeMetadata();
 
  protected:
 
  private:
-        NfPhotoLoaderContext m_context;
-        std::unique_ptr<NfPhotoScanner> m_photoScanner;
-        NfPhotoSource m_source;
         NfScheduler* m_scheduler;
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;
         std::mutex m_mutex;
-        uint64_t m_generationId;
-        std::vector<NfPhotoId> m_thumbnailsQueue;
-        std::vector<NfPhotoId> m_previewsQueue;
-        uint64_t m_sequence = 0;
-        std::unordered_map <NfPhotoId, NfTask::TaskId> m_pendingThumbnailTasks;
+        std::vector<NfPhotoId> m_metadataQueue;
+        std::unordered_set<NfPhotoId> m_requests;
 };
 
 } // namespace NfCore
 
-#endif // NF_PHOTO_LOADER_H
-
+#endif // NF_PHOTO_METADATA_LOADER_H
