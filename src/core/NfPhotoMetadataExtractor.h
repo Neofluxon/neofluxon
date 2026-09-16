@@ -28,17 +28,19 @@
 #include "NfPhotoSummary.h"
 #include "NfPhotoMetadata.h"
 
+#include <optional>
+
 namespace NfCore {
 
 class NfPhoto;
 
 class NfPhotoMetadataExtractor {
- public:
+public:
         explicit NfPhotoMetadataExtractor(const NfPhoto& photo);
-        NfPhotoSummary summaryInfo() const;
-        NfPhotoMetadata metadata() const;
+        std::optional<NfPhotoSummary> summaryInfo() const;
+        std::optional<NfPhotoMetadata> metadata() const;
 
-  private:
+private:
         NfPhoto m_photo;
 };
 

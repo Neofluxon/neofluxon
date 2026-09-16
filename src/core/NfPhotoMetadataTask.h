@@ -24,16 +24,17 @@
 #ifndef NF_PHOTO_METADATA_TASK_H
 #define NF_PHOTO_METADATA_TASK_H
 
-#include "NfImageTask.h"
+#include "NfTask.h"
+#include "NfPhoto.h"
+#include "NfPhotoMetadata.h"
 
 #include <memory>
 
 namespace NfCore {
 
-class NfImage;
-class NfThumbnail;
+class NfPhotoMetadata;
 
-class NfPhotoMetadataTask : public NfImageTask {
+class NfPhotoMetadataTask : public NfTask {
 public:
         NfPhotoMetadataTask(const NfPhoto& photo);
         NfPhotoMetadataTask(NfPhotoMetadataTask&&) noexcept = default;
@@ -42,7 +43,11 @@ public:
         NfPhotoMetadataTask& operator=(const NfPhotoMetadataTask&) = delete;
         ~NfPhotoMetadataTask();
         TaskStatus execute() override;
-        std::unique_ptr<NfThumbnail> takeThumbnail();
+        std::unique_ptr<NfPhotoMetadata> takeMetadata();
+
+private:
+        NfPhoto m_photo;
+        std::unique_ptr<NfPhotoMetadata> m_metadata;
 };
 
 } // namespace NfCore
