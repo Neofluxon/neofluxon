@@ -31,6 +31,7 @@
 #include "NfTask.h"
 #include "NfPhotoSource.h"
 #include "NfPhotoLoaderContext.h"
+#include "NfRequest.h"
 
 #include <filesystem>
 #include <vector>
@@ -50,15 +51,12 @@ class NfPhotoLoader {
 public:
         NfPhotoLoader(NfPhotoLoaderContext ctx);
         ~NfPhotoLoader();
-
         void setSource(const NfPhotoSource &source);
         const NfPhotoSource& getSource() const;
-
         void requestThumbnail(const NfPhoto &photo,
-                              RequestType requestType = RequestType::Visible);
+                              NfRequest request = NfRequest::VisibleThumbnail);
         void requestPreview(const NfPhoto &photo,
-                            RequestType requestType = NfRequestType::Visible);
-
+                            NfRequest request = RequestType::SelectedPreview);
         std::vector<NfPhoto> takePhotos();
         std::vector<NfPhotoId> takeThumbnails();
         std::vector<NfPhotoId> takePreviews();

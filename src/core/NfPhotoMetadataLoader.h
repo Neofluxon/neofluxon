@@ -31,6 +31,7 @@
 #include "NfTask.h"
 #include "NfPhotoSource.h"
 #include "NfPhotoMetadataLoaderContext.h"
+#include "NfRequest.h"
 
 #include <filesystem>
 #include <vector>
@@ -49,8 +50,8 @@ class NfPhotoMetadataLoader {
 public:
         NfPhotoMetadataLoader(NfPhotoMetadataLoaderContext ctx);
         ~NfPhotoMetadataLoader();
-
-        void requestMetadata(const NfPhoto &photo);
+        void requestMetadata(const NfPhoto &photo,
+                             NfRequest request = NfRequest::SelectedMetadata);
         std::vector<NfPhotoMetadata> takeMetadata();
 
  protected:

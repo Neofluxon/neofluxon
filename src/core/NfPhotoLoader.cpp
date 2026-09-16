@@ -67,11 +67,10 @@ const NfPhotoSource& NfPhotoLoader::getSource() const
         return m_source;
 }
 
-void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
-                                     NfPhotoLoader::RequestType requestType)
+void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequest request)
 {
         std::scoped_lock lock(m_mutex);
-        auto priority = requestTypeToPriority(requestType);
+        auto priority = NfRequestUtils::getTaskPriority(request);
 
         auto it = m_pendingThumbnailTasks.find(photo.id());
         if (it != m_pendingThumbnailTasks.end()) {
@@ -121,13 +120,12 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo,
         m_scheduler->submit(std::move(task));
 }
 
-void NfPhotoLoader::requestPreview(const NfPhoto &photo,
-                                   NfPhotoLoader::RequestType requestType)
+void NfPhotoLoader::requestPreview(const NfPhoto &photo, NfRequest request)
 {
         std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfPreviewTask>(photo);
         task->setGenerationId(m_generationId);
-        task->setPriority(requestTypeToPriority(requestType));
+        task->setPriority(NfRequestUtils::getTaskPriority(request));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
         auto* previewTask = dynamic_cast<NfPreviewTask*>(result);
@@ -199,18 +197,6 @@ std::vector<NfPhotoId> NfPhotoLoader::takePreviews()
 {
         std::scoped_lock lock(m_mutex);
         return std::move(m_previewsQueue);
-}
-
-NfTask::Priority NfPhotoLoader::requestTypeToPriority(RequestType type)
-{
-        switch (type) {
-        case RequestType::Visible:
-                return NfTask::Priority::Immediate;
-        case RequestType::Prefetch:
-                return NfTask::Priority::High;
-        default:
-                return NfTask::Priority::Normal;
-        }
 }
 
 } // namespace NfCore

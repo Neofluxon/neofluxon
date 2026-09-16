@@ -46,7 +46,7 @@ NfPhotoMetadataLoader::~NfPhotoMetadataLoader()
         NF_LOG_DEBUG("called");
 }
 
-void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo)
+void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo, NfRequest request)
 {
         std::scoped_lock lock(m_mutex);
 
@@ -54,6 +54,7 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo)
                 return;
 
         auto task = std::make_unique<NfPhotoMetadataTask>(photo);
+        task->setPriority(NfRequestUtils::getTaskPriority(request));
 
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 auto* metadataTask = dynamic_cast<NfMetadataTask*>(result);
