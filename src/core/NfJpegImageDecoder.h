@@ -39,6 +39,7 @@ class NfJpegImageDecoder: public NfImageDecoder {
         std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const override;
         std::unique_ptr<NfImageData> previewImageData(int targetRes) const override;
         std::unique_ptr<NfImageData> fullImageData() const override;
+        std::optional<NfPhotoMetadata> metadata() const override;
 
  private:
         std::unique_ptr<NfImageData> decodeScaled(int targetRes) const;

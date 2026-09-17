@@ -32,6 +32,7 @@
 namespace NfCore {
 
 class NfImageData;
+class NfPhotoMetadata;
 
 class NfImageDecoder {
  public:
@@ -40,6 +41,7 @@ class NfImageDecoder {
         virtual std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const = 0;
         virtual std::unique_ptr<NfImageData> previewImageData(int targetRes) const = 0;
         virtual std::unique_ptr<NfImageData> fullImageData() const = 0;
+        std::optional<NfPhotoMetadata> metadata() const override;
 
 protected:
         const NfPhoto& getPhoto() const;

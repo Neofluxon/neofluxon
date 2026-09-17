@@ -39,6 +39,7 @@ NfJpegImageDecoder::~NfJpegImageDecoder() = default;
 
 std::optional<NfPhotoMetadata> NfJpegImageDecoder::metadata() const override
 {
+        
 }
 
 std::unique_ptr<NfImageData> NfJpegImageDecoder::thumbnailImageData(int targetRes) const

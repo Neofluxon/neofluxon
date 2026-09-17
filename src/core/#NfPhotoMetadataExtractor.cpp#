@@ -53,7 +53,7 @@ std::optional<NfPhotoMetadata> NfPhotoMetadataExtractor::metadata() const
 }
 //NfPhotoMetadata NfPhotoMetadataExtractor::fullMetadata() const
 //{
-//        NfPhotoMetadata meta;
+        NfPhotoMetadata meta;
 
 //        switch (m_photo.format()) {
 //        case NfPhoto::PhotoFormat::Jpeg:
