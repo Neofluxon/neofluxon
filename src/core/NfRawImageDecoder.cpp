@@ -24,7 +24,7 @@
 #include "NfRawImageDecoder.h"
 #include "NfLogger.h"
 
-//#include <omp.h>
+#include <filesystem>
 
 namespace NfCore {
 
@@ -50,21 +50,55 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
         const auto& idata = rawProcessor.imgdata.idata;
         const auto& sizes = rawProcessor.imgdata.sizes;
         const auto& other = rawProcessor.imgdata.other;
+        const auto& color = rawProcessor.imgdata.color;
+        const auto& lens = rawProcessor.imgdata.lens;
 
         NfPhotoMetadata metadata;
-
         metadata.width = sizes.width;
         metadata.height = sizes.height;
-
-        metadata.cameraMake = idata.make;
+        metadata.format = "RAW";
+        std::error_code error;
+        auto size = std::filesystem::file_size(getPhoto().path(), error);
+        metadata.fileSize = static_cast<std::int64_t>(size);
+        metadata.cameraMaker = idata.make;
         metadata.cameraModel = idata.model;
+        metadata.lens = lens.makernotes.Lens;
 
         metadata.iso = other.iso_speed;
         metadata.aperture = other.aperture;
         metadata.shutterSpeed = other.shutter;
         metadata.focalLength = other.focal_len;
+        if (other.timestamp > 0)
+                metadata.dateTaken =
+                        std::chrono::system_clock::from_time_t(other.timestamp);
+
+        metadata.description = other.desc;
+        metadata.author = other.artist;
+        metadata.bitDepth = static_cast<int>(color.raw_bps);
+        metadata.colorSpace = color.ExifColorSpace == 1
+                ? "sRGB"
+                : color.ExifColorSpace == 2
+                ? "Adobe RGB"
+                : "";
 
         metadata.orientation = sizes.flip;
+        metadata.hasExif = true;
+
+        const auto& gps = other.parsed_gps;
+        if (gps.gpsparsed) {
+                metadata.latitude = gps.latitude[0]
+                        + gps.latitude[1] / 60.0
+                        + gps.latitude[2] / 3600.0;
+                metadata.longitude = gps.longitude[0]
+                        + gps.longitude[1] / 60.0
+                        + gps.longitude[2] / 3600.0;
+                if (gps.latref == 'S')
+                        metadata.latitude = -metadata.latitude;
+                if (gps.longref == 'W')
+                        metadata.longitude = -metadata.longitude;
+                metadata.altitude = gps.altitude;
+                metadata.hasGps = true;
+        }
 
         return metadata;
 }
