@@ -22,6 +22,7 @@
  */
 
 #include "NfPngImageDecoder.h"
+#include "NfExifMetadataExtractor.h"
 #include "NfLogger.h"
 
 #include <png.h>
@@ -34,6 +35,12 @@ NfPngImageDecoder::NfPngImageDecoder(const NfPhoto &photo)
 }
 
 NfPngImageDecoder::~NfPngImageDecoder() = default;
+
+std::optional<NfPhotoMetadata> NfPngImageDecoder::metadata() const
+{
+        NfExifMetadataExtractor exifExtractor(getPhoto());
+        return exifExtractor.metadata();
+}
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::thumbnailImageData(int targetRes) const
 {

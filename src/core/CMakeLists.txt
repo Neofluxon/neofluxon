@@ -5,6 +5,7 @@ find_package(PNG REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 pkg_check_modules(JPEG_TURBO REQUIRED libturbojpeg)
+pkg_check_modules(EXIV2 REQUIRED exiv2)
 find_path(STB_INCLUDE_DIR stb_image_resize2.h PATH_SUFFIXES stb)
 
 if(STB_INCLUDE_DIR)
@@ -25,6 +26,7 @@ set(CORE_HEADERS
         NfImageDecoder.h
         NfImage.h
         NfImageTask.h
+        NfExifMetadataExtractor.h
         NfJpegImageDecoder.h
         NfLogger.h
         NfPhotoSource.h
@@ -69,6 +71,7 @@ set(CORE_SOURCES
         NfImageDecoder.cpp
         NfImageDecoderFactory.cpp
         NfImageTask.cpp
+        NfExifMetadataExtractor.cpp
         NfJpegImageDecoder.cpp
         NfLogger.cpp
         NfFilesystemPhotoSource.cpp
@@ -111,6 +114,7 @@ target_include_directories(NfCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/library
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${JPEG_TURBO_INCLUDE_DIRS}
+    ${EXIV2_INCLUDE_DIRS}
     ${STB_INCLUDE_DIR}
     ${PNG_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
@@ -121,6 +125,7 @@ target_link_libraries(NfCore PRIVATE
         raw
 #        OpenMP::OpenMP_CXX
         ${JPEG_TURBO_LIBRARIES}
+        ${EXIV2_LIBRARIES}
         ${PNG_LIBRARIES}
         ${ZLIB_LIBRARIES}
         SQLite::SQLite3

@@ -1,5 +1,5 @@
 /**
- * File name: NfPngImageDecoder.h
+ * File name: NfExifMetadataExtractor.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,31 +21,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PNG_IMAGE_DECODER_H
-#define NF_PNG_IMAGE_DECODER_H
+#ifndef NF_EXIF_METADATA_EXTRACTOR_H
+#define NF_EXIF_METADATA_EXTRACTOR_H
 
-#include "NfImageDecoder.h"
+#include "NfPhoto.h"
+#include "NfPhotoMetadata.h"
 
-#include <memory>
+#include <optional>
 
 namespace NfCore {
 
-class NfPhoto;
-class NfImageData;
-
-class NfPngImageDecoder : public NfImageDecoder {
+class NfExifMetadataExtractor {
  public:
-        explicit NfPngImageDecoder(const NfPhoto &photo);
-        ~NfPngImageDecoder();
-        std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const override;
-        std::unique_ptr<NfImageData> previewImageData(int targetRes) const override;
-        std::unique_ptr<NfImageData> fullImageData() const override;
-        std::optional<NfPhotoMetadata> metadata() const override;
+        explicit NfExifMetadataExtractor(const NfPhoto& photo);
+        std::optional<NfPhotoMetadata> metadata() const;
 
  private:
-        std::unique_ptr<NfImageData> decodeScaled(int targetRes) const;
+        NfPhoto m_photo;
 };
 
 } // namespace NfCore
 
-#endif // NF_PNG_IMAGE_DECODER_H
+#endif // NF_EXIF_METADATA_EXTRACTOR_H

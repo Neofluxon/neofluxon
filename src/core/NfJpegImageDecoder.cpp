@@ -22,7 +22,7 @@
  */
 
 #include "NfJpegImageDecoder.h"
-#include "NfLogger.h"
+#include "NfExifMetadataExtractor.h"
 
 #include <turbojpeg.h>
 
@@ -37,8 +37,10 @@ NfJpegImageDecoder::NfJpegImageDecoder(const NfPhoto &photo)
 
 NfJpegImageDecoder::~NfJpegImageDecoder() = default;
 
-std::optional<NfPhotoMetadata> NfJpegImageDecoder::metadata() const override
+std::optional<NfPhotoMetadata> NfJpegImageDecoder::metadata() const
 {
+        NfExifMetadataExtractor exifExtractor(getPhoto());
+        return exifExtractor.metadata();
 }
 
 std::unique_ptr<NfImageData> NfJpegImageDecoder::thumbnailImageData(int targetRes) const
