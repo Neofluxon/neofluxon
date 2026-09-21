@@ -22,6 +22,7 @@
  */
 
 #include "NfPhotoMetadataExtractor.h"
+#include "NfImageDecoderFactory.h"
 
 #include <chrono>
 #include <filesystem>
@@ -50,49 +51,10 @@ std::optional<NfPhotoSummary> NfPhotoMetadataExtractor::summaryInfo() const
 
 std::optional<NfPhotoMetadata> NfPhotoMetadataExtractor::metadata() const
 {
+        auto decoder = NfImageDecoderFactory::createDecoder(m_photo);
+        if (decoder)
+                return decoder->metadata();
 }
-//NfPhotoMetadata NfPhotoMetadataExtractor::fullMetadata() const
-//{
-//        NfPhotoMetadata meta;
 
-//        switch (m_photo.format()) {
-//        case NfPhoto::PhotoFormat::Jpeg:
-//        case NfPhoto::PhotoFormat::Png:
-//        {
-            // EXIF-based extraction (e.g. Exiv2)
-            /*
-            read EXIF:
-            - camera maker
-            - model
-            - ISO
-            - aperture
-            - shutter
-            - focal length
-            - DateTimeOriginal
-            */
-        //            break;
-        //        }
-        //        case NfPhoto::PhotoFormat::Raw:
-        //        {
-            // RAW extraction (e.g. LibRaw)
-            /*
-            LibRaw raw;
-            raw.open_file(m_photo.path().c_str());
-
-            extract:
-            - camera info
-            - exposure settings
-            - sensor metadata
-            - timestamps
-            */
-        //            break;
-        //        }
-        //        default:
-        //            break;
-        //        }
-
-        //        return meta;
-        //}
-
-} // namespace NfCore
+// namespace NfCore
 
