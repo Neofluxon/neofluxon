@@ -104,8 +104,7 @@ QPixmap NfBrowserModel::getPreview(const QModelIndex& index) const
         for (int i = start; i <= end; ++i) {
                 if (i == centerRow)
                         continue;
-                // TODO: request only preview
-                m_photoProvider->getPreview(m_photos[i]);
+                m_photoProvider->prefetchPreview(m_photos[i]);
         }
 
         return previewImage;

@@ -34,7 +34,7 @@ namespace NfDesktop {
 
 class NfScrollStack;
 class NfCollapsibleSection;
-class NfImageMetadataModel;
+class NfPhotoMetadataModel;
 
 class NfImageMetadataPanel : public QWidget {
         Q_OBJECT
@@ -47,7 +47,7 @@ private:
         void setupUi();
 
         NfUi::NfContext* m_context;
-        NfImageMetadataModel* m_model;
+        NfPhotoMetadataModel* m_model;
         NfScrollStack* m_scrollStack{nullptr};
         NfCollapsibleSection* m_imageSection{nullptr};
         NfCollapsibleSection* m_histogramSection{nullptr};

@@ -24,6 +24,10 @@
 #include "NfPhotoMetadataModel.h"
 #include "NfContext.h"
 #include "NfMetadataProvider.h"
+#include "NfPhotoId.h"
+#include "NfPhotoMetadata.h"
+
+#include <QDateTime>
 
 using namespace NfCore;
 using namespace NfUi;
@@ -34,7 +38,10 @@ NfPhotoMetadataModel::NfPhotoMetadataModel(NfContext* ctx, QObject* parent)
         : QAbstractTableModel(parent)
         , m_context{ctx}
 {
-        m_context->metadataProvider()->subscribe(this);
+        QObject::connect(m_context->metadataProvider,
+                         &NfMetadataProvider::metadataUpdated,
+                         this,
+                         &NfPhotoMetadataModel::metadataUpdated);
 }
 
 int NfPhotoMetadataModel::rowCount(const QModelIndex& parent) const
@@ -91,18 +98,18 @@ QVariant NfPhotoMetadataModel::headerData(int section,
 
 void NfPhotoMetadataModel::setPhoto(const NfCore::NfPhoto &photo)
 {
-        if (m_photo == photo)
+        if (m_photo.id() == photo.id())
                 return;
 
-        beginResetModel();
+        // TODO: implement metadata chache
+
         m_photo = photo;
-        setupMetadata(m_photoProvider->getMetadata(photo));
-        endResetModel();
 }
 
-void NfPhotoMetadataModel::metadataUpdated(const NfPhotoMetadata &metadata)
+void NfPhotoMetadataModel::metadataUpdated(const NfPhotoId &photoId,
+                                           const NfPhotoMetadata &metadata)
 {
-        if (m_photo.id() != metadata.photoId)
+        if (m_photo.id() != photoId)
                 return;
 
         beginResetModel();
@@ -115,89 +122,135 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
         m_items.clear();
 
         // File
-        m_items.append({tr("File"), {}, true});
-        m_items.append({tr("Name"), m_photo.fileName()});
-        m_items.append({tr("Path"), m_photo.path()});
-        m_items.append({tr("Size"), formatFileSize(metadata.fileSize)});
+        m_items.emplaceBack(tr("File"), QString{}, true);
+        m_items.emplaceBack(tr("Name"),
+                            QString::fromStdString(m_photo.name()));
+        m_items.emplaceBack(tr("Path"),
+                            QString::fromStdString(m_photo.path()));
+        m_items.emplaceBack(tr("Size"),
+                            formatFileSize(metadata.fileSize));
 
         // Image
-        m_items.append({tr("Image"), {}, true});
-        m_items.append({tr("Dimensions"),
-                        QStringLiteral("%1 × %2")
-                        .arg(metadata.width)
-                        .arg(metadata.height)});
-        m_items.append({tr("Format"),
-                        QString::fromStdString(metadata.format)});
+        m_items.emplaceBack(tr("Image"), QString{}, true);
+        m_items.emplaceBack(tr("Dimensions"),
+                            QStringLiteral("%1 × %2")
+                            .arg(metadata.width)
+                            .arg(metadata.height));
+        m_items.emplaceBack(tr("Format"),
+                            QString::fromStdString(metadata.format));
 
         // Capture
-        m_items.append({tr("Capture"), {}, true});
-        m_items.append({tr("Date taken"),
-                        formatDate(metadata.dateTaken)});
-        m_items.append({tr("Camera maker"),
-                        QString::fromStdString(metadata.cameraMaker)});
-        m_items.append({tr("Camera model"),
-                        QString::fromStdString(metadata.cameraModel)});
-        m_items.append({tr("Lens"),
-                        QString::fromStdString(metadata.lens)});
-        m_items.append({tr("ISO"),
-                        metadata.iso >= 0
-                        ? QString::number(metadata.iso)
-                        : QString()});
-        m_items.append({tr("Aperture"),
-                        metadata.aperture > 0.0
-                        ? QStringLiteral("f/%1")
-                        .arg(metadata.aperture, 0, 'f', 1)
-                        : QString()});
-        m_items.append({tr("Shutter speed"),
-                        formatShutterSpeed(metadata.shutterSpeed)});
-        m_items.append({tr("Focal length"),
-                        metadata.focalLength > 0.0
-                        ? QStringLiteral("%1 mm")
-                        .arg(metadata.focalLength, 0, 'f', 0)
-                        : QString()});
+        m_items.emplaceBack(tr("Capture"), QString{}, true);
+        m_items.emplaceBack(tr("Date taken"),
+                            formatDate(metadata.dateTaken));
+        m_items.emplaceBack(tr("Camera maker"),
+                            QString::fromStdString(metadata.cameraMaker));
+        m_items.emplaceBack(tr("Camera model"),
+                            QString::fromStdString(metadata.cameraModel));
+        m_items.emplaceBack(tr("Lens"),
+                            QString::fromStdString(metadata.lens));
+        m_items.emplaceBack(tr("ISO"),
+                            metadata.iso >= 0
+                            ? QString::number(metadata.iso)
+                            : QString{});
+        m_items.emplaceBack(tr("Aperture"),
+                            metadata.aperture > 0.0
+                            ? QStringLiteral("f/%1")
+                            .arg(metadata.aperture, 0, 'f', 1)
+                            : QString{});
+        m_items.emplaceBack(tr("Shutter speed"),
+                            formatShutterSpeed(metadata.shutterSpeed));
+        m_items.emplaceBack(tr("Focal length"),
+                            metadata.focalLength > 0.0
+                            ? QStringLiteral("%1 mm")
+                            .arg(metadata.focalLength, 0, 'f', 0)
+                            : QString{});
 
         // Location
-        m_items.append({tr("Location"), {}, true});
+        m_items.emplaceBack(tr("Location"), QString{}, true);
         if (metadata.hasGps) {
-                m_items.append({tr("Latitude"),
-                                QString::number(metadata.latitude, 'f', 6)});
-                m_items.append({tr("Longitude"),
-                                QString::number(metadata.longitude, 'f', 6)});
-                m_items.append({tr("Altitude"),
-                                QStringLiteral("%1 m")
-                                .arg(metadata.altitude, 0, 'f', 1)});
+                m_items.emplaceBack(tr("Latitude"),
+                                    QString::number(metadata.latitude, 'f', 6));
+                m_items.emplaceBack(tr("Longitude"),
+                                    QString::number(metadata.longitude, 'f', 6));
+                m_items.emplaceBack(tr("Altitude"),
+                                    QStringLiteral("%1 m")
+                                    .arg(metadata.altitude, 0, 'f', 1));
         }
 
         // Organization
-        m_items.append({tr("Organization"), {}, true});
-        m_items.append({tr("Rating"),
-                        QString::number(metadata.rating)});
-        m_items.append({tr("Tags"),
-                        QString::fromStdString(metadata.tags)});
+        m_items.emplaceBack(tr("Organization"), QString{}, true);
+        m_items.emplaceBack(tr("Rating"),
+                            QString::number(metadata.rating));
+        m_items.emplaceBack(tr("Tags"),
+                            QString::fromStdString(metadata.tags));
 
         // Description
-        m_items.append({tr("Description"), {}, true});
-        m_items.append({tr("Title"),
-                        QString::fromStdString(metadata.title)});
-        m_items.append({tr("Description"),
-                        QString::fromStdString(metadata.description)});
-        m_items.append({tr("Author"),
-                        QString::fromStdString(metadata.author)});
-        m_items.append({tr("License"),
-                        QString::fromStdString(metadata.license)});
+        m_items.emplaceBack(tr("Description"), QString{}, true);
+        m_items.emplaceBack(tr("Title"),
+                            QString::fromStdString(metadata.title));
+        m_items.emplaceBack(tr("Description"),
+                            QString::fromStdString(metadata.description));
+        m_items.emplaceBack(tr("Author"),
+                            QString::fromStdString(metadata.author));
+        m_items.emplaceBack(tr("License"),
+                            QString::fromStdString(metadata.license));
 
         // Technical
-        m_items.append({tr("Technical"), {}, true});
-        m_items.append({tr("Bit depth"),
-                        metadata.bitDepth > 0
-                        ? QString::number(metadata.bitDepth)
-                        : QString()});
-        m_items.append({tr("Color space"),
-                        QString::fromStdString(metadata.colorSpace)});
-        m_items.append({tr("Orientation"),
-                        QString::number(metadata.orientation)});
-        m_items.append({tr("EXIF"),
-                        metadata.hasExif ? tr("Yes") : tr("No")});
+        m_items.emplaceBack(tr("Technical"), QString{}, true);
+        m_items.emplaceBack(tr("Bit depth"),
+                            metadata.bitDepth > 0
+                            ? QString::number(metadata.bitDepth)
+                            : QString{});
+        m_items.emplaceBack(tr("Color space"),
+                            QString::fromStdString(metadata.colorSpace));
+        m_items.emplaceBack(tr("Orientation"),
+                            QString::number(metadata.orientation));
+        m_items.emplaceBack(tr("EXIF"),
+                            metadata.hasExif ? tr("Yes") : tr("No"));
+}
+
+QString NfPhotoMetadataModel::formatFileSize(std::uint64_t size)
+{
+        if (size < 1024)
+                return QStringLiteral("%1 B").arg(size);
+
+        if (size < 1024 * 1024)
+                return QStringLiteral("%1 KB")
+                        .arg(size / 1024.0, 0, 'f', 1);
+
+        if (size < 1024ULL * 1024 * 1024)
+                return QStringLiteral("%1 MB")
+                        .arg(size / (1024.0 * 1024.0), 0, 'f', 1);
+
+        return QStringLiteral("%1 GB")
+                .arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 2);
+}
+
+QString NfPhotoMetadataModel::formatDate(const std::chrono::system_clock::time_point& date)
+{
+        if (date == std::chrono::system_clock::time_point{})
+                return {};
+
+        const auto time = std::chrono::system_clock::to_time_t(date);
+        const auto localTime = QDateTime::fromSecsSinceEpoch(time);
+
+        return localTime.toString(QStringLiteral("yyyy-MM-dd hh:mm:ss"));
+}
+
+QString NfPhotoMetadataModel::formatShutterSpeed(double seconds)
+{
+        if (seconds <= 0.0)
+                return {};
+
+        if (seconds >= 1.0)
+                return QStringLiteral("%1 s")
+                        .arg(seconds, 0, 'f', seconds < 10.0 ? 1 : 0);
+
+        const auto denominator = std::round(1.0 / seconds);
+
+        return QStringLiteral("1/%1 s")
+                .arg(static_cast<int>(denominator));
 }
 
 } // namespace NfDesktop

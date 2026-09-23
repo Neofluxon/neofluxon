@@ -67,7 +67,7 @@ const NfPhotoSource& NfPhotoLoader::getSource() const
         return m_source;
 }
 
-void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequest request)
+void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequestType request)
 {
         std::scoped_lock lock(m_mutex);
         auto priority = NfRequestUtils::getTaskPriority(request);
@@ -88,7 +88,7 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequest request)
                 if (!thumbnailTask)
                         return;
 
-                const photoId = thumbnailTask->photoId();
+                const auto photoId = thumbnailTask->getPhoto().id();
                 if (status != NfTask::TaskStatus::Success) {
                         std::scoped_lock lock(m_mutex);
                         m_pendingThumbnailTasks.erase(photoId);
@@ -108,11 +108,8 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequest request)
                 auto thumbnail = thumbnailTask->takeThumbnail();
                 m_thumbnailsCache->add(photoId, thumbnail->releaseImage());
 
-                auto request = requestTypeToPriority(RequestType::Visible);
                 std::scoped_lock lock(m_mutex);
-                if (thumbnailTask->priority() == static_cast<int>(request))
-                        m_thumbnailsQueue.push_back(photoId);
-
+                m_thumbnailsQueue.push_back(photoId);
                 m_pendingThumbnailTasks.erase(photoId);
         });
 
@@ -120,39 +117,13 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequest request)
         m_scheduler->submit(std::move(task));
 }
 
-void NfPhotoLoader::requestPreview(const NfPhoto &photo, NfRequest request)
+void NfPhotoLoader::requestPreview(const NfPhoto &photo, NfRequestType request)
 {
         std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfPreviewTask>(photo);
         task->setGenerationId(m_generationId);
         task->setPriority(NfRequestUtils::getTaskPriority(request));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
-        task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
-        auto* previewTask = dynamic_cast<NfPreviewTask*>(result);
-        if (!previewTask)
-                return;
-
-        if (status != NfTask::TaskStatus::Success)
-                return;
-
-        const auto previewId = previewTask->photoId();
-
-        // Check if the preview belongs to the current generation.
-        // If not, ignore it.
-        {
-                std::scoped_lock lock(m_mutex);
-                if (previewTask->generationId() != m_generationId)
-                        return;
-        }
-
-        auto preview = previewTask->takePreview();
-        m_previewsCache->add(previewId, preview->releaseImage());
-
-        NF_LOG_DEBUG("push preview in the queue: " << previewId.value());
-
-        std::scoped_lock lock(m_mutex);
-        m_previewsQueue.push_back(previewId);
-});
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;

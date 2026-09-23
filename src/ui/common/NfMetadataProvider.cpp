@@ -33,6 +33,8 @@
 
 #include <QTimer>
 
+#include <utility>
+
 using namespace NfCore;
 
 namespace NfUi {
@@ -52,7 +54,7 @@ NfMetadataProvider::~NfMetadataProvider()
         NF_LOG_DEBUG("called");
 }
 
-void NfMetadataProvider::getMetadata(uint64_t requesterId, const NfPhoto &photo) const
+void NfMetadataProvider::getMetadata(const NfPhoto &photo) const
 {
         m_metadataLoader->requestMetadata(photo);
 }
@@ -64,13 +66,15 @@ void NfMetadataProvider::onTimeout()
 
 void NfPhotoProvider::processMetadata()
 {
-        auto metadataMap = m_photoLoader->takeMetadata();
-        if (metadataMap.empty())
+        auto metadataList = m_photoLoader->takeMetadata();
+        if (metadataList.empty())
                 return;
 
-        for (auto it = metadataMap.begin(); it != metadataMap.end(); ++it)
-                emit metadataUpdated(it->first, it->second);
+        for (const auto &metadata: metadataList) {
+                // TODO: optimize this to send updates only
+                // to a perticular requester.
+                emit metadataUpdated(metadata.first, metadata.second);
+        }
 }
-
 
 } // namespace NfUi

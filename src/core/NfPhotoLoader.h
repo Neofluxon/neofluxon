@@ -54,9 +54,9 @@ public:
         void setSource(const NfPhotoSource &source);
         const NfPhotoSource& getSource() const;
         void requestThumbnail(const NfPhoto &photo,
-                              NfRequest request = NfRequest::VisibleThumbnail);
+                              NfRequestType request = NfRequestType::VisibleThumbnail);
         void requestPreview(const NfPhoto &photo,
-                            NfRequest request = RequestType::SelectedPreview);
+                            NfRequestType request = NfRequestType::SelectedPreview);
         std::vector<NfPhoto> takePhotos();
         std::vector<NfPhotoId> takeThumbnails();
         std::vector<NfPhotoId> takePreviews();

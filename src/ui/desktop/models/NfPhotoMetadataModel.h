@@ -30,18 +30,19 @@
 #include <QString>
 #include <QVector>
 
+#include <chrono>
+
+namespace NfCore {
+class NfPhotoId;
+class NfPhotoMetadata;
+}
+
 namespace NfUi {
 class NfContext;
 class NfPhotoProvider;
 }
 
 namespace NfDesktop {
-
-struct NfMetadataItem {
-        QString key;
-        QString value;
-        bool isHeader{false};
-};
 
 class NfPhotoMetadataModel : public QAbstractTableModel
 {
@@ -60,12 +61,35 @@ public:
                             Qt::Orientation orientation,
                             int role = Qt::DisplayRole) const override;
         void setPhoto(const NfCore::NfPhoto &photo);
-        void clear();
+
+protected slots:
+        void metadataUpdated(const NfCore::NfPhotoId &photoId,
+                             const NfCore::NfPhotoMetadata &metadata);
+
+protected:
+        void setupMetadata(const NfCore::NfPhotoMetadata& metadata);
+        static QString formatFileSize(std::uint64_t size);
+        static QString formatDate( const std::chrono::system_clock::time_point& date);
+        QString formatShutterSpeed(double seconds);
 
 private:
+
+        struct MetadataItem {
+                QString key;
+                QString value;
+                bool isHeader{false};
+                MetadataItem(QString key, QString value, bool isHeader = false)
+                        : key{std::move(key)}
+                        , value{std::move(value)}
+                        , isHeader{isHeader}
+                {
+                }
+        };
+
         NfUi::NfContext* m_context;
         NfUi::NfPhotoProvider *m_photoProvider;
         NfCore::NfPhoto m_photo;
+        QVector<MetadataItem> m_items;
 };
 
 } // namespace NfDesktop

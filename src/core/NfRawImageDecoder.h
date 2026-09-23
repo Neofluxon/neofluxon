@@ -29,7 +29,12 @@
 
 #include <libraw/libraw.h>
 
+#include <optional>
+#include <memory>
+
 namespace NfCore {
+
+class NfPhotoMetadata;
 
 class NfRawImageDecoder: public NfImageDecoder {
 public:

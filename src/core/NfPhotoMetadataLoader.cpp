@@ -69,11 +69,17 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo, NfRequest requ
 
                 std::scoped_lock lock(m_mutex);
                 m_pendingRequests.erase(metadataTask->photoId());
-                m_metadataQueue.insert(std::move(metadata));
+                m_metadataQueue.emplace_back(metadataTask->photoId(), std::move(metadata));
         });
 
         m_pendingRequests.insert(photo.id());
         m_scheduler->submit(std::move(task));
+}
+
+std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> takeMetadata()
+{
+        std::scoped_lock lock(m_mutex);
+        return std::move(m_metadataQueue);
 }
 
 } // namespace NfCore

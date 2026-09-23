@@ -28,6 +28,7 @@
 #include "NfPhoto.h"
 #include "NfPhotoMetadataExtractor.h"
 #include "NfLibraryQuery.h"
+#include "NfPhotoSummary.h"
 #include "NfLogger.h"
 
 #include <algorithm>
@@ -90,6 +91,9 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         NF_LOG_DEBUG("add photo: " << photo.path());
 
         auto info = NfPhotoMetadataExtractor(photo).summaryInfo();
+        if (!info) {
+                NF_LOG_ERROR("Failed extract photo info: " << photo.path());
+        }
 
         NfLibraryDatabase::Transaction tx(m_db);
         auto folderId = m_db->addFolder(photo.path().parent_path(), id());
@@ -100,15 +104,15 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
 
         NF_LOG_DEBUG("folder id: " << folderId);
 
-        int cameraId = storeCamera(info.cameraMaker, info.cameraModel);
-        int lensId   = storeLens(info.lens);
+        int cameraId = storeCamera(info->cameraMaker, info->cameraModel);
+        int lensId   = storeLens(info->lens);
 
         if (cameraId == -2 || lensId == -2)
                 return;
 
         auto id = m_db->addImage(folderId,
                                  photo.name(),
-                                 info.dateTaken.time_since_epoch().count(),
+                                 info->dateTaken.time_since_epoch().count(),
                                  cameraId,
                                  lensId);
         if (id < 0) {

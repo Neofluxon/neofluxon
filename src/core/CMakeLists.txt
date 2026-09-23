@@ -19,6 +19,7 @@ set(CORE_HEADERS
         NfThreadAllocationManager.h
         NeofluxonCore.h
         Neofluxon.h
+        NfRequest.h
         NfCache.h
         NfThreadPool.h
         NfImageData.h

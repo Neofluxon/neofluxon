@@ -24,7 +24,7 @@
 #include "NfImageMetadataPanel.h"
 #include "NfScrollStack.h"
 #include "NfCollapsibleSection.h"
-#include "NfImageMetadataModel.h"
+#include "NfPhotoMetadataModel.h"
 #include "NfMetadataSectionWidget.h"
 #include "NfContext.h"
 
@@ -38,7 +38,7 @@ NfImageMetadataPanel::NfImageMetadataPanel(NfContext *ctx,
                                            QWidget* parent)
         : QWidget(parent)
         , m_context{ctx}
-        , m_model{new NfImageMetadataModel(m_context, this)}
+        , m_model{new NfPhotoMetadataModel(m_context, this)}
         , m_scrollStack{new NfScrollStack(parent)}
 {
         setupUi();

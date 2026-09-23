@@ -23,6 +23,7 @@
 
 #include "NfRawImageDecoder.h"
 #include "NfLogger.h"
+#include "NfPhotoMetadata.h"
 
 #include <filesystem>
 

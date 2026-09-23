@@ -27,7 +27,7 @@
 #include "core/NfPhoto.h"
 #include "core/NfPhotoId.h"
 #include "core/NfPhotoSource.h"
-#include "core/NfPhotoMetadata.h"
+#include "core/NfRequest.h"
 
 #include <QObject>
 #include <QPixmap>
@@ -61,16 +61,17 @@ public:
 
         void setSource(const NfCore::NfPhotoSource &source);
         const NfCore::NfPhotoSource& getSource() const;
-        QPixmap getThumbnail(const NfCore::NfPhoto &photo) const;
-        QPixmap getPreview(const NfCore::NfPhoto &photo) const;
+        QPixmap getThumbnail(const NfCore::NfPhoto &photo,
+                             NfCore::NfRequestType request = NfCore::NfRequestType::VisibleThumbnail) const;
+        QPixmap getPreview(const NfCore::NfPhoto &photo,
+                           NfCore::NfRequestType request = NfCore::NfRequestType::VisibleThumbnail) const;
         void prefetchThumbnail(const NfCore::NfPhoto &photo);
-        NfCore::NfPhotoMetadata getMetadata(const NfCore::NfPhoto &photo) const;
+        void prefetchPreview(const NfCore::NfPhoto &photo);
 
 signals:
         void photosLoaded(const std::vector<NfCore::NfPhoto>& photos);
         void thumbnailsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
         void previewsLoaded(const std::vector<NfCore::NfPhotoId>& ids);
-        void metadataLoaded(const NfCore::NfPhotoMetadata &metadata);
 
 private slots:
         void onTimeout();

@@ -69,7 +69,8 @@ const NfPhotoSource& NfPhotoProvider::getSource() const
         return m_source;
 }
 
-QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
+QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo,
+                                      NfRequestType request) const
 {
         auto* pixmapImage = m_thumbnailPixmapCache.object(photo.id().value());
         if (pixmapImage)
@@ -91,36 +92,18 @@ QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo) const
                 return *pixmapImage;
         }
 
-        m_photoLoader->requestThumbnail(photo);
+        m_photoLoader->requestThumbnail(photo, request);
 
         return m_thumbnailPlaceholder;
 }
 
 void NfPhotoProvider::prefetchThumbnail(const NfPhoto &photo)
 {
-        auto* pixmapImage = m_thumbnailPixmapCache.object(photo.id().value());
-        if (pixmapImage)
-                return;
-
-        auto cacheImage = m_thumbnailCache->get(photo.id());
-        if (cacheImage) {
-                auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
-                cacheImage.reset();
-
-                auto size = NfQPixmap::estimateSizeBytes(pixmap.get());
-                pixmapImage = pixmap.release();
-
-                // Pixmap cache is called only from the GUI thread
-                m_thumbnailPixmapCache.insert(photo.id().value(),
-                                              pixmapImage,
-                                              size);
-                return;
-        }
-
-        m_photoLoader->requestThumbnail(photo, NfPhotoLoader::RequestType::Prefetch);
+        getThumbnail(photo, NfRequestType::PrefetchThumbnail);
 }
 
-QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo) const
+QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo,
+                                    NfRequestType request) const
 {
         auto* pixmapImage = m_previewPixmapCache.object(photo.id().value());
         if (pixmapImage)
@@ -142,9 +125,14 @@ QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo) const
                 return *pixmapImage;
         }
 
-        m_photoLoader->requestPreview(photo);
+        m_photoLoader->requestPreview(photo, request);
 
         return m_previewPlaceholder;
+}
+
+void NfPhotoProvider::prefetchPreview(const NfPhoto &photo)
+{
+        getPreview(photo, NfRequestType::PrefetchPreview);
 }
 
 void NfPhotoProvider::onTimeout()
@@ -152,7 +140,6 @@ void NfPhotoProvider::onTimeout()
         processNewPhotos();
         processThumbnails();
         processPreviews();
-        processMetadata();
 }
 
 void NfPhotoProvider::processNewPhotos()
@@ -176,13 +163,6 @@ void NfPhotoProvider::processPreviews()
         auto previews = m_photoLoader->takePreviews();
         if (!previews.empty())
                 emit previewsLoaded(previews);
-}
-
-void NfPhotoProvider::processMetadata()
-{
-        auto metadata = m_photoLoader->takeMetadata();
-        if (!metadata.empty())
-                emit metadatatUpdated(...);
 }
 
 } // namespace NfUi

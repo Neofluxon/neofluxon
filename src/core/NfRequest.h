@@ -44,22 +44,23 @@ enum class NfRequestType : int {
 };
 
 namespace NfRequestUtils {
-constexpr NfTask::Priority getTaskPriority(RequestType type)
+constexpr NfTask::Priority getTaskPriority(NfRequestType type)
 {
         switch (type) {
-        case RequestType::SelectedMetadata:
-        case RequestType::SelectedPreview:
+        case NfRequestType::SelectedMetadata:
+        case NfRequestType::SelectedPreview:
                 return NfTask::Priority::Critical;
-        case RequestType::VisibleThumbnail:
+        case NfRequestType::VisibleThumbnail:
                 return NfTask::Priority::Immediate;
-        case RequestType::PrefetchThumbnail:
-        case RequestType::PrefetchPreview:
-        case RequestType::PrefetchMetadata:
+        case NfRequestType::PrefetchThumbnail:
+        case NfRequestType::PrefetchPreview:
+        case NfRequestType::PrefetchMetadata:
                 return NfTask::Priority::High;
         default:
                 return NfTask::Priority::Normal;
         }
 }
+} // namespace NfRequestUtils
 
 } // namespace NfCore
 

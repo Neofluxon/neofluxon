@@ -23,6 +23,7 @@
 
 #include "NfPhotoMetadataExtractor.h"
 #include "NfImageDecoderFactory.h"
+#include "NfImageDecoder.h"
 
 #include <chrono>
 #include <filesystem>
@@ -43,7 +44,7 @@ std::optional<NfPhotoSummary> NfPhotoMetadataExtractor::summaryInfo() const
                 info.dateTaken = std::chrono::clock_cast<std::chrono::system_clock>(ftime);
         }
         catch (...) {
-                return;
+                return std::nullopt;
         }
 
         return info;
@@ -54,7 +55,9 @@ std::optional<NfPhotoMetadata> NfPhotoMetadataExtractor::metadata() const
         auto decoder = NfImageDecoderFactory::createDecoder(m_photo);
         if (decoder)
                 return decoder->metadata();
+
+        return std::nullopt;
 }
 
-// namespace NfCore
+} // namespace NfCore
 

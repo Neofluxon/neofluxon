@@ -33,12 +33,11 @@
 #include "NfPhotoMetadataLoaderContext.h"
 #include "NfRequest.h"
 
-#include <filesystem>
 #include <vector>
-#include <memory>
 #include <cstdint>
-#include <unordered_map>
 #include <mutex>
+#include <utility>
+#include <unordered_set>
 
 namespace NfCore {
 
@@ -52,7 +51,7 @@ public:
         ~NfPhotoMetadataLoader();
         void requestMetadata(const NfPhoto &photo,
                              NfRequest request = NfRequest::SelectedMetadata);
-        std::vector<NfPhotoMetadata> takeMetadata();
+        std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> takeMetadata();
 
  protected:
 
@@ -61,7 +60,7 @@ public:
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;
         std::mutex m_mutex;
-        std::vector<NfPhotoId> m_metadataQueue;
+        std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> m_metadataQueue;
         std::unordered_set<NfPhotoId> m_requests;
 };
 

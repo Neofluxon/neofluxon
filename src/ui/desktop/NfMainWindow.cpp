@@ -29,6 +29,7 @@
 #include "NfStyledWidget.h"
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
+#include "NfMetadataProvider.h"
 #include "core/NeofluxonCore.h"
 
 #include <QFrame>
@@ -48,6 +49,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         setWindowTitle("Neofluxon");
 
         m_context->library = new NfLibraryAdapter(m_context->core()->libraryManger(), this);
+        m_context->metadataProvider = new NfMetadataProvider(m_context->core(), this);
 
         resize(1400, 800);
         setGeometry(200, 200, 1400, 800);

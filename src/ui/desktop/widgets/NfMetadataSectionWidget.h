@@ -32,22 +32,22 @@ class QTableView;
 
 namespace NfDesktop {
 
-class NfImageMetadataModel;
+class NfPhotoMetadataModel;
 
 class NfMetadataSectionWidget : public QWidget
 {
         Q_OBJECT
 
 public:
-        explicit NfMetadataSectionWidget(NfImageMetadataModel *model,
+        explicit NfMetadataSectionWidget(NfPhotoMetadataModel *model,
                                          const QSet<QString>& allowedKeys,
                                          QWidget* parent = nullptr);
-        void setModel(NfImageMetadataModel* model);
+        void setModel(NfPhotoMetadataModel* model);
 
 private:
     void setupUi();
 
-    NfImageMetadataModel* m_model{nullptr};
+    NfPhotoMetadataModel* m_model{nullptr};
     QSet<QString> m_allowedKeys;
     QTableView* m_tableView{nullptr};
 };

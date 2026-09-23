@@ -22,7 +22,7 @@
  */
 
 #include "NfMetadataSectionWidget.h"
-#include "NfImageMetadataModel.h"
+#include "NfPhotoMetadataModel.h"
 #include "NfMetadataFilterProxy.h"
 
 #include <QVBoxLayout>
@@ -31,7 +31,7 @@
 
 namespace NfDesktop {
 
-NfMetadataSectionWidget::NfMetadataSectionWidget(NfImageMetadataModel* model,
+NfMetadataSectionWidget::NfMetadataSectionWidget(NfPhotoMetadataModel* model,
                                                  const QSet<QString>& allowedKeys,
                                                  QWidget* parent)
         : QWidget(parent)
@@ -41,7 +41,7 @@ NfMetadataSectionWidget::NfMetadataSectionWidget(NfImageMetadataModel* model,
         setModel(model);
 }
 
-void NfMetadataSectionWidget::setModel(NfImageMetadataModel* model)
+void NfMetadataSectionWidget::setModel(NfPhotoMetadataModel* model)
 {
         m_model = model;
         if (!m_model) {
