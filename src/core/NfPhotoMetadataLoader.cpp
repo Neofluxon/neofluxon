@@ -22,12 +22,7 @@
  */
 
 #include "NfPhotoMetadataLoader.h"
-#include "NfCache.h"
-#include "NfPhotoScanner.h"
 #include "NfScheduler.h"
-#include "NfImage.h"
-#include "NfThumbnailTask.h"
-#include "NfPreviewTask.h"
 #include "NfLogger.h"
 
 namespace NfCore {
@@ -35,9 +30,6 @@ namespace NfCore {
 NfPhotoMetadataLoader::NfPhotoMetadataLoader(NfPhotoMetadataLoaderContext ctx)
         : m_context {std::move(ctx)}
         , m_scheduler{m_context.scheduler}
-        , m_thumbnailsCache{m_context.thumbnailCache}
-        , m_previewsCache{m_context.previewCache}
-        , m_generationId{0}
 {
 }
 
@@ -46,7 +38,8 @@ NfPhotoMetadataLoader::~NfPhotoMetadataLoader()
         NF_LOG_DEBUG("called");
 }
 
-void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo, NfRequest request)
+void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo,
+                                            NfRequestType request)
 {
         std::scoped_lock lock(m_mutex);
 
@@ -57,7 +50,7 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo, NfRequest requ
         task->setPriority(NfRequestUtils::getTaskPriority(request));
 
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
-                auto* metadataTask = dynamic_cast<NfMetadataTask*>(result);
+                auto* metadataTask = dynamic_cast<NfPhotoMetadataTask*>(result);
                 if (!metadataTask)
                         return;
 
@@ -69,14 +62,24 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo, NfRequest requ
 
                 std::scoped_lock lock(m_mutex);
                 m_pendingRequests.erase(metadataTask->photoId());
-                m_metadataQueue.emplace_back(metadataTask->photoId(), std::move(metadata));
+                auto metadata = metadataTask->takeMetadata();
+                if (!metadata)
+                        return;
+
+                NF_LOG_DEBUG("metadata ready for photo id: "
+                             << metadataTask->photoId().value());
+                m_metadataQueue.emplace_back(metadataTask->photoId(),
+                                             std::move(*metadata));
         });
 
         m_pendingRequests.insert(photo.id());
         m_scheduler->submit(std::move(task));
+
+        NF_LOG_DEBUG("metadata task submitted for photo: " << photo.path().string());
 }
 
-std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> takeMetadata()
+std::vector<std::pair<NfPhotoId, NfPhotoMetadata>>
+NfPhotoMetadataLoader::takeMetadata()
 {
         std::scoped_lock lock(m_mutex);
         return std::move(m_metadataQueue);

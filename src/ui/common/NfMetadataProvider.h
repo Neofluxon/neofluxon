@@ -31,6 +31,7 @@
 #include <QObject>
 
 #include <cstdint>
+#include <vector>
 
 namespace NfCore {
 class NeofluxonCore;

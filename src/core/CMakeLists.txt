@@ -42,6 +42,8 @@ set(CORE_HEADERS
         NfDirectoryIterator.h
         NfPhotoDirectoryIterator.h
         NfPhotoLoader.h
+        NfPhotoMetadataLoader.h
+        NfPhotoMetadataTask.h
         NfPngImageDecoder.h
         NfPreview.h
         NfPreviewTask.h
@@ -84,6 +86,8 @@ set(CORE_SOURCES
         NfDirectoryIterator.cpp
         NfPhotoDirectoryIterator.cpp
         NfPhotoLoader.cpp
+        NfPhotoMetadataLoader.cpp
+        NfPhotoMetadataTask.cpp
         NfPngImageDecoder.cpp
         NfPreview.cpp
         NfPreviewTask.cpp

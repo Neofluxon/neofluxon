@@ -23,6 +23,8 @@
 
 #include "NfUiBrowserState.h"
 
+using namespace NfCore;
+
 namespace NfUi {
 
 NfUiBrowserState::NfUiBrowserState(QObject* parent)
@@ -43,6 +45,17 @@ void NfUiBrowserState::setViewMode(ViewMode mode)
 
         m_viewMode = mode;
         emit viewModeChanged(m_viewMode);
+}
+
+void NfUiBrowserState::setCurrentPhoto(const NfPhoto& photo)
+{
+        m_photo = photo;
+        emit currentPhotoChanged(m_photo);
+}
+
+const NfPhoto& NfUiBrowserState::currentPhoto() const
+{
+        return m_photo;
 }
 
 } // namespace NfUi

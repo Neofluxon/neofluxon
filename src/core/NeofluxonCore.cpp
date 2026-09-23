@@ -24,6 +24,7 @@
 #include "NeofluxonCore.h"
 #include "NfPhotoLoaderContext.h"
 #include "NfPhotoLoader.h"
+#include "NfPhotoMetadataLoader.h"
 #include "NfLibraryManager.h"
 #include "NfCache.h"
 #include "NfScheduler.h"
@@ -47,6 +48,11 @@ NeofluxonCore::NeofluxonCore()
                         .previewCache = m_previewCache.get(),
                         .scheduler = m_foregroundScheduler.get(),
                         .libraryManager = m_libraryManager.get()})}
+        , m_metadataLoader{std::make_unique<NfPhotoMetadataLoader>(NfPhotoMetadataLoaderContext{
+                        .thumbnailCache = m_thumbnailCache.get(),
+                        .previewCache = m_previewCache.get(),
+                        .scheduler = m_foregroundScheduler.get(),
+                        .libraryManager = m_libraryManager.get()})}
 {
         NF_LOG_DEBUG("called");
 }
@@ -59,6 +65,11 @@ NeofluxonCore::~NeofluxonCore()
 NfPhotoLoader* NeofluxonCore::photoLoader() const
 {
         return m_photoLoader.get();
+}
+
+NfPhotoMetadataLoader* NeofluxonCore::metadataLoader() const
+{
+        return m_metadataLoader.get();
 }
 
 NfLibraryManager* NeofluxonCore::libraryManger() const

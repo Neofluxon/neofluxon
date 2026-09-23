@@ -28,6 +28,7 @@
 #include "core/NfThumbnail.h"
 #include "core/NfLogger.h"
 #include "core/NeofluxonCore.h"
+#include "core/NfPhotoMetadataLoader.h"
 #include "core/NfImage.h"
 #include "NfQPixmap.h"
 
@@ -64,15 +65,16 @@ void NfMetadataProvider::onTimeout()
         processMetadata();
 }
 
-void NfPhotoProvider::processMetadata()
+void NfMetadataProvider::processMetadata()
 {
-        auto metadataList = m_photoLoader->takeMetadata();
+        auto metadataList = m_metadataLoader->takeMetadata();
         if (metadataList.empty())
                 return;
 
         for (const auto &metadata: metadataList) {
                 // TODO: optimize this to send updates only
                 // to a perticular requester.
+                NF_LOG_DEBUG("emit metadata");
                 emit metadataUpdated(metadata.first, metadata.second);
         }
 }

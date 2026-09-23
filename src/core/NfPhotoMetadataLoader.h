@@ -26,11 +26,11 @@
 
 #include "NfPhoto.h"
 #include "NfPhotoId.h"
-#include "NfThumbnail.h"
-#include "NfPreview.h"
+#include "NfPhotoMetadata.h"
+#include "NfPhotoMetadataTask.h"
 #include "NfTask.h"
 #include "NfPhotoSource.h"
-#include "NfPhotoMetadataLoaderContext.h"
+#include "NfPhotoLoaderContext.h"
 #include "NfRequest.h"
 
 #include <vector>
@@ -45,24 +45,25 @@ class NfScheduler;
 class NfImage;
 class NfCache;
 
+using NfPhotoMetadataLoaderContext = NfPhotoLoaderContext;
+
 class NfPhotoMetadataLoader {
 public:
         NfPhotoMetadataLoader(NfPhotoMetadataLoaderContext ctx);
         ~NfPhotoMetadataLoader();
         void requestMetadata(const NfPhoto &photo,
-                             NfRequest request = NfRequest::SelectedMetadata);
+                             NfRequestType request = NfRequestType::SelectedMetadata);
         std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> takeMetadata();
 
  protected:
 
  private:
-        NfScheduler* m_scheduler;
-        NfCache* m_thumbnailsCache;
-        NfCache* m_previewsCache;
-        std::mutex m_mutex;
-        std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> m_metadataQueue;
-        std::unordered_set<NfPhotoId> m_requests;
-};
+         NfPhotoMetadataLoaderContext m_context;
+         NfScheduler* m_scheduler;
+         std::mutex m_mutex;
+         std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> m_metadataQueue;
+         std::unordered_set<NfPhotoId> m_pendingRequests;
+ };
 
 } // namespace NfCore
 

@@ -49,12 +49,9 @@ NfThumbnailsView::NfThumbnailsView(QWidget* parent)
                          &NfThumbnailsView::onScrollChanged);
 
         setMouseTracking(true);
-
         setSelectionMode(QAbstractItemView::SingleSelection);
-
         setUniformItemSizes(true);
         setSpacing(0);
-
         setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
         updateLayout();

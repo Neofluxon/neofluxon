@@ -44,6 +44,7 @@ public:
         ~NfPhotoMetadataTask();
         TaskStatus execute() override;
         std::unique_ptr<NfPhotoMetadata> takeMetadata();
+        NfPhotoId photoId() const;
 
 private:
         NfPhoto m_photo;

@@ -24,6 +24,8 @@
 #ifndef NF_UI_BROWSER_STATE_H
 #define NF_UI_BROWSER_STATE_H
 
+#include "core/NfPhoto.h"
+
 #include <QObject>
 
 namespace NfUi {
@@ -40,15 +42,19 @@ public:
 
         explicit NfUiBrowserState(QObject* parent = nullptr);
         ViewMode viewMode() const;
+        void setCurrentPhoto(const NfCore::NfPhoto& photo);
+        const NfCore::NfPhoto& currentPhoto() const;
 
 signals:
         void viewModeChanged(ViewMode mode);
+        void currentPhotoChanged(const NfCore::NfPhoto& photo);
 
 public slots:
         void setViewMode(ViewMode mode);
 
 private:
         ViewMode m_viewMode;
+        NfCore::NfPhoto m_photo;
 };
 } // namespace NfUi
 

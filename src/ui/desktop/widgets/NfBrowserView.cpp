@@ -26,6 +26,7 @@
 #include "NfBrowserModel.h"
 #include "NfThumbnailsView.h"
 #include "NfPhotoPreviewView.h"
+#include "core/NfLogger.h"
 
 #include <QVBoxLayout>
 #include <QKeyEvent>
@@ -56,6 +57,17 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
         QObject::connect(m_thumbnailsView, &QListView::doubleClicked,
                          [this](const QModelIndex &index) {
                                  m_state->setViewMode(NfUiBrowserState::ViewMode::Preview);
+                         });
+
+        QObject::connect(m_thumbnailsView->selectionModel(),
+                         &QItemSelectionModel::currentChanged,
+                         this,
+                         [this](const QModelIndex& current, const QModelIndex&) {
+                                 if (!current.isValid())
+                                         return;
+
+                                 auto data = m_model->data(current, NfBrowserModel::PhotoRole);
+                                 m_state->setCurrentPhoto(data.value<NfPhoto>());
                          });
 
         updateView();

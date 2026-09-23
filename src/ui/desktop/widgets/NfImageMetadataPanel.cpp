@@ -54,11 +54,11 @@ void NfImageMetadataPanel::setupUi()
 
         auto* section = new NfCollapsibleSection(tr("Image"));
         auto sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                         {tr("Name:"),
-                                                          tr("Dimensions:"),
-                                                          tr("Size:"),
-                                                          tr("Format:"),
-                                                          tr("Path:")});
+                                                         {tr("Name"),
+                                                          tr("Dimensions"),
+                                                          tr("Size"),
+                                                          tr("Format"),
+                                                          tr("Path")});
         section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 

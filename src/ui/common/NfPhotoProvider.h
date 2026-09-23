@@ -43,11 +43,6 @@ class NfPhotoLoader;
 class NfCache;
 }
 
-Q_DECLARE_METATYPE(NfCore::NfPhoto)
-Q_DECLARE_METATYPE(NfCore::NfPhotoId)
-Q_DECLARE_METATYPE(std::vector<NfCore::NfPhoto>)
-Q_DECLARE_METATYPE(std::vector<NfCore::NfPhotoId>)
-
 namespace NfUi {
 
 class NfPhotoProvider : public QObject

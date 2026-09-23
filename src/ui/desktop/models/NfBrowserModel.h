@@ -30,6 +30,11 @@
 
 #include <QAbstractListModel>
 
+Q_DECLARE_METATYPE(NfCore::NfPhoto)
+Q_DECLARE_METATYPE(NfCore::NfPhotoId)
+Q_DECLARE_METATYPE(std::vector<NfCore::NfPhoto>)
+Q_DECLARE_METATYPE(std::vector<NfCore::NfPhotoId>)
+
 namespace NfUi {
 struct NfContext;
 class NfPhotoProvider;
@@ -47,7 +52,8 @@ class NfBrowserModel : public QAbstractListModel
 public:
         enum ImageDataRole {
                 ThumbnailRole = Qt::DecorationRole,
-                PreviewRole = Qt::UserRole + 1
+                PreviewRole = Qt::UserRole + 1,
+                PhotoRole = PreviewRole + 1
         };
 
         explicit NfBrowserModel(NfContext *ctx,

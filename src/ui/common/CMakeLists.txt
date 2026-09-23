@@ -10,6 +10,7 @@ set(COMMON_HEADERS
     state/NfUiState.h
     NfPhotoProvider.h
     NfLibraryAdapter.h
+    NfMetadataProvider.h
 )
 
 set(COMMON_SOURCES
@@ -21,6 +22,7 @@ set(COMMON_SOURCES
     state/NfUiState.cpp
     NfPhotoProvider.cpp
     NfLibraryAdapter.cpp
+    NfMetadataProvider.cpp
 )
 
 add_library(NfCommonUi STATIC

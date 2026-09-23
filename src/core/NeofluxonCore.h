@@ -31,6 +31,7 @@
 namespace NfCore {
 
 class NfPhotoLoader;
+class NfPhotoMetadataLoader;
 class NfCache;
 class NfScheduler;
 class NfThreadPool;
@@ -46,6 +47,7 @@ public:
         NeofluxonCore& operator=(NeofluxonCore&&) noexcept = default;
 
         NfPhotoLoader* photoLoader() const;
+        NfPhotoMetadataLoader* metadataLoader() const;
         NfLibraryManager* libraryManger() const;
         NfCache* thumbnailCache() const;
         NfCache* previewCache() const;
@@ -60,6 +62,7 @@ private:
         std::unique_ptr<NfThreadPool> m_backgroundThreadPool;
         std::unique_ptr<NfLibraryManager> m_libraryManager;
         std::unique_ptr<NfPhotoLoader> m_photoLoader;
+        std::unique_ptr<NfPhotoMetadataLoader> m_metadataLoader;
 };
 
 } // namespace NfCore

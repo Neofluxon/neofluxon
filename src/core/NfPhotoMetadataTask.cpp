@@ -44,7 +44,7 @@ NfPhotoMetadataTask::TaskStatus NfPhotoMetadataTask::execute()
 
         NfPhotoMetadataExtractor extractor(m_photo);
         auto metadata = extractor.metadata();
-        if (!m_metadata) {
+        if (!metadata) {
                 NF_LOG_ERROR("can't extract metadata for : " << m_photo.path());
                 return TaskStatus::Failed;
         }
@@ -54,9 +54,14 @@ NfPhotoMetadataTask::TaskStatus NfPhotoMetadataTask::execute()
         return TaskStatus::Success;
 }
 
-std::unique_ptr<NfPhotoMetadata> NfPhotoMetadataTask::takeThumbnail()
+std::unique_ptr<NfPhotoMetadata> NfPhotoMetadataTask::takeMetadata()
 {
         return std::move(m_metadata);
+}
+
+NfPhotoId NfPhotoMetadataTask::photoId() const
+{
+        return m_photo.id();
 }
 
 } // namespace NfCore

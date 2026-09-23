@@ -26,6 +26,11 @@
 #include "NfMetadataProvider.h"
 #include "NfPhotoId.h"
 #include "NfPhotoMetadata.h"
+#include "NfUiState.h"
+#include "NfUiFolderModeState.h"
+#include "NfUiLibraryModeState.h"
+#include "NfUiBrowserState.h"
+#include "core/NfLogger.h"
 
 #include <QDateTime>
 
@@ -42,6 +47,16 @@ NfPhotoMetadataModel::NfPhotoMetadataModel(NfContext* ctx, QObject* parent)
                          &NfMetadataProvider::metadataUpdated,
                          this,
                          &NfPhotoMetadataModel::metadataUpdated);
+
+        QObject::connect(m_context->uiState->folderModeState()->browser(),
+                         &NfUiBrowserState::currentPhotoChanged,
+                         this,
+                         &NfPhotoMetadataModel::setPhoto);
+
+        QObject::connect(m_context->uiState->libraryModeState()->browser(),
+                         &NfUiBrowserState::currentPhotoChanged,
+                         this,
+                         &NfPhotoMetadataModel::setPhoto);
 }
 
 int NfPhotoMetadataModel::rowCount(const QModelIndex& parent) const
@@ -101,14 +116,18 @@ void NfPhotoMetadataModel::setPhoto(const NfCore::NfPhoto &photo)
         if (m_photo.id() == photo.id())
                 return;
 
-        // TODO: implement metadata chache
+        NF_LOG_DEBUG("set photo: " << photo.path());
 
         m_photo = photo;
+        // TODO: implement metadata chache
+        m_context->metadataProvider->getMetadata(m_photo);
 }
 
 void NfPhotoMetadataModel::metadataUpdated(const NfPhotoId &photoId,
                                            const NfPhotoMetadata &metadata)
 {
+        NF_LOG_DEBUG("photoId: " << photoId.isValid());
+
         if (m_photo.id() != photoId)
                 return;
 
@@ -120,6 +139,8 @@ void NfPhotoMetadataModel::metadataUpdated(const NfPhotoId &photoId,
 void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata)
 {
         m_items.clear();
+
+        NF_LOG_DEBUG("photo name: " << m_photo.name());
 
         // File
         m_items.emplaceBack(tr("File"), QString{}, true);
