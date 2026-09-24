@@ -35,6 +35,7 @@ NfCollapsibleSection::NfCollapsibleSection(const QString& title, QWidget* parent
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         m_toggleButton = new QToolButton(this);
         m_toggleButton->setCheckable(true);
@@ -46,6 +47,7 @@ NfCollapsibleSection::NfCollapsibleSection(const QString& title, QWidget* parent
         m_toggleButton->setArrowType(Qt::RightArrow);
 
         m_contentFrame = new QFrame(this);
+        m_contentFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
         m_mainLayout->addWidget(m_toggleButton);
         m_mainLayout->addWidget(m_contentFrame);
         m_contentFrame->setVisible(false);

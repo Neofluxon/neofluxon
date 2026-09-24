@@ -1,5 +1,5 @@
 /**
- * File name: NfMetadataSectionWidget.h
+ * File name: NfMetadataItemDelegate.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,40 +21,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_METADATA_SECTION_WIDGET_H
-#define NF_METADATA_SECTION_WIDGET_H
+#ifndef NF_METADATA_ITEM_DELEGATE_H
+#define NF_METADATA_ITEM_DELEGATE_H
 
-#include <QWidget>
-#include <QSet>
-#include <QString>
+#include <QStyledItemDelegate>
 
-class QTableView;
-class QLabel;
+class QWidget;
 
 namespace NfDesktop {
 
-class NfPhotoMetadataModel;
-
-class NfMetadataSectionWidget : public QWidget
+class NfMetadataItemDelegate : public QStyledItemDelegate
 {
         Q_OBJECT
 
 public:
-        explicit NfMetadataSectionWidget(NfPhotoMetadataModel *model,
-                                         const QSet<QString>& allowedKeys,
-                                         QWidget* parent = nullptr);
-        void setModel(NfPhotoMetadataModel* model);
+        explicit NfMetadataItemDelegate(QWidget* styleSource,
+                                        QObject* parent = nullptr);
+
+        void paint(QPainter* painter,
+                   const QStyleOptionViewItem& option,
+                   const QModelIndex& index) const override;
 
 private:
-    void setupUi();
-
-    NfPhotoMetadataModel* m_model{nullptr};
-    QSet<QString> m_allowedKeys;
-    QTableView* m_tableView{nullptr};
-    QLabel* m_keyColorProbe{nullptr};
-    QLabel* m_valueColorProbe{nullptr};
+        QWidget* m_styleSource{nullptr};
 };
 
 } // namespace NfDesktop
 
-#endif // NF_METADATA_SECTION_WIDGET_H
+#endif // NF_METADATA_ITEM_DELEGATE_H

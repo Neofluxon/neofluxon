@@ -22,9 +22,11 @@
  */
 
 #include "NfMetadataSectionWidget.h"
+#include "NfMetadataItemDelegate.h"
 #include "NfPhotoMetadataModel.h"
 #include "NfMetadataFilterProxy.h"
 
+#include <QLabel>
 #include <QVBoxLayout>
 #include <QTableView>
 #include <QHeaderView>
@@ -52,10 +54,20 @@ void NfMetadataSectionWidget::setModel(NfPhotoMetadataModel* model)
         auto* proxy = new NfMetadataFilterProxy(m_allowedKeys, this);
         proxy->setSourceModel(m_model);
         m_tableView->setModel(proxy);
+        QObject::connect(proxy,
+                         &QAbstractItemModel::modelReset,
+                         m_tableView,
+                         [this] {
+                                 m_tableView->resizeRowsToContents();
+                                 m_tableView->updateGeometry();
+                         });
+        m_tableView->resizeRowsToContents();
+        m_tableView->updateGeometry();
 
         auto *header = m_tableView->horizontalHeader();
         header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         header->setSectionResizeMode(1, QHeaderView::Stretch);
+        m_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 void NfMetadataSectionWidget::setupUi()
@@ -63,12 +75,26 @@ void NfMetadataSectionWidget::setupUi()
         auto* layout = new QVBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);
 
+        m_keyColorProbe = new QLabel(this);
+        m_keyColorProbe->setObjectName(QStringLiteral("metadataKeyColorProbe"));
+        m_keyColorProbe->hide();
+
+        m_valueColorProbe = new QLabel(this);
+        m_valueColorProbe->setObjectName(QStringLiteral("metadataValueColorProbe"));
+        m_valueColorProbe->hide();
+
         m_tableView = new QTableView(this);
         m_tableView->horizontalHeader()->setVisible(false);
         m_tableView->verticalHeader()->setVisible(false);
+        m_tableView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+        m_tableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+        m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        m_tableView->setWordWrap(true);
+        m_tableView->setTextElideMode(Qt::ElideNone);
         m_tableView->setShowGrid(false);
         m_tableView->setSelectionMode(QAbstractItemView::NoSelection);
         m_tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        m_tableView->setItemDelegate(new NfMetadataItemDelegate(this, m_tableView));
 
         layout->addWidget(m_tableView);
 }

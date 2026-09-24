@@ -489,14 +489,15 @@ NfDesktop--NfCollapsibleSection QToolButton:focus {
     outline: none;
 }
 
-/* Column 0: Dimmer, muted labels */
-NfDesktop--NfMetadataSectionWidget  QTreeView::item:nth-child(0), QTreeView::item:selected:nth-child(0) {
+NfDesktop--NfMetadataSectionWidget QLabel#metadataKeyColorProbe {
     color: #8c93a2;
 }
 
-/* Column 1: Brighter values */
-NfDesktop--NfMetadataSectionWidget  QTreeView::item:nth-child(1), QTreeView::item:selected:nth-child(1) {
+NfDesktop--NfMetadataSectionWidget QLabel#metadataValueColorProbe {
     color: #ebf0f5;
 }
 
-
+NfDesktop--NfMetadataSectionWidget QTableView::item {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}

@@ -29,6 +29,7 @@ set(WIDGETS_HEADERS
     NfBrowserViewModeBar.h
     # NfBreadcrumbView.h
     NfImageMetadataPanel.h
+    NfMetadataItemDelegate.h
     NfMetadataSectionWidget.h
 )
 
@@ -63,6 +64,7 @@ set(WIDGETS_SOURCES
     NfBrowserViewModeBar.cpp
  #   NfBreadcrumbView.cpp
     NfImageMetadataPanel.cpp
+    NfMetadataItemDelegate.cpp
     NfMetadataSectionWidget.cpp
 )
 
