@@ -52,53 +52,78 @@ void NfImageMetadataPanel::setupUi()
 
         layout->addWidget(m_scrollStack);
 
+        // Image
         auto* section = new NfCollapsibleSection(tr("Image"));
         auto sectionWidget = new NfMetadataSectionWidget(m_model,
                                                          {tr("Name"),
-                                                          tr("Dimensions"),
+                                                          tr("Path"),
                                                           tr("Size"),
                                                           tr("Format"),
-                                                          tr("Path")});
+                                                          tr("Dimensions")});
         section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 
-        auto w = new QWidget;
-        w->setFixedHeight(200);
-        section = new NfCollapsibleSection(tr("Histogram"));
-        section->setContent(w);
-        m_scrollStack->addWidget(section);
-
+        // Capture section
         section = new NfCollapsibleSection(tr("Capture"));
-        w = new QWidget;
-        w->setFixedHeight(200);
-        section->setContent(w);
+        sectionWidget = new NfMetadataSectionWidget(m_model,
+                                                    {tr("Date taken"),
+                                                     tr("Camera maker"),
+                                                     tr("Camera model"),
+                                                     tr("Lens"),
+                                                     tr("ISO"),
+                                                     tr("Aperture"),
+                                                     tr("Shutter speed"),
+                                                     tr("Focal length")});
+        section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 
+        // Location section
         section = new NfCollapsibleSection(tr("Location"));
-        w = new QWidget;
-        w->setFixedHeight(200);
-        section->setContent(w);
+        sectionWidget = new NfMetadataSectionWidget(m_model,
+                                                    {tr("Latitude"),
+                                                     tr("Longitude"),
+                                                     tr("Altitude"),
+                                                     tr("GPS Timestamp"),
+                                                     tr("Positioning Method")});
+        section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 
-        w = new QWidget;
-        w->setFixedHeight(200);
-
+        // Organization section
         section = new NfCollapsibleSection(tr("Organization"));
-        section->setContent(w);
+        sectionWidget = new NfMetadataSectionWidget(m_model,
+                                                    {tr("Rating"),
+                                                     tr("Tags"),
+                                                     tr("Collections"),
+                                                     tr("Project")});
+        section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 
-        w = new QWidget;
-        w->setFixedHeight(200);
-
+        // Description section
         section = new NfCollapsibleSection(tr("Description"));
-        section->setContent(w);
+        sectionWidget = new NfMetadataSectionWidget(m_model,
+                                                    {tr("Title"),
+                                                     tr("Description"),
+                                                     tr("Author"),
+                                                     tr("Copyright"),
+                                                     tr("License"),
+                                                     tr("Keywords")});
+        section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 
-        w = new QWidget;
-        w->setFixedHeight(200);
-
+        // Technical section
         section = new NfCollapsibleSection(tr("Technical"));
-        section->setContent(w);
+        sectionWidget = new NfMetadataSectionWidget(m_model,
+                                                    {tr("Bit depth"),
+                                                     tr("Color space"),
+                                                     tr("Compression"),
+                                                     tr("Orientation"),
+                                                     tr("EXIF"),
+                                                     tr("IPTC"),
+                                                     tr("XMP"),
+                                                     tr("Software"),
+                                                     tr("Modification Date")});
+
+        section->setContent(sectionWidget);
         m_scrollStack->addWidget(section);
 }
 

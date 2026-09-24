@@ -489,4 +489,14 @@ NfDesktop--NfCollapsibleSection QToolButton:focus {
     outline: none;
 }
 
+/* Column 0: Dimmer, muted labels */
+NfDesktop--NfMetadataSectionWidget  QTreeView::item:nth-child(0), QTreeView::item:selected:nth-child(0) {
+    color: #8c93a2;
+}
+
+/* Column 1: Brighter values */
+NfDesktop--NfMetadataSectionWidget  QTreeView::item:nth-child(1), QTreeView::item:selected:nth-child(1) {
+    color: #ebf0f5;
+}
+
 

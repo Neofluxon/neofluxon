@@ -142,26 +142,21 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
 
         NF_LOG_DEBUG("photo name: " << m_photo.name());
 
-        // File
-        m_items.emplaceBack(tr("File"), QString{}, true);
+        // Image
         m_items.emplaceBack(tr("Name"),
                             QString::fromStdString(m_photo.name()));
         m_items.emplaceBack(tr("Path"),
                             QString::fromStdString(m_photo.path()));
         m_items.emplaceBack(tr("Size"),
                             formatFileSize(metadata.fileSize));
-
-        // Image
-        m_items.emplaceBack(tr("Image"), QString{}, true);
+        m_items.emplaceBack(tr("Format"),
+                            QString::fromStdString(metadata.format));
         m_items.emplaceBack(tr("Dimensions"),
                             QStringLiteral("%1 × %2")
                             .arg(metadata.width)
                             .arg(metadata.height));
-        m_items.emplaceBack(tr("Format"),
-                            QString::fromStdString(metadata.format));
 
         // Capture
-        m_items.emplaceBack(tr("Capture"), QString{}, true);
         m_items.emplaceBack(tr("Date taken"),
                             formatDate(metadata.dateTaken));
         m_items.emplaceBack(tr("Camera maker"),
@@ -188,7 +183,6 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
                             : QString{});
 
         // Location
-        m_items.emplaceBack(tr("Location"), QString{}, true);
         if (metadata.hasGps) {
                 m_items.emplaceBack(tr("Latitude"),
                                     QString::number(metadata.latitude, 'f', 6));
@@ -200,14 +194,12 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
         }
 
         // Organization
-        m_items.emplaceBack(tr("Organization"), QString{}, true);
         m_items.emplaceBack(tr("Rating"),
                             QString::number(metadata.rating));
         m_items.emplaceBack(tr("Tags"),
                             QString::fromStdString(metadata.tags));
 
         // Description
-        m_items.emplaceBack(tr("Description"), QString{}, true);
         m_items.emplaceBack(tr("Title"),
                             QString::fromStdString(metadata.title));
         m_items.emplaceBack(tr("Description"),
@@ -218,7 +210,6 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
                             QString::fromStdString(metadata.license));
 
         // Technical
-        m_items.emplaceBack(tr("Technical"), QString{}, true);
         m_items.emplaceBack(tr("Bit depth"),
                             metadata.bitDepth > 0
                             ? QString::number(metadata.bitDepth)
