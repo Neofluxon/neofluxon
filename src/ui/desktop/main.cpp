@@ -30,6 +30,10 @@
 #include "core/NfPhotoId.h"
 #include "core/NfPhoto.h"
 
+#include <QMessageBox>
+
+#include <cstdlib>
+#include <string>
 #include <vector>
 
 using namespace NfCore;
@@ -41,6 +45,14 @@ int main(int argc, char **argv)
         auto coreApp = std::make_unique<NeofluxonCore>();
 
         NfApplication app(coreApp.get(), argc, argv);
+
+        std::string initializationError;
+        if (!coreApp->initialize(initializationError)) {
+                QMessageBox::critical(nullptr,
+                                      "Neofluxon startup error",
+                                      QString::fromStdString(initializationError));
+                return EXIT_FAILURE;
+        }
 
         qRegisterMetaType<NfPhoto>("NfPhoto");
         qRegisterMetaType<NfPhotoId>("NfPhotoId");

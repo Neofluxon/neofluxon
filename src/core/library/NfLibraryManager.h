@@ -46,6 +46,7 @@ public:
         using FolderImportedCallback = std::function<void()>;
         NfLibraryManager(NfScheduler *scheduler);
         ~NfLibraryManager();
+        [[nodiscard]] bool initialize(std::string& errorMessage);
         std::vector<std::unique_ptr<NfLibrary>> libraries() const;
         void importPath(const std::filesystem::path& path, uint64_t libraryId);
         std::optional<std::unique_ptr<NfLibrary>> addLibrary(std::string_view name);

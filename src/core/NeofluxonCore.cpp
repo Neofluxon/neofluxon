@@ -22,6 +22,7 @@
  */
 
 #include "NeofluxonCore.h"
+#include "NfThreadAllocationManager.h"
 #include "NfPhotoLoaderContext.h"
 #include "NfPhotoLoader.h"
 #include "NfPhotoMetadataLoader.h"
@@ -31,28 +32,14 @@
 #include "NfThreadPool.h"
 #include "NfLogger.h"
 
+#include <array>
+#include <exception>
+#include <filesystem>
+#include <system_error>
+
 namespace NfCore {
 
 NeofluxonCore::NeofluxonCore()
-        : m_thumbnailCache{std::make_unique<NfCache>(2 * NfCache::DEFAULT_MAX_SIZE_BYTES)}
-        , m_previewCache{std::make_unique<NfCache>()}
-        , m_foregroundScheduler{std::make_unique<NfScheduler>()}
-        , m_foregroundThreadPool{std::make_unique<NfThreadPool>(m_foregroundScheduler.get(),
-                                                                m_threadAllocationManager.getForegroundThreadCount())}
-        , m_backgroundScheduler{std::make_unique<NfScheduler>()}
-        , m_backgroundThreadPool{std::make_unique<NfThreadPool>(m_backgroundScheduler.get(),
-                                                                m_threadAllocationManager.getBackgroundThreadCount())}
-        , m_libraryManager{std::make_unique<NfLibraryManager>(m_backgroundScheduler.get())}
-        , m_photoLoader{std::make_unique<NfPhotoLoader>(NfPhotoLoaderContext{
-                        .thumbnailCache = m_thumbnailCache.get(),
-                        .previewCache = m_previewCache.get(),
-                        .scheduler = m_foregroundScheduler.get(),
-                        .libraryManager = m_libraryManager.get()})}
-        , m_metadataLoader{std::make_unique<NfPhotoMetadataLoader>(NfPhotoMetadataLoaderContext{
-                        .thumbnailCache = m_thumbnailCache.get(),
-                        .previewCache = m_previewCache.get(),
-                        .scheduler = m_foregroundScheduler.get(),
-                        .libraryManager = m_libraryManager.get()})}
 {
         NF_LOG_DEBUG("called");
 }
@@ -60,6 +47,85 @@ NeofluxonCore::NeofluxonCore()
 NeofluxonCore::~NeofluxonCore()
 {
         NF_LOG_DEBUG("called");
+}
+
+bool NeofluxonCore::initialize(std::string& errorMessage)
+{
+        NF_LOG_DEBUG("called");
+
+        NfApplicationPaths applicationPaths;
+        const std::array<std::filesystem::path, 3> directories{
+                applicationPaths.dataDirectory(),
+                applicationPaths.configDirectory(),
+                applicationPaths.cacheDirectory()
+        };
+
+        // Create application directories
+        for (const auto& directory : directories) {
+                std::error_code error;
+                std::filesystem::create_directories(directory, error);
+                if (error || !std::filesystem::is_directory(directory, error)) {
+                        errorMessage = "Unable to create application directory '"
+                                + directory.string() + "': "
+                                + (error ? error.message() : "path is not a directory");
+                        NF_LOG_ERROR(errorMessage);
+                        return false;
+                }
+
+                NF_LOG_DEBUG("path created: " << directory);
+        }
+
+        try {
+                auto threadAllocationManager = std::make_unique<NfThreadAllocationManager>();
+                auto thumbnailCache = std::make_unique<NfCache>(2 * NfCache::DEFAULT_MAX_SIZE_BYTES);
+                auto previewCache = std::make_unique<NfCache>();
+                auto foregroundScheduler = std::make_unique<NfScheduler>();
+                auto foregroundThreadPool = std::make_unique<NfThreadPool>(foregroundScheduler.get(),
+                                                                           threadAllocationManager->getForegroundThreadCount());
+                auto backgroundScheduler = std::make_unique<NfScheduler>();
+                auto backgroundThreadPool = std::make_unique<NfThreadPool>(backgroundScheduler.get(),
+                                                                           threadAllocationManager->getBackgroundThreadCount());
+
+                auto libraryManager = std::make_unique<NfLibraryManager>(backgroundScheduler.get());
+                if (!libraryManager->initialize(errorMessage)) {
+                        NF_LOG_ERROR(errorMessage);
+                        return false;
+                }
+
+                auto photoLoader = std::make_unique<NfPhotoLoader>(NfPhotoLoaderContext{
+                        .thumbnailCache = thumbnailCache.get(),
+                        .previewCache = previewCache.get(),
+                        .scheduler = foregroundScheduler.get(),
+                        .libraryManager = libraryManager.get()});
+
+                auto metadataLoader = std::make_unique<NfPhotoMetadataLoader>(NfPhotoMetadataLoaderContext{
+                        .thumbnailCache = thumbnailCache.get(),
+                        .previewCache = previewCache.get(),
+                        .scheduler = foregroundScheduler.get(),
+                        .libraryManager = libraryManager.get()});
+
+                m_threadAllocationManager = std::move(threadAllocationManager);
+                m_thumbnailCache = std::move(thumbnailCache);
+                m_previewCache = std::move(previewCache);
+                m_foregroundScheduler = std::move(foregroundScheduler);
+                m_foregroundThreadPool = std::move(foregroundThreadPool);
+                m_backgroundScheduler = std::move(backgroundScheduler);
+                m_backgroundThreadPool = std::move(backgroundThreadPool);
+                m_libraryManager = std::move(libraryManager);
+                m_photoLoader = std::move(photoLoader);
+                m_metadataLoader = std::move(metadataLoader);
+        } catch (const std::exception& exception) {
+                errorMessage = "Unable to initialize application core: ";
+                errorMessage += exception.what();
+
+                NF_LOG_ERROR(errorMessage);
+
+                return false;
+        }
+
+        errorMessage.clear();
+
+        return true;
 }
 
 NfPhotoLoader* NeofluxonCore::photoLoader() const

@@ -81,9 +81,9 @@ public:
         NfLibraryDatabase(NfLibraryDatabase&&) = delete;
         NfLibraryDatabase& operator=(NfLibraryDatabase&&) = delete;
         const std::filesystem::path& path() const;
-        bool open();
+        bool open(std::string& errorMessage);
         void close();
-        bool initializeSchema();
+        bool initializeSchema(std::string& errorMessage);
         int64_t addLibrary(const std::string_view name);
         bool libraryExists(int64_t id) const;
         std::unique_ptr<NfLibraryEntry> library(int64_t id) const;

@@ -24,9 +24,10 @@
 #ifndef NEOFLUXON_CORE_H
 #define NEOFLUXON_CORE_H
 
-#include "NfThreadAllocationManager.h"
+#include "NfApplicationPaths.h"
 
 #include <memory>
+#include <string>
 
 namespace NfCore {
 
@@ -36,6 +37,7 @@ class NfCache;
 class NfScheduler;
 class NfThreadPool;
 class NfLibraryManager;
+class NfThreadAllocationManager;
 
 class NeofluxonCore {
 public:
@@ -45,7 +47,7 @@ public:
         NeofluxonCore& operator=(const NeofluxonCore&) = delete;
         NeofluxonCore(NeofluxonCore&&) noexcept = default;
         NeofluxonCore& operator=(NeofluxonCore&&) noexcept = default;
-
+        [[nodiscard]] bool initialize(std::string& errorMessage);
         NfPhotoLoader* photoLoader() const;
         NfPhotoMetadataLoader* metadataLoader() const;
         NfLibraryManager* libraryManger() const;
@@ -55,7 +57,7 @@ public:
 private:
         std::unique_ptr<NfCache> m_thumbnailCache;
         std::unique_ptr<NfCache> m_previewCache;
-        NfThreadAllocationManager m_threadAllocationManager;
+        std::unique_ptr<NfThreadAllocationManager> m_threadAllocationManager;
         std::unique_ptr<NfScheduler> m_foregroundScheduler;
         std::unique_ptr<NfThreadPool> m_foregroundThreadPool;
         std::unique_ptr<NfScheduler> m_backgroundScheduler;

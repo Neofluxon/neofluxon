@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryManager.h"
+#include "NfApplicationPaths.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryDatabase.h"
 #include "NfLibrary.h"
@@ -30,19 +31,56 @@
 #include "NfLibraryQuery.h"
 #include "NfLogger.h"
 
+#include <exception>
+
 namespace NfCore {
 
 NfLibraryManager::NfLibraryManager(NfScheduler *scheduler)
         : m_scheduler{scheduler}
-        , m_database{std::make_unique<NfLibraryDatabase>("./neofluxon.db")}
 {
-        if (!m_database->initializeSchema()) {
-                NF_LOG_ERROR("can't initialize schema for DB: " << m_database->path() );
-        }
 }
 
 NfLibraryManager::~NfLibraryManager()
 {
+}
+
+bool NfLibraryManager::initialize(std::string& errorMessage)
+{
+        NF_LOG_DEBUG("called");
+
+        if (m_database)
+                return true;
+
+        try {
+                const auto databasePath = NfApplicationPaths().dataDirectory() / "neofluxon.db";
+                auto database = std::make_unique<NfLibraryDatabase>(databasePath);
+                if (!database->open(errorMessage)) {
+                        errorMessage = "Unable to open library database '"
+                                + databasePath.string() + "': " + errorMessage;
+                        NF_LOG_ERROR(errorMessage);
+                        return false;
+                }
+
+                if (!database->initializeSchema(errorMessage)) {
+                        errorMessage = "Unable to initialize library database schema '"
+                                + databasePath.string() + "': " + errorMessage;
+                        NF_LOG_ERROR(errorMessage);
+                        return false;
+                }
+
+                m_database = std::move(database);
+
+                NF_LOG_DEBUG("Database created: " << databasePath);
+        } catch (const std::exception& exception) {
+                errorMessage = "Unable to initialize library database: ";
+                errorMessage += exception.what();
+                NF_LOG_ERROR(errorMessage);
+                return false;
+        }
+
+        errorMessage.clear();
+
+        return true;
 }
 
 std::vector<std::unique_ptr<NfLibrary>>

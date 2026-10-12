@@ -60,9 +60,6 @@ void NfLibraryDatabase::Transaction::commit()
 NfLibraryDatabase::NfLibraryDatabase(const std::filesystem::path& dbPath)
         : m_dbPath{dbPath}
 {
-        if(!open()) {
-                NF_LOG_ERROR("can't open DB for DB: " << m_dbPath );
-        }
 }
 
 NfLibraryDatabase::~NfLibraryDatabase()
@@ -75,11 +72,17 @@ const std::filesystem::path& NfLibraryDatabase::path() const
         return m_dbPath;
 }
 
-bool NfLibraryDatabase::open()
+bool NfLibraryDatabase::open(std::string& errorMessage)
 {
         auto u8path = m_dbPath.u8string();
-        return sqlite3_open(reinterpret_cast<const char*>(u8path.c_str()),
-                            &m_db) == SQLITE_OK;
+        if (sqlite3_open(reinterpret_cast<const char*>(u8path.c_str()), &m_db) == SQLITE_OK) {
+                errorMessage.clear();
+                return true;
+        }
+
+        errorMessage = m_db ? sqlite3_errmsg(m_db) : "SQLite failed to allocate a database handle";
+        close();
+        return false;
 }
 
 void NfLibraryDatabase::close()
@@ -90,8 +93,13 @@ void NfLibraryDatabase::close()
         }
 }
 
-bool NfLibraryDatabase::initializeSchema()
+bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
 {
+        if (!m_db) {
+                errorMessage = "database is not open";
+                return false;
+        }
+
         const char* sql = R"(
         PRAGMA journal_mode = WAL;
         PRAGMA synchronous = NORMAL;
@@ -171,10 +179,19 @@ bool NfLibraryDatabase::initializeSchema()
        CREATE INDEX IF NOT EXISTS idx_coll_img_id
           ON collection_images(image_id);
 
-       CREATE INDEX idx_folders_library_path
+       CREATE INDEX IF NOT EXISTS idx_folders_library_path
           ON folders(library_id, path);)";
 
-       return sqlite3_exec(m_db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
+       char* sqliteError = nullptr;
+       const auto result = sqlite3_exec(m_db, sql, nullptr, nullptr, &sqliteError);
+       if (result == SQLITE_OK) {
+               errorMessage.clear();
+               return true;
+       }
+
+       errorMessage = sqliteError ? sqliteError : sqlite3_errmsg(m_db);
+       sqlite3_free(sqliteError);
+       return false;
 }
 
 int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
