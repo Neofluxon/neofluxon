@@ -23,6 +23,8 @@
 
 #include "NfJpegImageDecoder.h"
 #include "NfExifMetadataExtractor.h"
+#include "NfLimits.h"
+#include "NfLogger.h"
 
 #include <turbojpeg.h>
 
@@ -58,70 +60,141 @@ std::unique_ptr<NfImageData> NfJpegImageDecoder::fullImageData() const
         return decodeScaled(0);
 }
 
-// Private helper to handle the TurboJPEG logic
-std::unique_ptr<NfImageData> NfJpegImageDecoder::decodeScaled(int targetRes) const
+std::unique_ptr<NfImageData>
+NfJpegImageDecoder::decodeScaled(int targetRes) const
 {
-        std::string path = getPhoto().path().string();
-
+        const auto path = getPhoto().path().string();
         std::ifstream file(path, std::ios::binary | std::ios::ate);
-        if (!file.is_open())
+        if (!file.is_open()) {
+                NF_LOG_ERROR("can't open image: " << path);
                 return nullptr;
+        }
 
-        std::streamsize size = file.tellg();
+        const auto end = file.tellg();
+        if (end <= 0) {
+                NF_LOG_ERROR("invalid or empty image file: " << path);
+                return nullptr;
+        }
+
+        const auto size = static_cast<std::uintmax_t>(end);
+        if (size > std::vector<unsigned char>{}.max_size()
+            || size > static_cast<std::uintmax_t>(std::numeric_limits<std::streamsize>::max())
+            || size > static_cast<std::uintmax_t>(std::numeric_limits<unsigned long>::max())) {
+                NF_LOG_ERROR("image file is too large: " << path);
+                return nullptr;
+        }
+
         file.seekg(0, std::ios::beg);
-        std::vector<unsigned char> jpegBuf(size);
-        if (!file.read(reinterpret_cast<char*>(jpegBuf.data()), size))
+        if (!file) {
+                NF_LOG_ERROR("can't seek image file: " << path);
                 return nullptr;
+        }
 
-        tjhandle decompressor = tjInitDecompress();
-        int width, height, subsamp, colorspace;
-        tjDecompressHeader3(decompressor,
-                            jpegBuf.data(),
-                            size,
-                            &width,
-                            &height,
-                            &subsamp,
-                            &colorspace);
+        std::vector<unsigned char> jpegBuf(static_cast<std::size_t>(size));
+        if (!file.read(reinterpret_cast<char*>(jpegBuf.data()),
+                       static_cast<std::streamsize>(size))) {
+                NF_LOG_ERROR("can't read image file: " << path);
+                return nullptr;
+        }
+
+        struct TurboJpegDeleter {
+                void operator()(void* handle) const
+                {
+                        if (handle)
+                                tjDestroy(handle);
+                }
+        };
+
+        std::unique_ptr<void, TurboJpegDeleter> decompressor(tjInitDecompress());
+        if (!decompressor) {
+                NF_LOG_ERROR("can't initialize JPEG decompressor: " << path);
+                return nullptr;
+        }
+
+        int width = 0;
+        int height = 0;
+        int subsamp = 0;
+        int colorspace = 0;
+        if (tjDecompressHeader3(decompressor.get(), jpegBuf.data(),
+                                static_cast<unsigned long>(jpegBuf.size()),
+                                &width, &height, &subsamp, &colorspace) != 0) {
+                NF_LOG_ERROR("invalid JPEG header: " << path);
+                return nullptr;
+        }
+
+        if (width <= 0 || height <= 0) {
+                NF_LOG_ERROR("invalid image dimensions ["
+                             << width << ","
+                             << height << "]: " << path);
+                return nullptr;
+        }
 
         int scaledWidth = width;
         int scaledHeight = height;
-
-        tjscalingfactor scalingFactor = {1, 1};
         if (targetRes > 0) {
-                int numScalingFactors;
-                tjscalingfactor* factors = tjGetScalingFactors(&numScalingFactors);
+                int numScalingFactors = 0;
+                const auto* factors = tjGetScalingFactors(&numScalingFactors);
+                if (!factors || numScalingFactors <= 0) {
+                        NF_LOG_ERROR("can't obtain JPEG scaling factors: "
+                                     << path);
+                        return nullptr;
+                }
 
-                // Find the smallest factor that is still >= targetRes
-                for (int i = 0; i < numScalingFactors; i++) {
-                        int w = TJSCALED(width, factors[i]);
-                        int h = TJSCALED(height, factors[i]);
+                // Select the smallest available scaling factor that keeps
+                // at least one dimension >= targetRes.
+                for (int i = 0; i < numScalingFactors; ++i) {
+                        const int w = TJSCALED(width, factors[i]);
+                        const int h = TJSCALED(height, factors[i]);
                         if (w >= targetRes || h >= targetRes) {
-                                scalingFactor = factors[i];
                                 scaledWidth = w;
                                 scaledHeight = h;
                         }
                 }
         }
 
-        auto imageData = std::make_unique<NfImageData>();
-        std::vector<unsigned char> dstBuf(scaledWidth * scaledHeight * 4);
-
-        // Decompress directly into BGRA (which maps to ARGB on little-endian)
-        int flags = TJFLAG_FASTDCT;
-        if (tjDecompress2(decompressor, jpegBuf.data(), size, dstBuf.data(),
-                          scaledWidth, 0, scaledHeight, TJPF_BGRA, flags) != 0) {
-                tjDestroy(decompressor);
+        if (scaledWidth <= 0 || scaledHeight <= 0) {
+                NF_LOG_ERROR("invalid scaled dimensions ["
+                             << scaledWidth << "," << scaledHeight
+                             << "]: " << path);
                 return nullptr;
         }
 
+        const auto w = static_cast<std::size_t>(scaledWidth);
+        const auto h = static_cast<std::size_t>(scaledHeight);
+        if (w > NfLimits::MaxImageDimension
+            || h > NfLimits::MaxImageDimension) {
+                NF_LOG_ERROR("image dimension exceeds maximum: "
+                             << scaledWidth << "x" << scaledHeight
+                             << " for " << path);
+                return nullptr;
+        }
+
+        // Check maximum allowed width for the given height
+        if (w == 0 || h == 0 || w > NfLimits::MaxDecodedImagePixels / h) {
+                NF_LOG_ERROR("image dimensions exceed maximum: "
+                             << scaledWidth << "x" << scaledHeight
+                             << " for " << path);
+                return nullptr;
+        }
+
+        const std::size_t bufferSize = w * h * 4;
+        std::vector<unsigned char> dstBuf(bufferSize);
+        if (tjDecompress2(decompressor.get(), jpegBuf.data(),
+                          static_cast<unsigned long>(jpegBuf.size()),
+                          dstBuf.data(), scaledWidth, 0, scaledHeight,
+                          TJPF_BGRA, TJFLAG_FASTDCT) != 0) {
+                NF_LOG_ERROR("can't decompress image: " << path);
+                return nullptr;
+        }
+
+        auto imageData = std::make_unique<NfImageData>();
         imageData->setData(dstBuf.data(), dstBuf.size());
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
         imageData->setWidth(scaledWidth);
         imageData->setHeight(scaledHeight);
 
+        // JPEG has no alpha channel, so decoded pixels are fully opaque.
         imageData->convertToARGB32Premultiplied();
-
-        tjDestroy(decompressor);
 
         return imageData;
 }

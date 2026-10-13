@@ -15,6 +15,7 @@ else()
 endif()
 
 set(CORE_HEADERS
+        NfLimits.h
         utils/NfTimeUtils.h
         NfApplicationPaths.h
         NfThreadAllocationManager.h

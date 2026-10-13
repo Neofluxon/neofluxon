@@ -54,7 +54,7 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
 
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
-                NF_LOG_DEBUG("load embedded image");
+                NF_LOG_DEBUG("load embedded image for : " << photo.path());
                 imageData = decoder->thumbnailImageData(minTarget);
         }
 
