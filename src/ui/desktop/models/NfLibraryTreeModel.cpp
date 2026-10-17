@@ -102,7 +102,15 @@ QVariant NfLibraryTreeModel::data(const QModelIndex& index, int role) const
         if (!item)
                 return {};
 
+
         switch (role) {
+        case Role::LibraryIdRole:
+                if (item->type() == NfLibraryTreeItem::NodeType::Library) {
+                        const auto value = item->value();
+                        if (const auto* libraryId = std::get_if<int64_t>(&value))
+                                return QVariant::fromValue<qulonglong>(static_cast<qulonglong>(*libraryId));
+                }
+                break;
         case Qt::DisplayRole:
                 return item->name();
 

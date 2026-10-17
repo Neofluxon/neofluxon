@@ -712,7 +712,7 @@ void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libra
                 "FROM images i "
                 "JOIN folders f ON f.id = i.folder_id "
                 "WHERE i.datetime_taken IS NOT NULL "
-                "AND f.library_id = 1 "
+                "AND f.library_id = ? "
                 "ORDER BY i.datetime_taken;";
 
         sqlite3_stmt* stmt = nullptr;

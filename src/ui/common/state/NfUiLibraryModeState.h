@@ -41,11 +41,15 @@ public:
         void setQuery(const NfCore::NfLibraryQuery& query);
         const NfCore::NfLibraryQuery& query() const;
         NfUiBrowserState* browser() const;
+        void setCurrentLibrary(uint64_t libraryId);
+        uint64_t currentLibrary() const;
 
 signals:
+        void currentLibraryChanged(uint64_t libraryId);
         void queryChanged(const NfCore::NfLibraryQuery& query);
 
 private:
+        uint64_t m_currentLibrary{0};
         NfCore::NfLibraryQuery m_query;
         NfUiBrowserState *m_browserState;
 };

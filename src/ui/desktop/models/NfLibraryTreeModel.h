@@ -47,6 +47,10 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         Q_OBJECT
 
  public:
+        enum Role {
+                LibraryIdRole = Qt::UserRole + 1
+        };
+
         explicit NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx,
                                     QObject* parent = nullptr);
         ~NfLibraryTreeModel() override;

@@ -68,12 +68,23 @@ void NfLibraryBrowser::setupUi()
         QObject::connect(m_libraryListView->selectionModel(),
                          &QItemSelectionModel::currentChanged,
                          this, [this](const QModelIndex &current, const QModelIndex &) {
-                                 m_representationListView->setRootIndex(current);
-                                 if (current.isValid()) {
-                                         auto firstRep = m_model->index(0, 0, current);
-                                         if (firstRep.isValid())
-                                                 m_representationListView->setCurrentIndex(firstRep);
+                                 // Reset the representation view when no library is selected.
+                                 if (!current.isValid()) {
+                                         m_representationListView->setRootIndex(QModelIndex());
+                                         return;
                                  }
+
+                                 // Set the library as the root so its child representations are shown.
+                                 m_representationListView->setRootIndex(current);
+
+                                 auto role = NfLibraryTreeModel::LibraryIdRole;
+                                 auto libraryId = m_model->data(current, role).toULongLong();
+                                 m_state->setCurrentLibrary(libraryId);
+
+                                 // Select the first representation, if one exists.
+                                 auto firstRep = m_model->index(0, 0, current);
+                                 if (firstRep.isValid())
+                                         m_representationListView->setCurrentIndex(firstRep);
                          });
 
         QObject::connect(m_representationListView->selectionModel(),
@@ -85,9 +96,25 @@ void NfLibraryBrowser::setupUi()
                                          m_libraryTreeView->setRootIndex(QModelIndex());
                          });
 
-        auto firstLibrary = m_model->index(0, 0);
-        if (firstLibrary.isValid())
-                m_libraryListView->setCurrentIndex(firstLibrary);
+        // Find the library's model index using the current library ID from state.
+        QModelIndex selectedLibrary;
+        const auto currentLibraryId = m_state->currentLibrary();
+        for (int row = 0; row < m_model->rowCount(); ++row) {
+                const auto index = m_model->index(row, 0);
+                const auto role = NfLibraryTreeModel::LibraryIdRole;
+                if (m_model->data(index, role).toULongLong() == currentLibraryId) {
+                        selectedLibrary = index;
+                        break;
+                }
+        }
+
+        // Select the first library if the current library ID was not found.
+        if (!selectedLibrary.isValid() && m_model->rowCount() > 0)
+                selectedLibrary = m_model->index(0, 0);
+
+        // Select the current library in the list view.
+        if (selectedLibrary.isValid())
+                m_libraryListView->setCurrentIndex(selectedLibrary);
 
         m_mainLayout->addWidget(libraryListHeader);
         m_mainLayout->addWidget(m_libraryListView);

@@ -26,6 +26,7 @@
 #include "NfLibraryContext.h"
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
+#include "NfUiLibraryModeState.h"
 #include "NfMainMenu.h"
 #include "NfPathBrowser.h"
 #include "NfLibraryAdapter.h"
@@ -122,7 +123,9 @@ void NfLeftPanel::showLibraryBrowser()
 void NfLeftPanel::showImportWidget(const std::filesystem::path &path)
 {
         if (m_context->library)
-                m_context->library->importPath(path, 1);
+                m_context->library->importPath(
+                        path,
+                        m_context->uiState->libraryModeState()->currentLibrary());
 }
 
 } // namespace NfDesktop

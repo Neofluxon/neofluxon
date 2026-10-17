@@ -20,6 +20,7 @@ set(COMMON_SOURCES
     state/NfUiLibraryModeState.cpp
     state/NfUiShootsModeState.cpp
     state/NfUiState.cpp
+    context/NfLibraryContext.cpp
     NfPhotoProvider.cpp
     NfLibraryAdapter.cpp
     NfMetadataProvider.cpp

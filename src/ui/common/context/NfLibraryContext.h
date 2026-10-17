@@ -24,21 +24,20 @@
 #ifndef NF_LIBRARY_CONTEXT_H
 #define NF_LIBRARY_CONTEXT_H
 
-#include "NfContext.h"
-
 namespace NfUi {
 
 struct NfContext;
 class NfUiState;
 class NfLibraryAdapter;
+class NfUiLibraryModeState;
 
 class NfLibraryContext {
  public:
-        explicit NfLibraryContext(NfContext* ctx)
-                : m_context{ctx} {}
-        NfUiState* uiState() const { return m_context->uiState; }
-        NfContext* prent() const { return m_context; }
-        NfLibraryAdapter* library() const { return m_context->library; }
+        explicit NfLibraryContext(NfContext* ctx);
+        NfUiState* uiState() const;
+        NfUiLibraryModeState* libraryModeState() const;
+        NfContext* prent() const;
+        NfLibraryAdapter* library() const;
 
  private:
         NfContext* m_context;
