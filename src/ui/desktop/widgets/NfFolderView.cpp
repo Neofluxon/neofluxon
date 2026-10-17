@@ -64,6 +64,9 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
                          m_model,
                          &NfFolderModel::setPath);
 
+        if (!m_state->path().empty())
+                m_model->setPath(m_state->path());
+
         m_mainLayout->addWidget(m_browserView);
 }
 

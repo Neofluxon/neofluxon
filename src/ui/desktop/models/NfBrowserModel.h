@@ -61,6 +61,7 @@ public:
         ~NfBrowserModel() = default;
         void setSource(NfCore::NfPhotoSource source);
         NfCore::NfPhotoSource getSource() const;
+        QModelIndex indexForPhotoId(const NfCore::NfPhotoId& photoId) const;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         void prefetchPage(int firstVisible, int pageSize);

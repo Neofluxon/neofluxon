@@ -67,6 +67,15 @@ NfPhotoSource NfBrowserModel::getSource() const
         return m_photoProvider->getSource();
 }
 
+QModelIndex NfBrowserModel::indexForPhotoId(const NfPhotoId& photoId) const
+{
+        const auto it = m_itemsMap.find(photoId);
+        if (it == m_itemsMap.end())
+                return {};
+
+        return it->second;
+}
+
 int NfBrowserModel::rowCount(const QModelIndex& parent) const
 {
         return parent.isValid() ? 0 : static_cast<int>(m_photos.size());

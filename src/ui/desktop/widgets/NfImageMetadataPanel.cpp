@@ -27,8 +27,11 @@
 #include "NfPhotoMetadataModel.h"
 #include "NfMetadataSectionWidget.h"
 #include "NfContext.h"
+#include "NfUiState.h"
 
 #include <QVBoxLayout>
+
+#include <utility>
 
 using namespace NfUi;
 
@@ -52,80 +55,38 @@ void NfImageMetadataPanel::setupUi()
 
         layout->addWidget(m_scrollStack);
 
-        // Image
-        auto* section = new NfCollapsibleSection(tr("Image"));
-        auto sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                         {tr("Name"),
-                                                          tr("Path"),
-                                                          tr("Size"),
-                                                          tr("Format"),
-                                                          tr("Dimensions")});
-        section->setContent(sectionWidget);
-        m_scrollStack->addWidget(section);
+        const auto addSection = [this](const QString& key,
+                                       const QString& title,
+                                       const QSet<QString>& allowedKeys) {
+                auto* section = new NfCollapsibleSection(title);
+                section->setExpanded(m_context->uiState->metadataSectionExpanded(key));
+                QObject::connect(section,
+                                 &NfCollapsibleSection::expandedChanged,
+                                 m_context->uiState,
+                                 [state = m_context->uiState, key](bool expanded) {
+                                         state->setMetadataSectionExpanded(key, expanded);
+                                 });
+                section->setContent(new NfMetadataSectionWidget(m_model, allowedKeys));
+                m_scrollStack->addWidget(section);
+        };
 
-        // Capture section
-        section = new NfCollapsibleSection(tr("Capture"));
-        sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                    {tr("Date taken"),
-                                                     tr("Camera maker"),
-                                                     tr("Camera model"),
-                                                     tr("Lens"),
-                                                     tr("ISO"),
-                                                     tr("Aperture"),
-                                                     tr("Shutter speed"),
-                                                     tr("Focal length")});
-        section->setContent(sectionWidget);
-        m_scrollStack->addWidget(section);
-
-        // Location section
-        section = new NfCollapsibleSection(tr("Location"));
-        sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                    {tr("Latitude"),
-                                                     tr("Longitude"),
-                                                     tr("Altitude"),
-                                                     tr("GPS Timestamp"),
-                                                     tr("Positioning Method")});
-        section->setContent(sectionWidget);
-        m_scrollStack->addWidget(section);
-
-        // Organization section
-        section = new NfCollapsibleSection(tr("Organization"));
-        sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                    {tr("Rating"),
-                                                     tr("Tags"),
-                                                     tr("Collections"),
-                                                     tr("Project")});
-        section->setContent(sectionWidget);
-        m_scrollStack->addWidget(section);
-
-        // Description section
-        section = new NfCollapsibleSection(tr("Description"));
-        sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                    {tr("Title"),
-                                                     tr("Description"),
-                                                     tr("Author"),
-                                                     tr("Copyright"),
-                                                     tr("License"),
-                                                     tr("Keywords")});
-        section->setContent(sectionWidget);
-        m_scrollStack->addWidget(section);
-
-        // Technical section
-        section = new NfCollapsibleSection(tr("Technical"));
-        sectionWidget = new NfMetadataSectionWidget(m_model,
-                                                    {tr("Bit depth"),
-                                                     tr("Color space"),
-                                                     tr("Compression"),
-                                                     tr("Orientation"),
-                                                     tr("EXIF"),
-                                                     tr("IPTC"),
-                                                     tr("XMP"),
-                                                     tr("Software"),
-                                                     tr("Modification Date")});
-
-        section->setContent(sectionWidget);
-        m_scrollStack->addWidget(section);
+        addSection(QStringLiteral("image"), tr("Image"),
+                   {tr("Name"), tr("Path"), tr("Size"), tr("Format"), tr("Dimensions")});
+        addSection(QStringLiteral("capture"), tr("Capture"),
+                   {tr("Date taken"), tr("Camera maker"), tr("Camera model"), tr("Lens"),
+                    tr("ISO"), tr("Aperture"), tr("Shutter speed"), tr("Focal length")});
+        addSection(QStringLiteral("location"), tr("Location"),
+                   {tr("Latitude"), tr("Longitude"), tr("Altitude"), tr("GPS Timestamp"),
+                    tr("Positioning Method")});
+        addSection(QStringLiteral("organization"), tr("Organization"),
+                   {tr("Rating"), tr("Tags"), tr("Collections"), tr("Project")});
+        addSection(QStringLiteral("description"), tr("Description"),
+                   {tr("Title"), tr("Description"), tr("Author"), tr("Copyright"),
+                    tr("License"), tr("Keywords")});
+        addSection(QStringLiteral("technical"), tr("Technical"),
+                   {tr("Bit depth"), tr("Color space"), tr("Compression"), tr("Orientation"),
+                    tr("EXIF"), tr("IPTC"), tr("XMP"), tr("Software"),
+                    tr("Modification Date")});
 }
 
 } // NfDesktop
-

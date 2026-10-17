@@ -70,7 +70,28 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                                  m_state->setCurrentPhoto(data.value<NfPhoto>());
                          });
 
+        QObject::connect(m_model,
+                         &QAbstractItemModel::rowsInserted,
+                         this,
+                         [this]() { restoreCurrentPhoto(); });
+
         updateView();
+        restoreCurrentPhoto();
+}
+
+void NfBrowserView::restoreCurrentPhoto()
+{
+        const auto& photoPath = m_state->currentPhoto().path();
+        if (photoPath.empty())
+                return;
+
+        const auto photoId = NfPhotoId(photoPath);
+        const auto index = m_model->indexForPhotoId(photoId);
+        if (!index.isValid())
+                return;
+
+        m_thumbnailsView->setCurrentIndex(index);
+        m_thumbnailsView->scrollTo(index, QAbstractItemView::PositionAtCenter);
 }
 
 void NfBrowserView::showGridView()

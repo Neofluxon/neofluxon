@@ -61,6 +61,8 @@ protected:
         void keyPressEvent(QKeyEvent *event) override;
 
 private:
+        void restoreCurrentPhoto();
+
         NfUi::NfUiBrowserState *m_state;
         NfBrowserModel* m_model;
         QVBoxLayout* m_mainLayout{nullptr};

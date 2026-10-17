@@ -25,6 +25,8 @@
 #define NF_UI_STATE_H
 
 #include <QObject>
+#include <QHash>
+#include <QString>
 
 namespace NfUi {
 
@@ -50,6 +52,8 @@ public:
         NfUiLibraryModeState* libraryModeState() const;
 
         NfUiMode mode() const;
+        bool metadataSectionExpanded(const QString& section) const;
+        void setMetadataSectionExpanded(const QString& section, bool expanded);
 
 public slots:
         void setMode(NfUiMode mode);
@@ -58,10 +62,13 @@ signals:
         void modeChanged(NfUiMode mode);
 
 private:
+        void saveState();
+
         NfUiMode m_uiMode;
         NfUiShootsModeState *m_shootsModeState;
         NfUiFolderModeState *m_folderModeState;
         NfUiLibraryModeState *m_libraryModeState;
+        QHash<QString, bool> m_metadataSectionStates;
 };
 
 } // namespace NfUi

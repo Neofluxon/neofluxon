@@ -41,9 +41,14 @@ public:
         explicit NfCollapsibleSection(const QString& title,
                                       QWidget* parent = nullptr);
         void setContent(QWidget* widget);
+        bool isExpanded() const;
+        void setExpanded(bool expanded);
 
 public slots:
         void toggle(bool collapsed);
+
+signals:
+        void expandedChanged(bool expanded);
 
 private:
         QToolButton* m_toggleButton;

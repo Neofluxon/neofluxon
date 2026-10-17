@@ -71,10 +71,21 @@ void NfCollapsibleSection::setContent(QWidget* widget)
         layout->addWidget(widget);
 }
 
+bool NfCollapsibleSection::isExpanded() const
+{
+        return m_toggleButton->isChecked();
+}
+
+void NfCollapsibleSection::setExpanded(bool expanded)
+{
+        m_toggleButton->setChecked(expanded);
+}
+
 void NfCollapsibleSection::toggle(bool checked)
 {
         m_toggleButton->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
         m_contentFrame->setVisible(checked);
+        emit expandedChanged(checked);
 }
 
 } // namespace NfDesktop
