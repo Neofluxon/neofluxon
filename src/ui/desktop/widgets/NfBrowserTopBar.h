@@ -26,6 +26,14 @@
 
 #include "NfStyledWidget.h"
 
+#include <QString>
+
+class QToolButton;
+
+namespace NfUi {
+class NfUiBrowserState;
+}
+
 namespace NfDesktop {
 
         //class NfBrowserBreadcrumbBar;
@@ -38,16 +46,22 @@ class NfBrowserTopBar : public NfStyledWidget
         Q_OBJECT
 
 public:
-        explicit NfBrowserTopBar(QWidget* parent = nullptr);
+        explicit NfBrowserTopBar(NfUi::NfUiBrowserState* state,
+                                 QWidget* parent = nullptr);
         ~NfBrowserTopBar() override = default;
 
 private:
         void setupUi();
+        void updateEditButton();
+        void openCurrentPhoto();
 
         //        NfBrowserBreadcrumbBar* m_breadcrumbBar{nullptr};
+        NfUi::NfUiBrowserState* m_state;
         NfBrowserViewModeBar* m_viewModeBar{nullptr};
         NfBrowserSortBar* m_sortBar{nullptr};
         NfBrowserFilterBar* m_filterBar{nullptr};
+        QToolButton* m_editButton{nullptr};
+        QString m_editor;
 };
 
 } // namespace NfDesktop

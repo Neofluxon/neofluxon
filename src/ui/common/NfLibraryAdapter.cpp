@@ -57,6 +57,11 @@ void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t li
         m_library->importPath(path, libraryId);
 }
 
+std::unique_ptr<NfLibrary> NfLibraryAdapter::getLibrary(uint64_t libraryId) const
+{
+        return m_library->getLibrary(libraryId);
+}
+
 std::vector<std::unique_ptr<NfLibrary>> NfLibraryAdapter::libraries() const
 {
         return m_library->libraries();

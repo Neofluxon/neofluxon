@@ -112,6 +112,33 @@ QScrollBar::sub-page:horizontal {
     padding-left: 5px;
 }
 
+#NfTopBar QLabel#TitleSeparator {
+    color: #777b8e;
+    padding: 0;
+}
+
+#NfTopBar QLabel#NfLogo,
+#NfTopBar QLabel#TitleSeparator {
+    background-color: transparent;
+}
+
+#NfTopBar QToolButton#LibraryModeButton {
+    background-color: #2b2e3e;
+    border: none;
+    color: #c5c7d3;
+    font-size: 13px;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+#NfTopBar QToolButton#LibraryModeButton:hover {
+    background-color: #323546;
+}
+
+#NfTopBar QToolButton#LibraryModeButton:pressed {
+    background-color: #383b4e;
+}
+
 #NfTopBar QPushButton#btnMinimize,
 #NfTopBar QPushButton#btnMaximize,
 #NfTopBar QPushButton#btnClose {
@@ -341,7 +368,8 @@ NfDesktop--NfBrowserFilterBar {
 
 /* Flat interactive QToolButtons */
 NfDesktop--NfBrowserSortBar QToolButton,
-NfDesktop--NfBrowserFilterBar QToolButton {
+NfDesktop--NfBrowserFilterBar QToolButton,
+NfDesktop--NfBrowserTopBar QToolButton#editInButton {
     background: transparent;
     border: none;
     outline: none;
@@ -350,14 +378,16 @@ NfDesktop--NfBrowserFilterBar QToolButton {
 }
 
 NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserSortBar QToolButton:hover,
-NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:hover {
+NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:hover,
+NfDesktop--NfBrowserTopBar QToolButton#editInButton:hover {
     color: #ffffff;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
 }
 
 NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserSortBar QToolButton:pressed,
-NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:pressed {
+NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserFilterBar QToolButton:pressed,
+NfDesktop--NfBrowserTopBar QToolButton#editInButton:pressed {
     color: #ffffff;
     background-color: rgba(255, 255, 255, 0.10);
     border-radius: 4px;

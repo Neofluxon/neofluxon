@@ -24,6 +24,8 @@
 #include "NfTopBar.h"
 #include "NfBrowserViewModeBar.h"
 #include "NfContext.h"
+#include "NfLibraryAdapter.h"
+#include "core/library/NfLibrary.h"
 #include "NfUiShootsModeState.h"
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
@@ -32,6 +34,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
+#include <QToolButton>
+#include <QString>
 
 using namespace NfUi;
 
@@ -46,14 +50,36 @@ NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
 
 	auto topBarLayout = new QHBoxLayout(this);
         topBarLayout->setContentsMargins(0, 0, 0, 0);
+        topBarLayout->setSpacing(3);
 
         // Logo
         QIcon logoIcon(":/logo.svg");
-	auto logoLabel = new QLabel(this);
-	logoLabel->setAttribute(Qt::WA_TranslucentBackground);
-	logoLabel->setPixmap(logoIcon.pixmap(24, 24));
-        logoLabel->setFixedSize(24, 24);
+        auto logoLabel = new QLabel(this);
+        logoLabel->setObjectName("NfLogo");
+        logoLabel->setPixmap(logoIcon.pixmap(24, 24));
+        logoLabel->setAlignment(Qt::AlignCenter);
         topBarLayout->addWidget(logoLabel, 0, Qt::AlignLeft);
+        topBarLayout->addSpacing(3);
+
+        auto titleSeparator = new QLabel(this);
+        titleSeparator->setObjectName("TitleSeparator");
+        titleSeparator->setPixmap(QIcon(":/icons/breadcrumb-chevron.svg").pixmap(8, 12));
+        topBarLayout->addWidget(titleSeparator, 0, Qt::AlignLeft);
+
+        // Current library
+        m_libraryButton = new QToolButton(this);
+        m_libraryButton->setObjectName("LibraryModeButton");
+        m_libraryButton->setIcon(QIcon(":/icons/library.svg"));
+        m_libraryButton->setIconSize(QSize(16, 16));
+        m_libraryButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        m_libraryButton->setAutoRaise(true);
+        topBarLayout->addWidget(m_libraryButton, 0, Qt::AlignLeft);
+        QObject::connect(m_libraryButton,
+                         &QToolButton::clicked,
+                         m_context->uiState,
+                         [state = m_context->uiState]() {
+                                 state->setMode(NfUiMode::Library);
+                         });
         topBarLayout->addStretch(1);
 
         // Browser view mode bar
@@ -65,6 +91,13 @@ NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
                          &NfUiState::modeChanged,
                          this,
                          &NfTopBar::onModeChanged);
+
+        auto libraryState = m_context->uiState->libraryModeState();
+        QObject::connect(libraryState,
+                         &NfUiLibraryModeState::currentLibraryChanged,
+                         this,
+                         &NfTopBar::updateLibraryName);
+        updateLibraryName(libraryState->currentLibrary());
 
         onModeChanged(m_context->uiState->mode());
 }
@@ -108,6 +141,14 @@ void NfTopBar::showBrowserViewModeBar(NfUiBrowserState* state)
 {
         //m_browserViewModeBar->setState(state);
         //m_browserViewModeBar->show();
+}
+
+void NfTopBar::updateLibraryName(uint64_t libraryId)
+{
+        const auto library = m_context->library->getLibrary(libraryId);
+        m_libraryButton->setText(library
+                                 ? QString::fromStdString(library->name())
+                                 : QString{});
 }
 
 } // namespace NfDesktop

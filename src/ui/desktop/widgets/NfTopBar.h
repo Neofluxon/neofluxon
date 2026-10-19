@@ -32,6 +32,8 @@ class NfContext;
 class NfUiBrowserState;
 }
 
+class QToolButton;
+
 namespace NfDesktop {
 
 class NfBrowserViewModeBar;
@@ -53,9 +55,11 @@ protected slots:
 
 private:
         void showBrowserViewModeBar(NfUi::NfUiBrowserState* state);
+        void updateLibraryName(uint64_t libraryId);
 
         NfUi::NfContext* m_context;
         NfBrowserViewModeBar *m_browserViewModeBar{nullptr};
+        QToolButton* m_libraryButton{nullptr};
 };
 
 } // namespace NfDesktop

@@ -48,6 +48,7 @@ public:
         ~NfLibraryAdapter();
         void addLibrary(std::string_view name);
         void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
+        std::unique_ptr<NfCore::NfLibrary> getLibrary(uint64_t libraryId) const;
         std::vector<std::unique_ptr<NfCore::NfLibrary>> libraries() const;
 
 signals:
@@ -60,4 +61,3 @@ private:
 } // namespace NfUi
 
 #endif // NF_LIBRARY_ADAPTER_H
-

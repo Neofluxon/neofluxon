@@ -26,13 +26,22 @@
 #include "NfBrowserViewModeBar.h"
 #include "NfBrowserSortBar.h"
 #include "NfBrowserFilterBar.h"
+#include "NfUiBrowserState.h"
 
 #include <QHBoxLayout>
+#include <QActionGroup>
+#include <QMenu>
+#include <QMessageBox>
+#include <QProcess>
+#include <QToolButton>
 
 namespace NfDesktop {
 
-NfBrowserTopBar::NfBrowserTopBar(QWidget* parent)
+NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiBrowserState* state,
+                                 QWidget* parent)
         : NfStyledWidget(parent)
+        , m_state{state}
+        , m_editor{QStringLiteral("rawtherapee")}
 {
         setupUi();
 }
@@ -52,6 +61,74 @@ void NfBrowserTopBar::setupUi()
         layout->addWidget(m_viewModeBar);
         layout->addWidget(m_sortBar);
         layout->addWidget(m_filterBar);
+        m_editButton = new QToolButton(this);
+        m_editButton->setObjectName("editInButton");
+        m_editButton->setPopupMode(QToolButton::MenuButtonPopup);
+
+        auto* menu = new QMenu(m_editButton);
+        auto* editorGroup = new QActionGroup(menu);
+        editorGroup->setExclusive(true);
+        const auto addEditor = [this, menu, editorGroup](const QString& name,
+                                                        const QString& command) {
+                auto* action = menu->addAction(name);
+                action->setCheckable(true);
+                action->setData(command);
+                editorGroup->addAction(action);
+                QObject::connect(action, &QAction::triggered, this, [this, action]() {
+                        m_editor = action->data().toString();
+                        updateEditButton();
+                });
+                return action;
+        };
+
+        addEditor(tr("GIMP"), QStringLiteral("gimp"));
+        auto* rawTherapeeAction = addEditor(tr("RawTherapee"),
+                                            QStringLiteral("rawtherapee"));
+        rawTherapeeAction->setChecked(true);
+        m_editButton->setMenu(menu);
+        updateEditButton();
+
+        QObject::connect(m_editButton, &QToolButton::clicked,
+                         this, &NfBrowserTopBar::openCurrentPhoto);
+        QObject::connect(m_state, &NfUi::NfUiBrowserState::currentPhotoChanged,
+                         this, &NfBrowserTopBar::updateEditButton);
+
+        layout->addWidget(m_editButton);
+}
+
+void NfBrowserTopBar::updateEditButton()
+{
+        const auto editorName = m_editor == QStringLiteral("gimp")
+                ? tr("GIMP")
+                : tr("RawTherapee");
+        m_editButton->setText(tr("Edit in %1").arg(editorName));
+        const auto hasPhoto = !m_state->currentPhoto().path().empty();
+        m_editButton->setEnabled(hasPhoto);
+        m_editButton->setToolTip(hasPhoto
+                                 ? tr("Open the selected photo in %1").arg(editorName)
+                                 : tr("Select a photo to edit"));
+}
+
+void NfBrowserTopBar::openCurrentPhoto()
+{
+        const auto& path = m_state->currentPhoto().path();
+        if (path.empty())
+                return;
+
+        const auto utf8Path = path.u8string();
+        const auto photoPath = QString::fromUtf8(
+                reinterpret_cast<const char*>(utf8Path.data()),
+                static_cast<qsizetype>(utf8Path.size()));
+        if (!QProcess::startDetached(m_editor, {photoPath})) {
+                const auto editorName = m_editor == QStringLiteral("gimp")
+                        ? tr("GIMP")
+                        : tr("RawTherapee");
+                QMessageBox::warning(this,
+                                     tr("Could not open photo"),
+                                     tr("Could not launch %1. Make sure it is installed "
+                                        "and available in PATH.")
+                                             .arg(editorName));
+        }
 }
 
 } // namespace NfDesktop
