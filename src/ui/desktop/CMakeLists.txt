@@ -39,5 +39,26 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/Release"
 )
 
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+
+install(FILES
+    "${CMAKE_SOURCE_DIR}/packaging/desktop/neofluxon.desktop"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+)
+
+foreach(icon_size 16 24 32 48 64 128 256 512)
+    install(FILES
+        "${CMAKE_SOURCE_DIR}/packaging/icons/${icon_size}x${icon_size}/neofluxon.png"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${icon_size}x${icon_size}/apps"
+    )
+endforeach()
+
+install(FILES
+    "${CMAKE_SOURCE_DIR}/packaging/icons/neofluxon.svg"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps"
+)
+
 add_subdirectory(models)
 add_subdirectory(widgets)

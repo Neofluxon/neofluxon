@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.31)
 
 project(neofluxon VERSION 1.0)
 
+include(GNUInstallDirs)
+
 # 1. Standard C++ Configuration
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
