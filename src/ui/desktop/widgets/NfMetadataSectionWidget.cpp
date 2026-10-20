@@ -22,6 +22,7 @@
  */
 
 #include "NfMetadataSectionWidget.h"
+#include "NfDesktopFileManagerUtils.h"
 #include "NfMetadataItemDelegate.h"
 #include "NfPhotoMetadataModel.h"
 #include "NfMetadataFilterProxy.h"
@@ -30,6 +31,10 @@
 #include <QVBoxLayout>
 #include <QTableView>
 #include <QHeaderView>
+#include <QDesktopServices>
+#include <QFileInfo>
+#include <QUrl>
+#include <QDebug>
 
 namespace NfDesktop {
 
@@ -95,6 +100,28 @@ void NfMetadataSectionWidget::setupUi()
         m_tableView->setSelectionMode(QAbstractItemView::NoSelection);
         m_tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         m_tableView->setItemDelegate(new NfMetadataItemDelegate(this, m_tableView));
+        QObject::connect(m_tableView,
+                         &QTableView::doubleClicked,
+                         this,
+                         [this](const QModelIndex& index) {
+                                 if (!index.isValid()
+                                     || index.column() != 1
+                                     || m_tableView->model()->index(index.row(), 0)
+                                                        .data().toString() != tr("Path"))
+                                         return;
+
+                                 const auto path = index.data().toString();
+                                 if (path.isEmpty())
+                                         return;
+
+                                 const auto filePath = QFileInfo(path).absoluteFilePath();
+                                 if (NfDesktopFileManagerUtils::revealFile(filePath))
+                                         return;
+
+                                 const auto folder = QFileInfo(filePath).absolutePath();
+                                 if (!QDesktopServices::openUrl(QUrl::fromLocalFile(folder)))
+                                         qWarning() << "Could not reveal file:" << filePath;
+                         });
 
         layout->addWidget(m_tableView);
 }

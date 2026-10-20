@@ -33,6 +33,11 @@ set(WIDGETS_HEADERS
     NfMetadataSectionWidget.h
 )
 
+set(WIDGETS_UTILS
+    ../utils/NfDesktopFileManagerUtils.cpp
+    ../utils/NfDesktopFileManagerUtils.h
+)
+
 set(WIDGETS_SOURCES
     NfStyledWidget.cpp
     NfScrollStack.cpp
@@ -71,11 +76,15 @@ set(WIDGETS_SOURCES
 add_library(NfDesktopWidgets STATIC
     ${WIDGETS_SOURCES}
     ${WIDGETS_HEADERS}
+    ${WIDGETS_UTILS}
 )
 
 add_library(${PROJECT_NAME}::DesktopWidgets ALIAS NfDesktopWidgets)
 
-target_include_directories(NfDesktopWidgets PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(NfDesktopWidgets PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utils
+)
 
 # Dependencies
 target_link_libraries(NfDesktopWidgets PUBLIC
@@ -83,3 +92,7 @@ target_link_libraries(NfDesktopWidgets PUBLIC
         ${PROJECT_NAME}::CommonUiLibrary
         ${PROJECT_NAME}::DesktopModels
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(NfDesktopWidgets PUBLIC Qt6::DBus)
+endif()
