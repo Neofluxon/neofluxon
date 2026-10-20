@@ -128,14 +128,11 @@ QVariant NfLibraryTreeModel::data(const QModelIndex& index, int role) const
                                 case NfLibraryTreeItem::RepresentationType::DateTime:
                                         return QIcon(":/icons/calendar.svg");
 
-                                        //case NfLibraryTreeItem::RepresentationType::Equipment:
-                                        //return QIcon(":/icons/equipment.svg");
+                                case NfLibraryTreeItem::RepresentationType::Equipment:
+                                        return QIcon(":/icons/equipment.svg");
 
-                                        //                                case NfLibraryTreeItem::RepresentationType::KeywordsTree:
-                                        //                                        return QIcon(":/icons/keywords_tree.svg");
-
-                                        //                                case NfLibraryTreeItem::RepresentationType::Collections:
-                                        //                                        return QIcon(":/icons/collections.svg");
+                                case NfLibraryTreeItem::RepresentationType::Collections:
+                                        return QIcon(":/icons/collections.svg");
 
                                 default:
                                         break;
