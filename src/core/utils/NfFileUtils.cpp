@@ -28,6 +28,15 @@
 
 namespace NfCore {
 
+std::filesystem::path NfFileUtils::pathFromUtf8(std::string_view path)
+{
+        if (path.empty())
+                return {};
+
+        const auto* utf8Path = reinterpret_cast<const char8_t*>(path.data());
+        return std::filesystem::path{std::u8string{utf8Path, path.size()}};
+}
+
 std::string NfFileUtils::pathToUtf8(const std::filesystem::path& path)
 {
         const auto utf8Path = path.u8string();

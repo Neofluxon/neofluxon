@@ -31,6 +31,7 @@
 #include "NfScheduler.h"
 #include "NfThreadPool.h"
 #include "NfLogger.h"
+#include "utils/NfFileUtils.h"
 
 #include <array>
 #include <exception>
@@ -66,7 +67,7 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 std::filesystem::create_directories(directory, error);
                 if (error || !std::filesystem::is_directory(directory, error)) {
                         errorMessage = "Unable to create application directory '"
-                                + directory.string() + "': "
+                                + NfFileUtils::pathToUtf8(directory) + "': "
                                 + (error ? error.message() : "path is not a directory");
                         NF_LOG_ERROR(errorMessage);
                         return false;

@@ -25,6 +25,7 @@
 #include "NfFolderActionDelegate.h"
 #include "NfLibraryAdapter.h"
 #include "core/NfLogger.h"
+#include "core/utils/NfFileUtils.h"
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -33,6 +34,7 @@
 #include <QDir>
 
 using namespace NfUi;
+using namespace NfCore;
 
 namespace NfDesktop {
 
@@ -92,7 +94,11 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
         QObject::connect(m_treeView, &QTreeView::doubleClicked,
                          this, [this](const QModelIndex& index)
                          {
-                                 emit folderSelected(m_model->filePath(index).toStdString());
+                                 const auto utf8Path = m_model->filePath(index).toUtf8();
+                                 emit folderSelected(NfFileUtils::pathFromUtf8(
+                                         std::string_view{
+                                                 utf8Path.constData(),
+                                                 static_cast<std::size_t>(utf8Path.size())}));
                          });
 }
 

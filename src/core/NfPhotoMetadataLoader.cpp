@@ -22,6 +22,7 @@
  */
 
 #include "NfPhotoMetadataLoader.h"
+#include "utils/NfFileUtils.h"
 #include "NfScheduler.h"
 #include "NfLogger.h"
 
@@ -75,7 +76,8 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo,
         m_pendingRequests.insert(photo.id());
         m_scheduler->submit(std::move(task));
 
-        NF_LOG_DEBUG("metadata task submitted for photo: " << photo.path().string());
+        NF_LOG_DEBUG("metadata task submitted for photo: "
+                     << NfFileUtils::pathToUtf8(photo.path()));
 }
 
 std::vector<std::pair<NfPhotoId, NfPhotoMetadata>>

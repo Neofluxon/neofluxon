@@ -28,6 +28,7 @@
 #include "NfUiBrowserState.h"
 #include "core/NfApplicationPaths.h"
 #include "core/library/NfLibraryRepresentation.h"
+#include "core/utils/NfFileUtils.h"
 
 #include <QDebug>
 #include <QDir>
@@ -35,6 +36,8 @@
 #include <QSettings>
 
 #include <variant>
+
+using namespace NfCore;
 
 namespace NfUi {
 
@@ -49,7 +52,7 @@ QString pathToString(const std::filesystem::path& path)
 
 QString settingsFilePath()
 {
-        const auto configPath = NfCore::NfApplicationPaths().configDirectory() /
+        const auto configPath = NfApplicationPaths().configDirectory() /
                                 "ui-state.ini";
         return pathToString(configPath);
 }
@@ -57,7 +60,9 @@ QString settingsFilePath()
 std::filesystem::path stringToPath(const QString& path)
 {
         const auto utf8Path = path.toUtf8();
-        return std::filesystem::path{reinterpret_cast<const char8_t*>(utf8Path.constData())};
+        return NfFileUtils::pathFromUtf8(
+                std::string_view{utf8Path.constData(),
+                                 static_cast<std::size_t>(utf8Path.size())});
 }
 
 void saveBrowserState(QSettings& settings,
@@ -83,10 +88,10 @@ void restoreBrowserState(QSettings& settings,
 
         const auto photoPath = settings.value(key + QStringLiteral("/currentPhoto")).toString();
         if (!photoPath.isEmpty())
-                state->setCurrentPhoto(NfCore::NfPhoto{stringToPath(photoPath)});
+                state->setCurrentPhoto(NfPhoto{stringToPath(photoPath)});
 }
 
-void saveLibraryQuery(QSettings& settings, const NfCore::NfLibraryQuery& query)
+void saveLibraryQuery(QSettings& settings, const NfLibraryQuery& query)
 {
         const auto key = QStringLiteral("ui/library/query");
         settings.remove(key);
@@ -109,7 +114,7 @@ void saveLibraryQuery(QSettings& settings, const NfCore::NfLibraryQuery& query)
                 settings.setValue(key + QStringLiteral("/valueType"), QStringLiteral("string"));
                 settings.setValue(key + QStringLiteral("/value"),
                                   QString::fromStdString(*stringValue));
-        } else if (const auto* dateRange = std::get_if<NfCore::NfDateRange>(&value)) {
+        } else if (const auto* dateRange = std::get_if<NfDateRange>(&value)) {
                 settings.setValue(key + QStringLiteral("/valueType"), QStringLiteral("dateRange"));
                 settings.setValue(key + QStringLiteral("/startTicks"),
                                   QString::number(static_cast<qlonglong>(dateRange->start_ticks)));
@@ -120,7 +125,7 @@ void saveLibraryQuery(QSettings& settings, const NfCore::NfLibraryQuery& query)
 
 void restoreLibraryQuery(QSettings& settings, NfUiLibraryModeState* state)
 {
-        using RepresentationType = NfCore::NfLibraryRepresentation::RepresentationType;
+        using RepresentationType = NfLibraryRepresentation::RepresentationType;
         const auto key = QStringLiteral("ui/library/query");
         const auto representationKey = key + QStringLiteral("/representationType");
         if (!settings.contains(representationKey))
@@ -137,7 +142,7 @@ void restoreLibraryQuery(QSettings& settings, NfUiLibraryModeState* state)
             || rawRepresentation > static_cast<int>(RepresentationType::Collections))
                 return;
 
-        NfCore::NfLibraryQuery query;
+        NfLibraryQuery query;
         query.libraryId = libraryId;
         query.representationType = static_cast<RepresentationType>(rawRepresentation);
 
@@ -165,7 +170,7 @@ void restoreLibraryQuery(QSettings& settings, NfUiLibraryModeState* state)
                                          .toString().toLongLong(&ok);
                 if (!ok)
                         return;
-                query.queryValue = NfCore::NfDateRange{start, end};
+                query.queryValue = NfDateRange{start, end};
         } else if (valueType != QStringLiteral("none")) {
                 return;
         }

@@ -30,6 +30,7 @@
 #include "NfScheduler.h"
 #include "NfLibraryQuery.h"
 #include "NfLogger.h"
+#include "NfFileUtils.h"
 
 #include <exception>
 
@@ -56,14 +57,14 @@ bool NfLibraryManager::initialize(std::string& errorMessage)
                 auto database = std::make_unique<NfLibraryDatabase>(databasePath);
                 if (!database->open(errorMessage)) {
                         errorMessage = "Unable to open library database '"
-                                + databasePath.string() + "': " + errorMessage;
+                                + NfFileUtils::pathToUtf8(databasePath) + "': " + errorMessage;
                         NF_LOG_ERROR(errorMessage);
                         return false;
                 }
 
                 if (!database->initializeSchema(errorMessage)) {
                         errorMessage = "Unable to initialize library database schema '"
-                                + databasePath.string() + "': " + errorMessage;
+                                + NfFileUtils::pathToUtf8(databasePath) + "': " + errorMessage;
                         NF_LOG_ERROR(errorMessage);
                         return false;
                 }

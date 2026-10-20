@@ -26,6 +26,7 @@
 #include "utils/NfFileUtils.h"
 #include "utils/NfTimeUtils.h"
 
+#include <exiv2/convert.hpp>
 #include <exiv2/exiv2.hpp>
 
 #include <charconv>
@@ -66,7 +67,15 @@ std::string xmpString(const Exiv2::XmpData& data, const char* key)
 std::string iptcString(const Exiv2::IptcData& data, const char* key)
 {
         const auto iterator = data.findKey(Exiv2::IptcKey(key));
-        return iterator == data.end() ? std::string{} : iterator->toString();
+        if (iterator == data.end())
+                return {};
+
+        auto value = iterator->toString();
+        if (const auto* charset = data.detectCharset();
+            charset && !Exiv2::convertStringCharset(value, charset, "UTF-8"))
+                NF_LOG_ERROR("can't convert IPTC metadata from "
+                             << charset << " to UTF-8");
+        return value;
 }
 
 double exifNumber(const Exiv2::ExifData& data, const char* key)

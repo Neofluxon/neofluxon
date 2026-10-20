@@ -26,6 +26,7 @@
 
 #include <filesystem>
 #include <string>
+#include <string_view>
 
 namespace NfCore {
 
@@ -38,6 +39,7 @@ public:
         };
 
         NfFileUtils() = delete;
+        static std::filesystem::path pathFromUtf8(std::string_view path);
         static std::string pathToUtf8(const std::filesystem::path& path);
         static std::string extension(const std::filesystem::path& path,
                                      Case casing = Case::Preserve);
