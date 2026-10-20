@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource prefix="/">
-  <file>thumb_w160.jpg</file>
+  <file>placeholder_thumbnail.jpg</file>
+  <file>placeholder_preview.jpg</file>
   <file>style-cool-teal-desktop.qcss</file>
   <file>logo.png</file>
   <file>logo.svg</file>
