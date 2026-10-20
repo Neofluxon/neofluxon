@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <ctime>
+#include <optional>
 
 namespace NfCore {
 
@@ -44,6 +45,8 @@ class NfTimeUtils {
         static NfDateRange getMonthRange(std::chrono::year_month ym);
         static NfDateRange getDayRange(std::chrono::year_month_day ymd);
         static int64_t fromFileTime(std::filesystem::file_time_type ftime);
+        static std::optional<std::chrono::system_clock::time_point>
+        fromUtcTm(const std::tm& tm);
 
         // Legacy std::tm overload (e.g. for EXIF or legacy C APIs)
         static NfDateRange getYearRange(const std::tm& tm);

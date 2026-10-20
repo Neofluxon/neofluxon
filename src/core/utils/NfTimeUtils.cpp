@@ -75,6 +75,28 @@ NfDateRange NfTimeUtils::getYearRange(const std::tm& tm)
         return getYearRange(std::chrono::year{tm.tm_year + 1900});
 }
 
+std::optional<std::chrono::system_clock::time_point>
+NfTimeUtils::fromUtcTm(const std::tm& tm)
+{
+        using namespace std::chrono;
+        const year_month_day date{
+                year{tm.tm_year + 1900},
+                month{static_cast<unsigned>(tm.tm_mon + 1)},
+                day{static_cast<unsigned>(tm.tm_mday)}
+        };
+        if (!date.ok()
+            || tm.tm_hour < 0 || tm.tm_hour > 23
+            || tm.tm_min < 0 || tm.tm_min > 59
+            || tm.tm_sec < 0 || tm.tm_sec > 59)
+                return std::nullopt;
+
+        const auto utc = sys_days{date}
+                + hours{tm.tm_hour}
+                + minutes{tm.tm_min}
+                + seconds{tm.tm_sec};
+        return time_point_cast<system_clock::duration>(utc);
+}
+
 int64_t NfTimeUtils::fromFileTime(std::filesystem::file_time_type ftime)
 {
         const auto sys_tp = std::chrono::clock_cast<std::chrono::system_clock>(ftime);

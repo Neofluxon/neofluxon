@@ -23,6 +23,7 @@
 
 #include "NfExifMetadataExtractor.h"
 #include "NfLogger.h"
+#include "utils/NfTimeUtils.h"
 
 #include <exiv2/exiv2.hpp>
 
@@ -96,7 +97,8 @@ std::chrono::system_clock::time_point parseExifDate(const std::string& value)
         if (stream.fail())
                 return {};
 
-        return std::chrono::system_clock::from_time_t(timegm(&date));
+        return NfTimeUtils::fromUtcTm(date).value_or(
+                std::chrono::system_clock::time_point{});
 }
 
 double gpsCoordinate(const Exiv2::ExifData& data,
