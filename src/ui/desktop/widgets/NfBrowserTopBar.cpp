@@ -54,6 +54,7 @@ void NfBrowserTopBar::setupUi()
 
         //        m_breadcrumbBar = new NfBrowserBreadcrumbBar(this);
         m_viewModeBar = new NfBrowserViewModeBar(this);
+        m_viewModeBar->setState(m_state);
         m_sortBar = new NfBrowserSortBar(this);
         m_filterBar = new NfBrowserFilterBar(this);
 

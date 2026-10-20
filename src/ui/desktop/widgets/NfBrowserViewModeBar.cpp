@@ -41,27 +41,26 @@ NfBrowserViewModeBar::NfBrowserViewModeBar(QWidget* parent)
 
 void NfBrowserViewModeBar::setState(NfUiBrowserState* state)
 {
-    if (m_state == state)
-        return;
+        if (m_state == state)
+                return;
 
-    if (m_state)
-            QObject::disconnect(m_state, nullptr, this, nullptr);
+        if (m_state)
+                QObject::disconnect(m_state, nullptr, this, nullptr);
 
-    m_state = state;
+        m_state = state;
+        if (m_state) {
+                auto currentMode = m_state->viewMode();
+                if (m_buttons.contains(currentMode))
+                        m_buttons[currentMode]->setChecked(true);
 
-    if (m_state) {
-            auto currentMode = m_state->viewMode();
-            if (m_buttons.contains(currentMode))
-                    m_buttons[currentMode]->setChecked(true);
-
-            QObject::connect(m_state, &NfUiBrowserState::viewModeChanged,
-                             this, [this](NfUiBrowserState::ViewMode newMode) {
-                                     if (m_buttons.contains(newMode)) {
-                                             QSignalBlocker blocker(m_buttonGroup);
-                                             m_buttons[newMode]->setChecked(true);
-                                     }
-                             });
-    }
+                QObject::connect(m_state, &NfUiBrowserState::viewModeChanged,
+                                 this, [this](NfUiBrowserState::ViewMode newMode) {
+                                         if (m_buttons.contains(newMode)) {
+                                                 QSignalBlocker blocker(m_buttonGroup);
+                                                 m_buttons[newMode]->setChecked(true);
+                                         }
+                                 });
+        }
 }
 
 NfUiBrowserState* NfBrowserViewModeBar::getState() const
@@ -83,8 +82,11 @@ void NfBrowserViewModeBar::setupUi()
                         m_state->setViewMode(static_cast<ViewMode>(id));
         });
 
-        createModeButton(ViewMode::Grid, tr("Grid"), QIcon(":/icons/viewmode_grid.svg"));
-        createModeButton(ViewMode::Preview, tr("Preview"), QIcon(":/icons/viewmode_preview.svg"));
+        createModeButton(ViewMode::Grid, tr("Grid"),
+                         QIcon(":/icons/viewmode_grid.svg"));
+        createModeButton(ViewMode::Preview,
+                         tr("Preview"),
+                         QIcon(":/icons/viewmode_preview.svg"));
 
         for (auto* button : m_buttons)
                 mainLayout->addWidget(button, 0, Qt::AlignVCenter);

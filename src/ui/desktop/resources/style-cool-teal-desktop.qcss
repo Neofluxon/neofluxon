@@ -295,13 +295,13 @@ NfDesktop--NfBrowserViewModeBar QToolButton:hover {
 
 /* Active / Checked state */
 NfDesktop--NfBrowserViewModeBar QToolButton:checked {
-    background-color: #1a2332;
-    color: #38bdf8;
+    background-color: #292c38;
+    color: #e6eaf2;
 }
 
 /* Active + Hover state */
 NfDesktop--NfBrowserViewModeBar QToolButton:checked:hover {
-    background-color: #222d3f;
+    background-color: #323646;
 }
 
 NfDesktop--NfBrowserViewModeBar QToolButton:focus {
