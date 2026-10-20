@@ -27,6 +27,7 @@
 #include "NfLibraryModel.h"
 #include "NfBrowserModel.h"
 #include "NfBrowserView.h"
+#include "NfBrowserTopBar.h"
 //#include "NfBreadcrumbView.h"
 #include "core/library/NfLibraryQuery.h"
 #include "core/NfPhotoSource.h"
@@ -56,6 +57,10 @@ NfLibraryView::NfLibraryView(NfLibraryContext ctx,
         //breadcrumbBar->setObjectName("BrowserBreadcrumb");
         //breadcrumbBar->setModel(m_model->breadcrump());
         //m_mainLayout->addWidget(breadcrumbBar);
+
+        auto* browserTopBar = new NfBrowserTopBar(m_state->browser(), this);
+        browserTopBar->setFixedSize(450, 36);
+        m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(), m_model->browser(), this);
         QObject::connect(m_state,
