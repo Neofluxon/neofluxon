@@ -80,13 +80,18 @@ Neofluxon is [Free Software](https://www.gnu.org/philosophy/free-sw.en.html), re
 ### Dependencies
 
 * **Qt6**
+  - Core, Gui, and Widgets modules.
+  - DBus module for GNU/Linux builds.
 * **LibRaw** ([https://www.libraw.org](https://www.libraw.org))
 * **libjpeg-turbo** (https://libjpeg-turbo.org/)
+* **Exiv2** (https://exiv2.org/)
 * **stb** (https://github.com/nothings/stb)
 * **Zlib** (https://zlib.net/)
 * **libpng** (https://www.libpng.org/pub/png/libpng.html)
+* **SQLite3**
+* **pkg-config** (used by CMake to locate libjpeg-turbo and Exiv2)
 
 ### Build Requirements
 
-* **CMake** ≥ 3.25
+* **CMake** ≥ 3.31
 * **C++26**
