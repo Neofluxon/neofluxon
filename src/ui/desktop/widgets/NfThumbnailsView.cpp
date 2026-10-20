@@ -93,9 +93,17 @@ void NfThumbnailsView::updateLayout()
         if (m_layoutMode == LayoutMode::GridView) {
                 setWrapping(true);
                 setResizeMode(QListView::Adjust);
+                setMinimumHeight(0);
+                setMaximumHeight(QWIDGETSIZE_MAX);
+                setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         } else {
                 setWrapping(false);
                 setResizeMode(QListView::Fixed);
+                const int verticalPadding = 32;
+                const int filmstripHeight = m_thumbnailSize.height() + verticalPadding;
+                setMinimumHeight(filmstripHeight);
+                setMaximumHeight(filmstripHeight);
+                setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         }
 
         setThumbnailSize(m_thumbnailSize);
