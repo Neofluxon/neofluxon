@@ -43,6 +43,7 @@ struct NfPhotoMetadata
         std::string cameraMaker;
         std::string cameraModel;
         std::string lens;
+        double cameraAspectRatio = 0.0;
         int iso = -1;
         double aperture = 0.0;
         double shutterSpeed = 0.0;
@@ -76,4 +77,3 @@ struct NfPhotoMetadata
 } // namespace NfCore
 
 #endif // NF_PHOTO_METADATA_H
-

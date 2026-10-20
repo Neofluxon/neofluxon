@@ -35,6 +35,8 @@
 
 #include <QDateTime>
 
+#include <cmath>
+
 using namespace NfCore;
 using namespace NfUi;
 
@@ -167,6 +169,30 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
                             QString::fromStdString(metadata.cameraModel));
         m_items.emplaceBack(tr("Lens"),
                             QString::fromStdString(metadata.lens));
+        QString cameraAspectRatio;
+        if (metadata.cameraAspectRatio > 0.0) {
+                const auto ratio = metadata.cameraAspectRatio;
+                if (std::abs(ratio - 1.5) < 0.005)
+                        cameraAspectRatio = QStringLiteral("3:2");
+                else if (std::abs(ratio - 1.0) < 0.005)
+                        cameraAspectRatio = QStringLiteral("1:1");
+                else if (std::abs(ratio - (4.0 / 3.0)) < 0.005)
+                        cameraAspectRatio = QStringLiteral("4:3");
+                else if (std::abs(ratio - (16.0 / 9.0)) < 0.005)
+                        cameraAspectRatio = QStringLiteral("16:9");
+                else if (std::abs(ratio - 1.25) < 0.005)
+                        cameraAspectRatio = QStringLiteral("5:4");
+                else if (std::abs(ratio - (7.0 / 6.0)) < 0.005)
+                        cameraAspectRatio = QStringLiteral("7:6");
+                else if (std::abs(ratio - 1.2) < 0.005)
+                        cameraAspectRatio = QStringLiteral("6:5");
+                else if (std::abs(ratio - 1.4) < 0.005)
+                        cameraAspectRatio = QStringLiteral("7:5");
+                else
+                        cameraAspectRatio = QStringLiteral("%1:1")
+                                .arg(ratio, 0, 'f', 2);
+        }
+        m_items.emplaceBack(tr("Aspect ratio"), cameraAspectRatio);
         m_items.emplaceBack(tr("ISO"),
                             metadata.iso >= 0
                             ? QString::number(metadata.iso)

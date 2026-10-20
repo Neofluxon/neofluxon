@@ -59,6 +59,9 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
         NfPhotoMetadata metadata;
         metadata.width = sizes.width;
         metadata.height = sizes.height;
+        if (sizes.raw_aspect >= LIBRAW_IMAGE_ASPECT_MINIMAL_REAL_ASPECT_VALUE
+            && sizes.raw_aspect <= LIBRAW_IMAGE_ASPECT_MAXIMAL_REAL_ASPECT_VALUE)
+                metadata.cameraAspectRatio = sizes.raw_aspect / 1000.0;
         metadata.format = NfFileUtils::extension(photoPath, NfFileUtils::Case::Upper);
         std::error_code error;
         auto size = std::filesystem::file_size(photoPath, error);

@@ -74,7 +74,8 @@ void NfImageMetadataPanel::setupUi()
                    {tr("Name"), tr("Path"), tr("Size"), tr("Format"), tr("Dimensions")});
         addSection(QStringLiteral("capture"), tr("Capture"),
                    {tr("Date taken"), tr("Camera maker"), tr("Camera model"), tr("Lens"),
-                    tr("ISO"), tr("Aperture"), tr("Shutter speed"), tr("Focal length")});
+                    tr("Aspect ratio"), tr("ISO"), tr("Aperture"), tr("Shutter speed"),
+                    tr("Focal length")});
         addSection(QStringLiteral("location"), tr("Location"),
                    {tr("Latitude"), tr("Longitude"), tr("Altitude"), tr("GPS Timestamp"),
                     tr("Positioning Method")});
