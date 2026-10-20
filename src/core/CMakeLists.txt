@@ -16,6 +16,8 @@ endif()
 
 set(CORE_HEADERS
         NfLimits.h
+        utils/NfFileUtils.h
+        utils/NfStringUtils.h
         utils/NfTimeUtils.h
         NfApplicationPaths.h
         NfThreadAllocationManager.h
@@ -67,6 +69,8 @@ set(CORE_HEADERS
 
 set(CORE_SOURCES
         utils/NfTimeUtils.cpp
+        utils/NfFileUtils.cpp
+        utils/NfStringUtils.cpp
         NfApplicationPaths.cpp
         NfThreadAllocationManager.cpp
         NeofluxonCore.cpp

@@ -24,6 +24,7 @@
 #include "NfRawImageDecoder.h"
 #include "NfLogger.h"
 #include "NfPhotoMetadata.h"
+#include "NfFileUtils.h"
 
 #include <filesystem>
 
@@ -38,11 +39,12 @@ NfRawImageDecoder::~NfRawImageDecoder() = default;
 
 std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
 {
-        NF_LOG_DEBUG("open file: " << getPhoto().path());
+        auto photoPath = getPhoto().path();
+        NF_LOG_DEBUG("open file: " << photoPath);
 
         LibRaw rawProcessor;
-        if (rawProcessor.open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS) {
-                NF_LOG_ERROR("can't open file: " << getPhoto().path());
+        if (rawProcessor.open_file(photoPath.string().c_str()) != LIBRAW_SUCCESS) {
+                NF_LOG_ERROR("can't open file: " << photoPath);
                 return std::nullopt;
         }
 
@@ -57,9 +59,9 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
         NfPhotoMetadata metadata;
         metadata.width = sizes.width;
         metadata.height = sizes.height;
-        metadata.format = "RAW";
+        metadata.format = NfFileUtils::extension(photoPath, NfFileUtils::Case::Upper);
         std::error_code error;
-        auto size = std::filesystem::file_size(getPhoto().path(), error);
+        auto size = std::filesystem::file_size(photoPath, error);
         metadata.fileSize = static_cast<std::int64_t>(size);
         metadata.cameraMaker = idata.make;
         metadata.cameraModel = idata.model;
