@@ -35,6 +35,7 @@ class NfExifMetadataExtractor {
  public:
         explicit NfExifMetadataExtractor(const NfPhoto& photo);
         std::optional<NfPhotoMetadata> metadata() const;
+        std::optional<int> orientation() const;
 
  private:
         NfPhoto m_photo;

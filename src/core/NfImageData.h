@@ -77,7 +77,7 @@ private:
         int m_width;
         int m_height;
         int m_channels;
-        int m_orientation;
+        int m_orientation{0};
         ImageFormat m_format;
 };
 

@@ -245,4 +245,28 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
         }
 }
 
+std::optional<int> NfExifMetadataExtractor::orientation() const
+{
+        const auto& path = m_photo.path();
+        try {
+                auto image = Exiv2::ImageFactory::open(path.string());
+                if (!image) {
+                        NF_LOG_ERROR("can't open image with Exiv2: " << path);
+                        return std::nullopt;
+                }
+
+                image->readMetadata();
+                return exifInteger(image->exifData(), "Exif.Image.Orientation", 1);
+        }
+        catch (const Exiv2::Error& error) {
+                NF_LOG_ERROR("can't read image orientation from " << path
+                             << ": " << error.what());
+        }
+        catch (const std::exception& error) {
+                NF_LOG_ERROR("can't parse image orientation from " << path
+                             << ": " << error.what());
+        }
+        return std::nullopt;
+}
+
 } // namespace NfCore

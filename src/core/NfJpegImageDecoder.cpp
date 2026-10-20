@@ -23,6 +23,7 @@
 
 #include "NfJpegImageDecoder.h"
 #include "NfExifMetadataExtractor.h"
+#include "NfImage.h"
 #include "NfLimits.h"
 #include "NfLogger.h"
 
@@ -192,6 +193,11 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
         imageData->setWidth(scaledWidth);
         imageData->setHeight(scaledHeight);
+        if (const auto exifOrientation =
+                    NfExifMetadataExtractor(getPhoto()).orientation()) {
+                imageData->setOrientation(static_cast<int>(
+                        NfImage::orientationFromExif(*exifOrientation)));
+        }
 
         // JPEG has no alpha channel, so decoded pixels are fully opaque.
         imageData->convertToARGB32Premultiplied();

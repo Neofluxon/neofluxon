@@ -63,6 +63,7 @@ class NfImage
         size_t size() const;
         void scaleToHeight(int h);
         Orientation orientation() const;
+        static Orientation orientationFromExif(int orientation);
         void applyOrientation();
 
  protected:
@@ -72,4 +73,3 @@ class NfImage
 } // namespace NfCore
 
 #endif // NF_IMAGE_H
-

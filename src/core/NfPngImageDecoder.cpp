@@ -23,6 +23,7 @@
 
 #include "NfPngImageDecoder.h"
 #include "NfExifMetadataExtractor.h"
+#include "NfImage.h"
 #include "NfLogger.h"
 
 #include <png.h>
@@ -163,6 +164,11 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
         imageData->setWidth(static_cast<int>(width));
         imageData->setHeight(static_cast<int>(height));
         imageData->setFormat(NfImageData::ImageFormat::Format_RGBA8888);
+        if (const auto exifOrientation =
+                    NfExifMetadataExtractor(getPhoto()).orientation()) {
+                imageData->setOrientation(static_cast<int>(
+                        NfImage::orientationFromExif(*exifOrientation)));
+        }
 
         imageData->convertToARGB32Premultiplied();
 

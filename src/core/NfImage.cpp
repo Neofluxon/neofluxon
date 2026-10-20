@@ -109,6 +109,29 @@ NfImage::Orientation NfImage::orientation() const
         return static_cast<Orientation>(m_data->orientation());
 }
 
+NfImage::Orientation NfImage::orientationFromExif(int orientation)
+{
+        switch (orientation) {
+        case 2:
+                return Orientation::FlipHorizontal;
+        case 3:
+                return Orientation::Rotate180;
+        case 4:
+                return Orientation::FlipVertical;
+        case 5:
+                return Orientation::Rotate90CWFlipHorizontal;
+        case 6:
+                return Orientation::Rotate90CW;
+        case 7:
+                return Orientation::Rotate90CWFlipVertical;
+        case 8:
+                return Orientation::Rotate270CW;
+        case 1:
+        default:
+                return Orientation::Normal;
+        }
+}
+
 void NfImage::applyOrientation()
 {
         if (!m_data)
@@ -126,40 +149,53 @@ void NfImage::applyOrientation()
         newData.resize(m_data->size());
         uint32_t* dst = reinterpret_cast<uint32_t*>(newData.data());
 
-        int newW = w;
-        int newH = h;
+        const auto imageOrientation = orientation();
+        const bool swapsDimensions =
+                imageOrientation == Orientation::Rotate90CWFlipVertical
+                || imageOrientation == Orientation::Rotate270CW
+                || imageOrientation == Orientation::Rotate90CW
+                || imageOrientation == Orientation::Rotate90CWFlipHorizontal;
+        const int newW = swapsDimensions ? h : w;
+        const int newH = swapsDimensions ? w : h;
 
-        switch (orientation()) {
-        case Orientation::Rotate180: // 180° Rotation
-                for (int i = 0; i < w * h; ++i)
-                        dst[w * h - 1 - i] = src[i];
-                break;
+        for (int y = 0; y < h; ++y) {
+                for (int x = 0; x < w; ++x) {
+                        int newX = x;
+                        int newY = y;
 
-        case Orientation::Rotate90CW: // 90° CW (Swaps Width and Height)
-                newW = h;
-                newH = w;
-                for (int y = 0; y < h; ++y) {
-                        for (int x = 0; x < w; ++x) {
-                                // Formula: newX = (h - 1 - y), newY = x
-                                dst[x * h + (h - 1 - y)] = src[y * w + x];
+                        switch (imageOrientation) {
+                        case Orientation::FlipVertical:
+                                newY = h - 1 - y;
+                                break;
+                        case Orientation::FlipHorizontal:
+                                newX = w - 1 - x;
+                                break;
+                        case Orientation::Rotate180:
+                                newX = w - 1 - x;
+                                newY = h - 1 - y;
+                                break;
+                        case Orientation::Rotate90CWFlipVertical:
+                                newX = h - 1 - y;
+                                newY = w - 1 - x;
+                                break;
+                        case Orientation::Rotate270CW:
+                                newX = y;
+                                newY = w - 1 - x;
+                                break;
+                        case Orientation::Rotate90CW:
+                                newX = h - 1 - y;
+                                newY = x;
+                                break;
+                        case Orientation::Rotate90CWFlipHorizontal:
+                                newX = y;
+                                newY = x;
+                                break;
+                        case Orientation::Normal:
+                                break;
                         }
-                }
-                break;
 
-        case Orientation::Rotate270CW: // 90° CCW (Swaps Width and Height)
-                newW = h;
-                newH = w;
-                for (int y = 0; y < h; ++y) {
-                        for (int x = 0; x < w; ++x) {
-                                // Formula: newX = y, newY = (w - 1 - x)
-                                dst[(w - 1 - x) * h + y] = src[y * w + x];
-                        }
+                        dst[newY * newW + newX] = src[y * w + x];
                 }
-                break;
-
-        default:
-                // Standard orientaiton or unknown orientation
-                return;
         }
 
         m_data->setData(newData.data(), newData.size());
