@@ -87,7 +87,7 @@ void NfBrowserViewModeBar::setupUi()
         createModeButton(ViewMode::Preview, tr("Preview"), QIcon(":/icons/viewmode_preview.svg"));
 
         for (auto* button : m_buttons)
-                mainLayout->addWidget(button);
+                mainLayout->addWidget(button, 0, Qt::AlignVCenter);
 }
 
 void NfBrowserViewModeBar::createModeButton(ViewMode mode,
@@ -95,10 +95,13 @@ void NfBrowserViewModeBar::createModeButton(ViewMode mode,
                                             const QIcon& icon)
 {
         auto* button = new QToolButton(this);
-        button->setText(text);
+        button->setToolTip(text);
+        button->setAccessibleName(text);
         button->setIcon(icon);
+        button->setIconSize(QSize(16, 16));
+        button->setFixedSize(28, 28);
         button->setCheckable(true);
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setToolButtonStyle(Qt::ToolButtonIconOnly);
         button->setCursor(Qt::PointingHandCursor);
 
         m_buttonGroup->addButton(button, static_cast<int>(mode));

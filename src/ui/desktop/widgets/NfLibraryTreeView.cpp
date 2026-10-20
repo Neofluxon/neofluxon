@@ -62,6 +62,7 @@ void NfLibraryTreeView::setupView()
 
         setUniformRowHeights(true);
         setIndentation(18);
+        setIconSize(QSize(16, 16));
 }
 
 void NfLibraryTreeView::setupBehavior()

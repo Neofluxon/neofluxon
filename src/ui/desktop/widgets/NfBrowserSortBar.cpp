@@ -38,7 +38,7 @@ NfBrowserSortBar::NfBrowserSortBar(QWidget* parent)
 void NfBrowserSortBar::setupUi()
 {
         auto* layout = new QHBoxLayout(this);
-        layout->setContentsMargins(0, 2, 0, 2);
+        layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(0);
 
         m_button = new QToolButton(this);

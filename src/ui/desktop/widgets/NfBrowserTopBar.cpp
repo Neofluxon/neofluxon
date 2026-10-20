@@ -58,9 +58,9 @@ void NfBrowserTopBar::setupUi()
         m_filterBar = new NfBrowserFilterBar(this);
 
         //        layout->addWidget(m_breadcrumbBar,1);
-        layout->addWidget(m_viewModeBar);
-        layout->addWidget(m_sortBar);
-        layout->addWidget(m_filterBar);
+        layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
+        layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
+        layout->addWidget(m_filterBar, 0, Qt::AlignVCenter);
         m_editButton = new QToolButton(this);
         m_editButton->setObjectName("editInButton");
         m_editButton->setPopupMode(QToolButton::MenuButtonPopup);
@@ -93,7 +93,7 @@ void NfBrowserTopBar::setupUi()
         QObject::connect(m_state, &NfUi::NfUiBrowserState::currentPhotoChanged,
                          this, &NfBrowserTopBar::updateEditButton);
 
-        layout->addWidget(m_editButton);
+        layout->addWidget(m_editButton, 0, Qt::AlignVCenter);
 }
 
 void NfBrowserTopBar::updateEditButton()

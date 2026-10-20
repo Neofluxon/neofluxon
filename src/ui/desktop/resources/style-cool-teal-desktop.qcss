@@ -283,10 +283,8 @@ NfDesktop--NfBrowserViewModeBar QToolButton {
     border: 1px solid transparent; /* Reserve 1px border space to prevent layout jump */
     border-radius: 4px;
     font-size: 14px;
-    padding: 0px 12px;
+    padding: 0;
     margin: 0;
-    height: 100%;
-    width: 100%;
 }
 
 /* Hover state */

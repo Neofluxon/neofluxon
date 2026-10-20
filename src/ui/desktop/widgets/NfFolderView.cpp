@@ -52,7 +52,7 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
 
         auto browserTopBar = new NfBrowserTopBar(m_state->browser(), this);
         //browserTopBar->setState(m_state->browser());
-        browserTopBar->setFixedSize(450, 32);
+        browserTopBar->setFixedSize(450, 36);
         m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(),
