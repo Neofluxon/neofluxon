@@ -28,6 +28,10 @@
 
 #include <png.h>
 
+#ifdef _WIN32
+#include <cstdio>
+#endif
+
 namespace NfCore {
 
 NfPngImageDecoder::NfPngImageDecoder(const NfPhoto &photo)
@@ -55,9 +59,12 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
 {
-        auto path = getPhoto().path().string();
-
+        const auto& path = getPhoto().path();
+#ifdef _WIN32
+        FILE *fp = _wfopen(path.c_str(), L"rb");
+#else
         FILE *fp = fopen(path.c_str(), "rb");
+#endif
         if (!fp)
                 return nullptr;
 

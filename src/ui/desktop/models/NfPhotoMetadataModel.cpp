@@ -31,6 +31,7 @@
 #include "NfUiLibraryModeState.h"
 #include "NfUiBrowserState.h"
 #include "core/NfLogger.h"
+#include "core/utils/NfFileUtils.h"
 
 #include <QDateTime>
 
@@ -146,7 +147,8 @@ void NfPhotoMetadataModel::setupMetadata(const NfCore::NfPhotoMetadata& metadata
         m_items.emplaceBack(tr("Name"),
                             QString::fromStdString(m_photo.name()));
         m_items.emplaceBack(tr("Path"),
-                            QString::fromStdString(m_photo.path()));
+                            QString::fromStdString(
+                                    NfFileUtils::pathToUtf8(m_photo.path())));
         m_items.emplaceBack(tr("Size"),
                             formatFileSize(metadata.fileSize));
         m_items.emplaceBack(tr("Format"),

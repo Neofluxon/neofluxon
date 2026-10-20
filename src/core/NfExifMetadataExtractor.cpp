@@ -23,6 +23,7 @@
 
 #include "NfExifMetadataExtractor.h"
 #include "NfLogger.h"
+#include "utils/NfFileUtils.h"
 #include "utils/NfTimeUtils.h"
 
 #include <exiv2/exiv2.hpp>
@@ -141,7 +142,7 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
         NF_LOG_DEBUG("read " << format << " metadata: " << path);
 
         try {
-                auto image = Exiv2::ImageFactory::open(path.string());
+                auto image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
                 if (!image) {
                         NF_LOG_ERROR("can't open image with Exiv2: " << path);
                         return std::nullopt;
@@ -251,7 +252,7 @@ std::optional<int> NfExifMetadataExtractor::orientation() const
 {
         const auto& path = m_photo.path();
         try {
-                auto image = Exiv2::ImageFactory::open(path.string());
+                auto image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
                 if (!image) {
                         NF_LOG_ERROR("can't open image with Exiv2: " << path);
                         return std::nullopt;

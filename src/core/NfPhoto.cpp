@@ -22,6 +22,7 @@
  */
 
 #include "NfPhoto.h"
+#include "utils/NfFileUtils.h"
 
 namespace NfCore {
 
@@ -44,7 +45,7 @@ const std::filesystem::path& NfPhoto::path() const
 
 std::string NfPhoto::name() const
 {
-        return m_filePath.filename().string();
+        return NfFileUtils::pathToUtf8(m_filePath.filename());
 }
 
 NfPhoto::PhotoFormat NfPhoto::format() const

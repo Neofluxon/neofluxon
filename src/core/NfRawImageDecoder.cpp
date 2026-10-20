@@ -30,6 +30,20 @@
 
 namespace NfCore {
 
+namespace {
+
+int openRawFile(LibRaw& rawProcessor, const std::filesystem::path& path)
+{
+#ifdef _WIN32
+        return rawProcessor.open_wfile(path.c_str());
+#else
+        const auto nativePath = path.string();
+        return rawProcessor.open_file(nativePath.c_str());
+#endif
+}
+
+} // namespace
+
 NfRawImageDecoder::NfRawImageDecoder(const NfPhoto &photo)
         : NfImageDecoder(photo)
 {
@@ -43,7 +57,7 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
         NF_LOG_DEBUG("open file: " << photoPath);
 
         LibRaw rawProcessor;
-        if (rawProcessor.open_file(photoPath.string().c_str()) != LIBRAW_SUCCESS) {
+        if (openRawFile(rawProcessor, photoPath) != LIBRAW_SUCCESS) {
                 NF_LOG_ERROR("can't open file: " << photoPath);
                 return std::nullopt;
         }
@@ -111,7 +125,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
         NF_LOG_DEBUG("open file: " << getPhoto().path());
 
         LibRaw rawProcessor;
-        if (rawProcessor.open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS) {
+        if (openRawFile(rawProcessor, getPhoto().path()) != LIBRAW_SUCCESS) {
                 NF_LOG_DEBUG("can't open file : " << getPhoto().path());
                 return nullptr;
         }
@@ -166,7 +180,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
         NF_LOG_DEBUG("open file: " << getPhoto().path());
 
         LibRaw rawProcessor;
-        if (rawProcessor.open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS) {
+        if (openRawFile(rawProcessor, getPhoto().path()) != LIBRAW_SUCCESS) {
                 NF_LOG_ERROR("can't open file: " << getPhoto().path());
                 return nullptr;
         }
@@ -222,7 +236,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
 
         LibRaw rawProcessor;
 
-        if (rawProcessor.open_file(getPhoto().path().string().c_str()) != LIBRAW_SUCCESS)
+        if (openRawFile(rawProcessor, getPhoto().path()) != LIBRAW_SUCCESS)
                 return nullptr;
 
         //rawProcessor.imgdata.params.half_size = 1;

@@ -22,6 +22,7 @@
  */
 
 #include "NfPhotoId.h"
+#include "utils/NfFileUtils.h"
 
 #include <string>
 #include <chrono>
@@ -76,7 +77,7 @@ uint64_t NfPhotoId::computeHash(const std::filesystem::path& filePath)
                         (ftime - decltype(ftime)::clock::now());
                 auto time = std::chrono::system_clock::to_time_t(sctp);
 
-                std::string key = filePath.string() + "|" +
+                std::string key = NfFileUtils::pathToUtf8(filePath) + "|" +
                         std::to_string(size) + "|" +
                         std::to_string(time);
 

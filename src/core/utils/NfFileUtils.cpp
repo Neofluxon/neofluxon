@@ -28,6 +28,12 @@
 
 namespace NfCore {
 
+std::string NfFileUtils::pathToUtf8(const std::filesystem::path& path)
+{
+        const auto utf8Path = path.u8string();
+        return {reinterpret_cast<const char*>(utf8Path.data()), utf8Path.size()};
+}
+
 std::string NfFileUtils::extension(const std::filesystem::path& path, Case casing)
 {
         auto result = path.extension().string();

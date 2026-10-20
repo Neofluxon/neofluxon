@@ -64,7 +64,7 @@ std::unique_ptr<NfImageData> NfJpegImageDecoder::fullImageData() const
 std::unique_ptr<NfImageData>
 NfJpegImageDecoder::decodeScaled(int targetRes) const
 {
-        const auto path = getPhoto().path().string();
+        const auto& path = getPhoto().path();
         std::ifstream file(path, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
                 NF_LOG_ERROR("can't open image: " << path);

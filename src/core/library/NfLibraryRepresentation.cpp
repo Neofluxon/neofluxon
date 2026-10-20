@@ -27,6 +27,7 @@
 #include "NfLibraryTreeNode.h"
 #include "NfLibraryQuery.h"
 #include "NfTimeUtils.h"
+#include "NfFileUtils.h"
 #include "NfLogger.h"
 
 #include <unordered_map>
@@ -291,7 +292,7 @@ void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord
                 }
 
                 auto* node = parent->addChild();
-                node->setName(folder.path.filename().string());
+                node->setName(NfFileUtils::pathToUtf8(folder.path.filename()));
                 node->setType(NfLibraryTreeNode::NodeType::Folder);
                 node->setValue(folder.id);
 
