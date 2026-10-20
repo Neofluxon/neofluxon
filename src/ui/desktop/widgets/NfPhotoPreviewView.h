@@ -26,8 +26,10 @@
 
 #include <QWidget>
 #include <QModelIndex>
+#include <QPixmap>
 
 class QLabel;
+class QResizeEvent;
 
 namespace NfDesktop {
 
@@ -47,6 +49,7 @@ public slots:
 
 protected:
         void connectModel();
+        void resizeEvent(QResizeEvent* event) override;
 
 protected slots:
         void updatePreview(const QModelIndex& index = QModelIndex());
@@ -55,9 +58,12 @@ protected slots:
                            const QVector<int> &roles);
 
 private:
+        void renderPreview();
+
         NfBrowserModel *m_model;
         QLabel *m_photoPreview;
         QModelIndex m_previewIndex;
+        QPixmap m_sourcePreview;
 };
 
 } // NfDesktop

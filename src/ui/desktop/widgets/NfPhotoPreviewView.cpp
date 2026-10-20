@@ -25,6 +25,7 @@
 #include "NfBrowserModel.h"
 
 #include <QLabel>
+#include <QResizeEvent>
 #include <QVBoxLayout>
 
 namespace NfDesktop {
@@ -104,7 +105,7 @@ void NfPhotoPreviewView::onDataChanged(const QModelIndex &topLeft,
                 return;
 
         for (int row = topLeft.row(); row <= bottomRight.row(); ++row) {
-                QModelIndex idx = m_model->index(row, topLeft.column());
+                auto idx = m_model->index(row, topLeft.column());
                 if (idx == m_previewIndex) {
                         updatePreview(idx);
                         break;
@@ -115,19 +116,38 @@ void NfPhotoPreviewView::onDataChanged(const QModelIndex &topLeft,
 void NfPhotoPreviewView::updatePreview(const QModelIndex &index)
 {
         if (!m_model || !index.isValid()) {
+                m_sourcePreview = {};
                 m_photoPreview->clear();
                 return;
         }
 
+        m_previewIndex = index;
         auto role = NfBrowserModel::ImageDataRole::PreviewRole;
-        QVariant v = m_model->data(index, role);
+        auto v = m_model->data(m_previewIndex, role);
         if (v.canConvert<QPixmap>()) {
-                QPixmap pixmap = v.value<QPixmap>();
-                m_photoPreview->setPixmap(pixmap.scaled(
-                                                        m_photoPreview->size(),
-                                                        Qt::KeepAspectRatio,
-                                                        Qt::SmoothTransformation));
+                m_sourcePreview = v.value<QPixmap>();
+                renderPreview();
+        } else {
+                m_sourcePreview = {};
+                m_photoPreview->clear();
         }
+}
+
+void NfPhotoPreviewView::resizeEvent(QResizeEvent* event)
+{
+        QWidget::resizeEvent(event);
+        renderPreview();
+}
+
+void NfPhotoPreviewView::renderPreview()
+{
+        if (m_sourcePreview.isNull())
+                return;
+
+        m_photoPreview->setPixmap(m_sourcePreview.scaled(
+                m_photoPreview->contentsRect().size(),
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
 }
 
 } // namespace NfDesktop
