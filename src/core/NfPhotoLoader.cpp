@@ -56,7 +56,10 @@ void NfPhotoLoader::setSource(const NfPhotoSource &source)
         }
 
         m_scheduler->cancelAll();
-        m_pendingThumbnailTasks.clear();
+        {
+                std::scoped_lock lock(m_mutex);
+                m_pendingThumbnailTasks.clear();
+        }
 
         m_source = source;
         m_photoScanner->setSource(m_source);

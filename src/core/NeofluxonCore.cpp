@@ -48,6 +48,8 @@ NeofluxonCore::NeofluxonCore()
 NeofluxonCore::~NeofluxonCore()
 {
         NF_LOG_DEBUG("called");
+        m_foregroundThreadPool.reset();
+        m_backgroundThreadPool.reset();
 }
 
 bool NeofluxonCore::initialize(std::string& errorMessage)

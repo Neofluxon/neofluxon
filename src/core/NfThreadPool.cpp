@@ -57,6 +57,11 @@ NfThreadPool::~NfThreadPool()
                 t.request_stop();
 
         m_conditionVariable.notify_all();
+
+        for (auto& t : m_poolThreads) {
+                if (t.joinable())
+                        t.join();
+        }
 }
 
 void NfThreadPool::threadLoop(std::stop_token stoken)
