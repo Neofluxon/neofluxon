@@ -25,6 +25,7 @@
 #define NF_STRING_UTILS_H
 
 #include <string>
+#include <string_view>
 
 namespace NfCore {
 
@@ -33,6 +34,11 @@ public:
         NfStringUtils() = delete;
         static std::string toUpper(std::string value);
         static std::string toLower(std::string value);
+        static bool compareNoCase(std::string_view str1, std::string_view str2);
+        static std::string trim(std::string value);
+        static std::string removePrefix(std::string value,
+                                        std::string_view prefix,
+                                        bool ignoreCase = false);
 };
 
 } // namespace NfCore

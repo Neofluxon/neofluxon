@@ -51,7 +51,9 @@ public:
                 DateDay,
 
                 // Hardware Identity
+                CameraCategory,
                 Camera,
+                LensCategory,
                 Lens,
 
                 // Geographic Hierarchy

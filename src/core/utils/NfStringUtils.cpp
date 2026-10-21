@@ -25,28 +25,67 @@
 
 #include <algorithm>
 #include <cctype>
+#include <ranges>
 
 namespace NfCore {
 
 std::string NfStringUtils::toUpper(std::string value)
 {
-        std::transform(value.begin(),
-                       value.end(),
-                       value.begin(),
-                       [](unsigned char character) {
-                               return static_cast<char>(std::toupper(character));
-                       });
+        std::ranges::transform(value, value.begin(),
+                               [](auto character) {
+                                       return static_cast<char>(
+                                               std::toupper(static_cast<unsigned char>(character)));
+                               });
+
         return value;
 }
 
 std::string NfStringUtils::toLower(std::string value)
 {
-        std::transform(value.begin(),
-                       value.end(),
-                       value.begin(),
-                       [](unsigned char character) {
-                               return static_cast<char>(std::tolower(character));
-                       });
+        std::ranges::transform(value, value.begin(),
+                               [](auto character) {
+                                       return static_cast<char>(
+                                               std::tolower(static_cast<unsigned char>(character)));
+                               });
+
+        return value;
+}
+
+bool NfStringUtils::compareNoCase(std::string_view str1, std::string_view str2)
+{
+        return std::ranges::equal(str1, str2, [](auto c1, auto c2) {
+                return std::tolower(static_cast<unsigned char>(c1)) ==
+                       std::tolower(static_cast<unsigned char>(c2));
+        });
+}
+
+std::string NfStringUtils::trim(std::string value)
+{
+        const auto isSpace = [](unsigned char character) {
+                return std::isspace(character);
+        };
+
+        const auto first = std::ranges::find_if_not(value, isSpace);
+        const auto last = std::ranges::find_if_not(value | std::views::reverse, isSpace).base();
+        if (first >= last)
+                return {};
+
+        return std::string(first, last);
+}
+
+std::string NfStringUtils::removePrefix(std::string value,
+                                        std::string_view prefix,
+                                        bool ignoreCase)
+{
+        if (prefix.size() > value.size())
+                return value;
+
+        const auto valuePrefix = std::string_view(value).substr(0, prefix.size());
+        if (ignoreCase ? !compareNoCase(valuePrefix, prefix) : valuePrefix != prefix)
+                return value;
+
+        value.erase(0, prefix.size());
+
         return value;
 }
 

@@ -36,6 +36,7 @@ namespace NfCore {
 class NfRepresentationRecord;
 class NfLibraryDatabase;
 class NfLibraryQuery;
+struct NfEquipmentSourceRecord;
 
 class NfLibraryRepresentation {
 public:
@@ -61,6 +62,11 @@ protected:
         void populateTree(const NfRepresentationRecord *record);
         void populateCanonicalTree(const NfRepresentationRecord* rep);
         void populateDateTimeTree(const NfRepresentationRecord* rep);
+        void populateEquipmentTree(const NfRepresentationRecord* rep);
+        void loadCamerasTree(NfLibraryTreeNode* parent,
+                             const NfEquipmentSourceRecord* source);
+        void loadLensesTree(NfLibraryTreeNode* parent,
+                            const NfEquipmentSourceRecord* source);
         NfLibraryTreeNode* findOrCreateChild(NfLibraryTreeNode* parent,
                                              const std::string& name,
                                              NfLibraryTreeNode::NodeType nodeType);

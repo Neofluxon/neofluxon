@@ -24,6 +24,7 @@
 #include "NfPhotoMetadataExtractor.h"
 #include "NfImageDecoderFactory.h"
 #include "NfImageDecoder.h"
+#include "NfStringUtils.h"
 
 #include <chrono>
 #include <filesystem>
@@ -37,15 +38,21 @@ NfPhotoMetadataExtractor::NfPhotoMetadataExtractor(const NfPhoto& photo)
 
 std::optional<NfPhotoSummary> NfPhotoMetadataExtractor::summaryInfo() const
 {
-        NfPhotoSummary info;
-
-        try {
-                auto ftime = std::filesystem::last_write_time(m_photo.path());
-                info.dateTaken = std::chrono::clock_cast<std::chrono::system_clock>(ftime);
-        }
-        catch (...) {
+        auto photoMetadata = metadata();
+        if (!photoMetadata)
                 return std::nullopt;
-        }
+
+        NfPhotoSummary info;
+        info.dateTaken = photoMetadata->dateTaken;
+        info.cameraMaker = std::move(photoMetadata->cameraMaker);
+        info.cameraModel = std::move(photoMetadata->cameraModel);
+        info.lens = std::move(photoMetadata->lens);
+        info.iso = photoMetadata->iso;
+        info.aperture = photoMetadata->aperture;
+        info.shutterSpeed = photoMetadata->shutterSpeed;
+        info.focalLength = photoMetadata->focalLength;
+        info.rating = photoMetadata->rating;
+        info.hasExif = photoMetadata->hasExif;
 
         return info;
 }
@@ -53,11 +60,26 @@ std::optional<NfPhotoSummary> NfPhotoMetadataExtractor::summaryInfo() const
 std::optional<NfPhotoMetadata> NfPhotoMetadataExtractor::metadata() const
 {
         auto decoder = NfImageDecoderFactory::createDecoder(m_photo);
-        if (decoder)
-                return decoder->metadata();
+        if (!decoder)
+                return std::nullopt;
 
-        return std::nullopt;
+        auto metadata = decoder->metadata();
+        if (!metadata)
+                return std::nullopt;
+
+        if (metadata->cameraMaker == "--" | metadata->cameraMaker == "-") {
+                metadata->cameraMaker = "";
+                metadata->cameraModel = "";
+                return metadata;
+        }
+
+        metadata->cameraMaker = NfStringUtils::trim(metadata->cameraMaker);
+        metadata->cameraModel = NfStringUtils::trim(metadata->cameraModel);
+        metadata->cameraModel = NfStringUtils::removePrefix(metadata->cameraModel,
+                                                            metadata->cameraMaker);
+        metadata->cameraModel = NfStringUtils::trim(metadata->cameraModel);
+
+        return metadata;
 }
 
 } // namespace NfCore
-

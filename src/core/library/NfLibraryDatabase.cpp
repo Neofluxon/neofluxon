@@ -568,6 +568,7 @@ int64_t NfLibraryDatabase::getFolderIdByPath(std::filesystem::path &folder) cons
 int64_t NfLibraryDatabase::addCamera(std::string_view maker,
                                      std::string_view model)
 {
+        NF_LOG_DEBUG("add camera, maker = " << maker << ", " << model);
         const char* selectSql = "SELECT id FROM cameras WHERE maker = ? AND model = ?;";
         sqlite3_stmt* stmt = nullptr;
 
@@ -757,32 +758,29 @@ void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libr
 
 void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libraryId)
 {
-        /*auto* record = static_cast<NfEquipmentSourceRecord*>(source.get());
-        sqlite3_stmt* stmt;
+        auto* record = static_cast<NfEquipmentSourceRecord*>(source);
 
-        // 1. Load only Cameras that have associated images
+        // Load only Cameras that have associated images
         const char* sqlCameras =
                 "SELECT DISTINCT c.id, c.maker, c.model "
                 "FROM cameras c "
                 "INNER JOIN images i ON c.id = i.camera_id "
                 "ORDER BY c.maker ASC, c.model ASC;";
 
+        sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sqlCameras, -1, &stmt, nullptr) == SQLITE_OK) {
                 while (sqlite3_step(stmt) == SQLITE_ROW) {
                         int id = sqlite3_column_int(stmt, 0);
                         const char* maker = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
                         const char* model = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-
-                        record->cameras.push_back({
-                                        id,
-                                        maker ? maker : "",
-                                        model ? model : ""
-                                });
+                        record->cameras.push_back({id,
+                                                   maker ? maker : "",
+                                                   model ? model : ""});
                 }
         }
         sqlite3_finalize(stmt);
 
-        // 2. Load only Lenses that have associated images
+        // Load only Lenses that have associated images
         const char* sqlLenses =
                 "SELECT DISTINCT l.id, l.name "
                 "FROM lenses l "
@@ -791,16 +789,15 @@ void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libr
 
         if (sqlite3_prepare_v2(m_db, sqlLenses, -1, &stmt, nullptr) == SQLITE_OK) {
                 while (sqlite3_step(stmt) == SQLITE_ROW) {
-                        int id = sqlite3_column_int(stmt, 0);
-                        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+                        auto id = sqlite3_column_int(stmt, 0);
+                        const auto* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
 
-                        record->lenses.push_back({
-                                        id,
-                                        name ? name : ""
-                                });
+                        record->lenses.push_back({id,
+                                                  name ? name : ""});
                 }
         }
-        sqlite3_finalize(stmt);*/
+
+        sqlite3_finalize(stmt);
 }
 
 void NfLibraryDatabase::loadCollectionsSource(NfSourceRecord *source, int64_t libraryId)

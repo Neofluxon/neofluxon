@@ -29,6 +29,7 @@
 #include "NfTimeUtils.h"
 #include "NfFileUtils.h"
 #include "NfLogger.h"
+#include "NfStringUtils.h"
 
 #include <unordered_map>
 #include <chrono>
@@ -152,6 +153,7 @@ void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
                 populateDateTimeTree(rep);
                 break;
         case RepresentationType::Equipment:
+                populateEquipmentTree(rep);
                 break;
         case RepresentationType::Collections:
                 break;
@@ -218,6 +220,58 @@ void NfLibraryRepresentation::populateDateTimeTree(const NfRepresentationRecord*
         }
 }
 
+void NfLibraryRepresentation::populateEquipmentTree(const NfRepresentationRecord* rep)
+{
+        using NodeType = NfLibraryTreeNode::NodeType;
+
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root", NodeType::Root);
+
+        auto* source = dynamic_cast<const NfEquipmentSourceRecord*>(rep->sourceData.get());
+        if (!source)
+                return;
+
+        // Load cameras tree
+        if (!source->cameras.empty()) {
+                auto camerasRootNode = findOrCreateChild(m_tree.get(),
+                                                         "Cameras",
+                                                         NodeType::CameraCategory);
+                if (camerasRootNode)
+                        loadCamerasTree(camerasRootNode, source);
+        }
+
+        // Load lensess tree
+        if (!source->lenses.empty()) {
+                auto lensesRootNode = findOrCreateChild(m_tree.get(),
+                                                        "Lenses",
+                                                        NodeType::LensCategory);
+                if (lensesRootNode)
+                        loadLensesTree(lensesRootNode, source);
+        }
+}
+
+void NfLibraryRepresentation::loadCamerasTree(NfLibraryTreeNode *parent,
+                                              const NfEquipmentSourceRecord *source)
+{
+        for (auto const &camera: source->cameras) {
+                auto name = camera.maker + " " + camera.model;
+                auto childNode = findOrCreateChild(parent,
+                                                   name,
+                                                   NfLibraryTreeNode::NodeType::Camera);
+                childNode->setValue(camera.id);
+        }
+}
+
+void NfLibraryRepresentation::loadLensesTree(NfLibraryTreeNode *parent,
+                                             const NfEquipmentSourceRecord *source)
+{
+        for (const auto& lens : source->lenses) {
+                auto childNode = findOrCreateChild(parent,
+                                                   lens.name,
+                                                   NfLibraryTreeNode::NodeType::Lens);
+                childNode->setValue(lens.id);
+        }
+}
+
 NfLibraryTreeNode*
 NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
                                            const std::string& name,
@@ -225,7 +279,7 @@ NfLibraryRepresentation::findOrCreateChild(NfLibraryTreeNode* parent,
 {
         // search existing children
         for (const auto& child : parent->children()) {
-                if (child->name() == name)
+                if (NfStringUtils::compareNoCase(child->name(), name))
                         return child.get();
         }
 
