@@ -25,6 +25,7 @@
 #define NF_LIBRARY_TREE_NODE_H
 
 #include "NfTimeUtils.h"
+#include "NfEquipmentQuery.h"
 
 #include <memory>
 #include <string>
@@ -72,7 +73,8 @@ public:
                                        int,
                                        int64_t,
                                        std::string,
-                                       NfDateRange>;
+                                       NfDateRange,
+                                       NfEquipmentQuery>;
 
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();

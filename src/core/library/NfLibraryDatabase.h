@@ -25,6 +25,7 @@
 #define NF_LIBRARY_DATABASE_H
 
 #include "NfLibraryRepresentation.h"
+#include "NfEquipmentQuery.h"
 
 #include <sqlite3.h>
 #include <filesystem>
@@ -98,6 +99,8 @@ public:
                          int64_t lensId);
         std::vector<std::filesystem::path> getImagePathsByFolderId(const int64_t folderId) const;
         std::vector<std::filesystem::path> getImagePathsByDate(const NfDateRange &dateRange) const;
+        std::vector<std::filesystem::path> getImagePathsByEquipment(
+                const NfEquipmentQuery& equipment) const;
 
         int64_t getFolderIdByPath(std::filesystem::path &folder) const;
 

@@ -104,6 +104,8 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
                 break;
         case RepresentationType::Equipment:
                 NF_LOG_DEBUG("Representation: Equipment");
+                if (const auto *equipment = std::get_if<NfEquipmentQuery>(&query.queryValue))
+                        return queryPhotosByEquipment(*equipment);
                 break;
         case RepresentationType::Collections:
                 NF_LOG_DEBUG("Representation: Collections");
@@ -136,6 +138,17 @@ NfLibraryRepresentation::queryPhotosByDateRange(const NfDateRange &dateRange) co
         std::vector<NfPhoto> photos;
         auto imagePaths = m_database->getImagePathsByDate(dateRange);
         for (const auto &path : imagePaths)
+                photos.emplace_back(path);
+
+        return photos;
+}
+
+std::vector<NfPhoto>
+NfLibraryRepresentation::queryPhotosByEquipment(const NfEquipmentQuery& equipment) const
+{
+        std::vector<NfPhoto> photos;
+        const auto imagePaths = m_database->getImagePathsByEquipment(equipment);
+        for (const auto& path : imagePaths)
                 photos.emplace_back(path);
 
         return photos;

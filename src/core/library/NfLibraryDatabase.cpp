@@ -538,6 +538,48 @@ NfLibraryDatabase::getImagePathsByDate(const NfDateRange &dateRange) const
         return result;
 }
 
+std::vector<std::filesystem::path>
+NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment) const
+{
+        std::vector<std::filesystem::path> result;
+
+        const char* sql = nullptr;
+        switch (equipment.kind) {
+        case NfEquipmentQuery::Kind::Camera:
+                sql = R"(
+                SELECT folders.path || '/' || images.file_name
+                FROM images
+                JOIN folders ON images.folder_id = folders.id
+                WHERE images.camera_id = ?;
+                )";
+                break;
+        case NfEquipmentQuery::Kind::Lens:
+                sql = R"(
+                SELECT folders.path || '/' || images.file_name
+                FROM images
+                JOIN folders ON images.folder_id = folders.id
+                WHERE images.lens_id = ?;
+                )";
+                break;
+        }
+        if (!sql)
+                return result;
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return result;
+
+        sqlite3_bind_int64(stmt, 1, equipment.id);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+                const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                if (path)
+                        result.emplace_back(path);
+        }
+
+        sqlite3_finalize(stmt);
+        return result;
+}
+
 int64_t NfLibraryDatabase::getFolderIdByPath(std::filesystem::path &folder) const
 {
         const char* sql = R"(

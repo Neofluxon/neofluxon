@@ -120,6 +120,12 @@ void saveLibraryQuery(QSettings& settings, const NfLibraryQuery& query)
                                   QString::number(static_cast<qlonglong>(dateRange->start_ticks)));
                 settings.setValue(key + QStringLiteral("/endTicks"),
                                   QString::number(static_cast<qlonglong>(dateRange->end_ticks)));
+        } else if (const auto* equipment = std::get_if<NfEquipmentQuery>(&value)) {
+                settings.setValue(key + QStringLiteral("/valueType"), QStringLiteral("equipment"));
+                settings.setValue(key + QStringLiteral("/equipmentKind"),
+                                  static_cast<int>(equipment->kind));
+                settings.setValue(key + QStringLiteral("/value"),
+                                  QString::number(static_cast<qlonglong>(equipment->id)));
         }
 }
 
@@ -171,6 +177,17 @@ void restoreLibraryQuery(QSettings& settings, NfUiLibraryModeState* state)
                 if (!ok)
                         return;
                 query.queryValue = NfDateRange{start, end};
+        } else if (valueType == QStringLiteral("equipment")) {
+                const auto rawKind = settings.value(key + QStringLiteral("/equipmentKind")).toInt(&ok);
+                if (!ok || (rawKind != static_cast<int>(NfEquipmentQuery::Kind::Camera)
+                            && rawKind != static_cast<int>(NfEquipmentQuery::Kind::Lens)))
+                        return;
+                const auto id = settings.value(key + QStringLiteral("/value"))
+                                        .toString().toLongLong(&ok);
+                if (!ok)
+                        return;
+                query.queryValue = NfEquipmentQuery{
+                        static_cast<NfEquipmentQuery::Kind>(rawKind), id};
         } else if (valueType != QStringLiteral("none")) {
                 return;
         }

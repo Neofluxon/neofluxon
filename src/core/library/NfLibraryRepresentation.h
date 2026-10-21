@@ -25,6 +25,7 @@
 #define NF_LIBRARY_REPRESENTATION_H
 
 #include "NfLibraryTreeNode.h"
+#include "NfEquipmentQuery.h"
 #include "NfPhoto.h"
 
 #include <memory>
@@ -72,6 +73,7 @@ protected:
                                              NfLibraryTreeNode::NodeType nodeType);
         std::vector<NfPhoto> queryPhotosByPathId(uint64_t id) const;
         std::vector<NfPhoto> queryPhotosByDateRange(const NfDateRange &dateRange) const;
+        std::vector<NfPhoto> queryPhotosByEquipment(const NfEquipmentQuery& equipment) const;
 
 private:
 

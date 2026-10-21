@@ -225,7 +225,17 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<std::unique_ptr<Nf
                 auto node = std::make_unique<NfLibraryTreeItem>(name,
                                                                 nodeType,
                                                                 parentItem);
-                node->setValue(child->getValue());
+                auto value = child->getValue();
+                if (child->type() == NfLibraryTreeNode::NodeType::Camera
+                    || child->type() == NfLibraryTreeNode::NodeType::Lens) {
+                        if (const auto* id = std::get_if<int64_t>(&value)) {
+                                const auto kind = child->type() == NfLibraryTreeNode::NodeType::Camera
+                                        ? NfEquipmentQuery::Kind::Camera
+                                        : NfEquipmentQuery::Kind::Lens;
+                                value = NfEquipmentQuery{kind, *id};
+                        }
+                }
+                node->setValue(value);
                 if (!child->children().empty())
                         populateChildNodes(child->children(), node.get());
 
