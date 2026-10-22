@@ -25,14 +25,13 @@
 #define NF_SETTINGS_DIALOG_H
 
 #include <QDialog>
-#include <QSlider>
-#include <QComboBox>
-#include <QCheckBox>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QLabel>
-#include <QTabWidget>
-#include <QWidget>
+
+class QLabel;
+class QLineEdit;
+class QListWidget;
+class QPushButton;
+class QSpinBox;
+class QStackedWidget;
 
 namespace NfDesktop {
 
@@ -40,46 +39,25 @@ class NfSettingsDialog : public QDialog
 {
         Q_OBJECT
 
- public:
+public:
         explicit NfSettingsDialog(QWidget* parent = nullptr);
 
-        // getters for settings
-        int diskCacheSize() const;
-        int ramCacheLimit() const;
-        int preloadPages() const;
-        QString thumbnailQuality() const;
-        int asyncThreads() const;
-        bool useEmbeddedRaw() const;
-        bool lazyLoading() const;
-        bool autoDetectImages() const;
-        bool autoDiskCleanup() const;
-        QString diskCacheLocation() const;
-
- private:
+private:
         void setupUI();
         void setupConnections();
+        void updateAvailableDiskSpace();
 
-        QTabWidget* m_tabs;
-
-        // Thumbnail Cache Tab
-        QWidget* m_tabThumbnailCache;
-        QComboBox* m_cbDiskCacheSize;
-        QSlider* m_sliderRamCache;
-        QLabel* m_labelRamCache;
-        QComboBox* m_cbPreloadPages;
-        QComboBox* m_cbThumbnailQuality;
-        QCheckBox* m_chkUseEmbeddedRaw;
-        QCheckBox* m_chkLazyLoading;
-        QCheckBox* m_chkAutoDetect;
-        QCheckBox* m_chkAutoCleanup;
-        QLineEdit* m_editDiskCacheLocation;
-        QPushButton* m_btnBrowse;
-        QPushButton* m_btnClearDiskCache;
-        QPushButton* m_btnClearRamCache;
-
-        // Buttons
-        QPushButton* m_btnOk;
-        QPushButton* m_btnCancel;
+        QListWidget* m_categories{nullptr};
+        QStackedWidget* m_pages{nullptr};
+        QSpinBox* m_thumbnailMemoryLimit{nullptr};
+        QSpinBox* m_previewMemoryLimit{nullptr};
+        QSpinBox* m_diskCacheLimit{nullptr};
+        QLineEdit* m_diskCacheLocation{nullptr};
+        QLabel* m_availableDiskSpace{nullptr};
+        QSpinBox* m_minimumFreeDiskSpace{nullptr};
+        QPushButton* m_browseDiskCache{nullptr};
+        QPushButton* m_okButton{nullptr};
+        QPushButton* m_cancelButton{nullptr};
 };
 
 } // namespace NfDesktop

@@ -14,5 +14,6 @@
   <file>icons/collections.svg</file>
   <file>icons/viewmode_grid.svg</file>
   <file>icons/viewmode_preview.svg</file>
+  <file>icons/settings.svg</file>
 </qresource>
 </RCC>

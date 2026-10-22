@@ -139,12 +139,27 @@ QScrollBar::sub-page:horizontal {
     background-color: #383b4e;
 }
 
+#NfTopBar QToolButton#SettingsButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+#NfTopBar QToolButton#SettingsButton:hover {
+    background-color: #323546;
+}
+
+#NfTopBar QToolButton#SettingsButton:pressed {
+    background-color: #383b4e;
+}
+
 #NfTopBar QPushButton#btnMinimize,
 #NfTopBar QPushButton#btnMaximize,
 #NfTopBar QPushButton#btnClose {
     background-color: #8f91a0;
     border-radius: 4px;
-    color: #1e1f28; /* matches your dark background */
+    color: #1e1f28;
 }
 
 #NfTopBar QPushButton#btnClose {
@@ -152,11 +167,11 @@ QScrollBar::sub-page:horizontal {
 }
 
 #NfTopBar QPushButton:hover {
-    filter: brightness(1.2); /* subtle brighten on hover */
+    filter: brightness(1.2);
 }
 
 #NfTopBar QPushButton:pressed {
-    filter: brightness(0.9); /* subtle darken on press */
+    filter: brightness(0.9);
 }
 
 /* Side panels */
@@ -219,6 +234,65 @@ QDialog {
     border-radius: 8px;
 }
 
+QListWidget#SettingsCategories {
+    background-color: #242632;
+    border: 1px solid #323546;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+QListWidget#SettingsCategories::item {
+    padding: 7px 8px;
+    border-radius: 3px;
+}
+
+QListWidget#SettingsCategories::item:selected {
+    background-color: #323546;
+    color: #e6eaf2;
+    border-left: 2px solid #3ddcff;
+}
+
+QListWidget#SettingsCategories::item:hover:!selected {
+    background-color: #2a2c3a;
+}
+
+QStackedWidget#SettingsPages {
+    background-color: #242632;
+    border: 1px solid #323546;
+    border-radius: 4px;
+}
+
+QScrollArea#SettingsScrollArea,
+QScrollArea#SettingsScrollArea QWidget {
+    background-color: transparent;
+}
+
+QLabel#SettingsPageTitle {
+    color: #e6eaf2;
+    font-size: 15px;
+    font-weight: bold;
+    padding-bottom: 3px;
+}
+
+QLabel#SettingsDescription {
+    color: #8f96a6;
+    font-size: 11px;
+}
+
+QDialog QGroupBox {
+    border: 1px solid #323546;
+    border-radius: 4px;
+    margin-top: 9px;
+    padding: 8px;
+    font-weight: bold;
+}
+
+QDialog QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 0 4px;
+}
+
 QTabWidget::pane {
     border: 1px solid #323546;
     background-color: #242632;
@@ -255,7 +329,7 @@ QPushButton:pressed {
     color: #0b0d12;
 }
 
-QLineEdit, QComboBox, QSlider {
+QLineEdit, QComboBox, QSlider, QSpinBox {
     background-color: #20222e;
     color: #e6eaf2;
     border: 1px solid #323546;

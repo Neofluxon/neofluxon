@@ -36,8 +36,8 @@ class NfPhotoMetadataLoader;
 class NfCache;
 class NfScheduler;
 class NfThreadPool;
-class NfLibraryManager;
 class NfThreadAllocationManager;
+class NfLibraryManager;
 
 class NeofluxonCore {
 public:

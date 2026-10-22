@@ -24,6 +24,7 @@
 #include "NfTopBar.h"
 #include "NfBrowserViewModeBar.h"
 #include "NfContext.h"
+#include "NfSettingsDialog.h"
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibrary.h"
 #include "NfUiShootsModeState.h"
@@ -81,6 +82,26 @@ NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
                                  state->setMode(NfUiMode::Library);
                          });
         topBarLayout->addStretch(1);
+
+        // Settings
+        auto m_settingsButton = new QToolButton(this);
+        m_settingsButton->setObjectName("SettingsButton");
+        m_settingsButton->setToolTip("Open Settings");
+        m_settingsButton->setAccessibleName("Settings");
+        m_settingsButton->setIcon(QIcon(":/icons/settings.svg"));
+        m_settingsButton->setIconSize(QSize(18, 18));
+        m_settingsButton->setFixedSize(30, 30);
+        m_settingsButton->setCursor(Qt::PointingHandCursor);
+        m_settingsButton->setAutoRaise(true);
+        topBarLayout->addWidget(m_settingsButton, 0, Qt::AlignLeft);
+        QObject::connect(m_settingsButton,
+                         &QToolButton::clicked,
+                         this,
+                         [this]() {
+                                 NfSettingsDialog dialog(this);
+                                 dialog.exec();
+                         });
+        topBarLayout->addSpacing(8);
 
         // Browser view mode bar
         //m_browserViewModeBar = new NfBrowserViewModeBar(this);
