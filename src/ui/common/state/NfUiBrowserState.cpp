@@ -58,4 +58,18 @@ const NfPhoto& NfUiBrowserState::currentPhoto() const
         return m_photo;
 }
 
+const NfUiBrowserState::PhotoFormatFilter& NfUiBrowserState::formatFilter() const
+{
+        return m_formatFilter;
+}
+
+void NfUiBrowserState::setFormatFilter(const PhotoFormatFilter& formats)
+{
+        if (m_formatFilter == formats)
+                return;
+
+        m_formatFilter = formats;
+        emit formatFilterChanged(m_formatFilter);
+}
+
 } // namespace NfUi

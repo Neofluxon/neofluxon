@@ -27,6 +27,7 @@
 #include "core/NfPhoto.h"
 
 #include <QObject>
+#include <set>
 
 namespace NfUi {
 
@@ -35,6 +36,8 @@ class NfUiBrowserState : public QObject
         Q_OBJECT
 
 public:
+        using PhotoFormatFilter = std::set<NfCore::NfPhoto::PhotoFormat>;
+
         enum class ViewMode {
                 Grid,
                 Preview
@@ -44,17 +47,21 @@ public:
         ViewMode viewMode() const;
         void setCurrentPhoto(const NfCore::NfPhoto& photo);
         const NfCore::NfPhoto& currentPhoto() const;
+        const PhotoFormatFilter& formatFilter() const;
 
 signals:
         void viewModeChanged(ViewMode mode);
         void currentPhotoChanged(const NfCore::NfPhoto& photo);
+        void formatFilterChanged(const PhotoFormatFilter& formats);
 
 public slots:
         void setViewMode(ViewMode mode);
+        void setFormatFilter(const PhotoFormatFilter& formats);
 
 private:
         ViewMode m_viewMode;
         NfCore::NfPhoto m_photo;
+        PhotoFormatFilter m_formatFilter;
 };
 } // namespace NfUi
 

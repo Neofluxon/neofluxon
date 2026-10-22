@@ -23,15 +23,24 @@
 
 #include "NfBrowserFilterBar.h"
 
+#include <QAction>
+#include <QSignalBlocker>
 #include <QHBoxLayout>
 #include <QMenu>
 
 namespace NfDesktop {
 
-NfBrowserFilterBar::NfBrowserFilterBar(QWidget* parent)
+NfBrowserFilterBar::NfBrowserFilterBar(NfUi::NfUiBrowserState* state,
+                                       QWidget* parent)
         : NfStyledWidget(parent)
+        , m_state{state}
 {
         setupUi();
+        QObject::connect(m_state,
+                         &NfUi::NfUiBrowserState::formatFilterChanged,
+                         this,
+                         &NfBrowserFilterBar::updateFormatFilter);
+        updateFormatFilter();
 }
 
 void NfBrowserFilterBar::setupUi()
@@ -41,24 +50,52 @@ void NfBrowserFilterBar::setupUi()
         layout->setSpacing(0);
 
         m_button = new QToolButton(this);
-        m_button->setText(tr("Filter (3)"));
         m_button->setPopupMode(QToolButton::InstantPopup);
 
         auto* menu = new QMenu(m_button);
-        menu->addAction(tr("Rated"));
-        menu->addAction(tr("Unrated"));
+
+        const auto addFormatAction = [this, menu](const QString& label,
+                                                  NfCore::NfPhoto::PhotoFormat format) {
+                auto* action = menu->addAction(label);
+                action->setCheckable(true);
+                m_formatActions.emplace_back(format, action);
+                QObject::connect(action, &QAction::toggled, this,
+                                 [this, format](bool checked) {
+                                         auto formats = m_state->formatFilter();
+                                         if (checked)
+                                                 formats.insert(format);
+                                         else
+                                                 formats.erase(format);
+                                         m_state->setFormatFilter(formats);
+                                 });
+        };
+
+        addFormatAction(tr("RAW"), NfCore::NfPhoto::PhotoFormat::Raw);
+        addFormatAction(tr("JPEG"), NfCore::NfPhoto::PhotoFormat::Jpeg);
+        addFormatAction(tr("PNG"), NfCore::NfPhoto::PhotoFormat::Png);
+
         menu->addSeparator();
-        menu->addAction(tr("RAW"));
-        menu->addAction(tr("JPEG"));
-        menu->addSeparator();
-        menu->addAction(tr("Edited"));
-        menu->addAction(tr("Unedited"));
-        menu->addSeparator();
-        menu->addAction(tr("Clear filters"));
+        m_clearAction = menu->addAction(tr("Clear format filters"));
+        QObject::connect(m_clearAction, &QAction::triggered,
+                         m_state, [this]() {
+                                 m_state->setFormatFilter({});
+                         });
 
         m_button->setMenu(menu);
 
         layout->addWidget(m_button);
+}
+
+void NfBrowserFilterBar::updateFormatFilter()
+{
+        const auto& formats = m_state->formatFilter();
+        for (const auto& [format, action] : m_formatActions) {
+                const QSignalBlocker blocker(action);
+                action->setChecked(formats.contains(format));
+        }
+
+        m_clearAction->setEnabled(!formats.empty());
+        m_button->setText(tr("Filter (%1)").arg(formats.size()));
 }
 
 } // namespace NfDesktop

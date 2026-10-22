@@ -56,7 +56,7 @@ void NfBrowserTopBar::setupUi()
         m_viewModeBar = new NfBrowserViewModeBar(this);
         m_viewModeBar->setState(m_state);
         m_sortBar = new NfBrowserSortBar(this);
-        m_filterBar = new NfBrowserFilterBar(this);
+        m_filterBar = new NfBrowserFilterBar(m_state, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);
         layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
