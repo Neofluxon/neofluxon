@@ -25,6 +25,7 @@
 #include "NfLogger.h"
 
 #include <algorithm>
+#include <sstream>
 
 namespace NfCore {
 
@@ -34,10 +35,10 @@ NfScheduler::NfScheduler()
 
 NfScheduler::~NfScheduler()
 {
+        // Drop queued work and request cancellation for tasks already executing.
         cancelAll();
 
-        // Wait for worker threads to call finalizeTask()
-        // for already-running tasks.
+        // Keep running-task ownership valid until every worker has finalized.
         std::unique_lock<std::mutex> lock(m_mutex);
         m_runningTasksConditionVariable.wait(lock, [this] {
                 return m_runningTasks.empty();
@@ -52,14 +53,16 @@ void NfScheduler::submit(std::unique_ptr<NfTask> task)
         {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 auto id = task->taskId();
-                TaskQueueEntry entry{task->priority(), id};
+                const auto sequence = m_nextSequence++;
+                TaskQueueEntry entry{task->priority(), sequence, id};
 
-                // Store ownership
+                // Keep task ownership, its sequence, and the ordering index in sync.
                 m_pendingTasks[id] = std::move(task);
-                // Index for priority ordering
+                m_pendingTaskSequences[id] = sequence;
                 m_priorityQueue.insert(entry);
         }
 
+        // Wake a worker only after releasing the scheduler lock.
         m_taskAvailableConditionVariable.notify_one();
 }
 
@@ -70,14 +73,17 @@ NfTask* NfScheduler::waitNextTask(std::stop_token stoken)
                 return !m_priorityQueue.empty();
         });
 
+        // The wait may also return because the worker was asked to stop.
         if (stoken.stop_requested())
                 return nullptr;
 
-        // Extract the highest priority entry
+        // The first set entry has the best priority and newest sequence.
         auto it = m_priorityQueue.begin();
         NfTask::TaskId id = it->id;
         m_priorityQueue.erase(it);
+        m_pendingTaskSequences.erase(id);
 
+        // Transfer ownership from the pending set to the running set.
         m_runningTasks.insert({id, std::move(m_pendingTasks[id])});
         m_pendingTasks.erase(id);
 
@@ -93,22 +99,24 @@ bool NfScheduler::updateTaskPriority(NfTask::TaskId id, NfTask::Priority priorit
 
 bool NfScheduler::updateTaskPriority(NfTask::TaskId id, int priority)
 {
-        bool updated = false;
-
         std::lock_guard<std::mutex> lock(m_mutex);
         auto it = m_pendingTasks.find(id);
-        if (it != m_pendingTasks.end()) {
-                m_priorityQueue.erase({it->second->priority(), id});
-                it->second->setPriority(priority);
-                m_priorityQueue.insert({it->second->priority(), id});
-                updated = true;
-        }
+        if (it == m_pendingTasks.end())
+                return false;
 
-        it = m_runningTasks.find(id);
-        if (it != m_runningTasks.end()) {
-                it->second->setPriority(priority);
-                updated = true;
-        }
+        // Find the current queue sequence so the existing entry can be removed.
+        const auto sequenceIt = m_pendingTaskSequences.find(id);
+        if (sequenceIt == m_pendingTaskSequences.end())
+                return false;
+
+        m_priorityQueue.erase({it->second->priority(), sequenceIt->second, id});
+        it->second->setPriority(priority);
+        // A fresh sequence moves the task ahead of older tasks at this priority.
+        const auto sequence = m_nextSequence++;
+        sequenceIt->second = sequence;
+
+        // Reinsert with the updated ordering metadata; the task ID is unchanged.
+        m_priorityQueue.insert({priority, sequence, id});
 
         return true;
 }
@@ -121,14 +129,21 @@ void NfScheduler::cancelTask(NfTask::TaskId id)
         if (it == m_pendingTasks.end())
                 return;
 
-        m_priorityQueue.erase({it->second->priority(), id});
+        // Running tasks are owned by workers and are not removed here.
+        const auto sequenceIt = m_pendingTaskSequences.find(id);
+        if (sequenceIt != m_pendingTaskSequences.end()) {
+                m_priorityQueue.erase({it->second->priority(), sequenceIt->second, id});
+                m_pendingTaskSequences.erase(sequenceIt);
+        }
         m_pendingTasks.erase(it);
 }
 
 void NfScheduler::cancelAll()
 {
         std::lock_guard<std::mutex> lock(m_mutex);
+        // Pending work is discarded; running tasks are asked to stop cooperatively.
         m_pendingTasks.clear();
+        m_pendingTaskSequences.clear();
         m_priorityQueue.clear();
 
         for (auto &task: m_runningTasks)
@@ -157,10 +172,12 @@ void NfScheduler::finalizeTask(NfTask::TaskId id)
         bool noRunningTasks;
         {
                 std::lock_guard<std::mutex> lock(m_mutex);
+                // Removing the task releases scheduler ownership after execution.
                 m_runningTasks.erase(id);
                 noRunningTasks = m_runningTasks.empty();
         }
 
+        // Notify outside the lock so the destructor can reacquire it.
         if (noRunningTasks)
                 m_runningTasksConditionVariable.notify_all();
 }
