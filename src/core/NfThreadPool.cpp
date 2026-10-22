@@ -32,10 +32,6 @@ NfThreadPool::NfThreadPool(NfScheduler *scheduler,
                                                size_t threadCount)
         : m_scheduler{scheduler}
 {
-        m_scheduler->setTasksAvailableCallback([this]() {
-                m_conditionVariable.notify_one();
-        });
-
         if (threadCount < 1) {
                 threadCount = std::thread::hardware_concurrency();
                 if (threadCount < 1)
@@ -51,12 +47,8 @@ NfThreadPool::NfThreadPool(NfScheduler *scheduler,
 
 NfThreadPool::~NfThreadPool()
 {
-        m_scheduler->setTasksAvailableCallback({});
-
         for (auto& t : m_poolThreads)
                 t.request_stop();
-
-        m_conditionVariable.notify_all();
 
         for (auto& t : m_poolThreads) {
                 if (t.joinable())
@@ -67,29 +59,16 @@ NfThreadPool::~NfThreadPool()
 void NfThreadPool::threadLoop(std::stop_token stoken)
 {
         while (true) {
-                NfTask* task = nullptr;
+                auto* task = m_scheduler->waitNextTask(stoken);
+                if (!task)
+                        break;
 
-                {
-                        std::unique_lock<std::mutex> lock(m_mutex);
-                        m_conditionVariable.wait(lock, [this, &stoken] {
-                                return stoken.stop_requested()
-                                        || m_scheduler->hasPendingTasks();
-                        });
+                auto status = task->execute();
 
-                        if (stoken.stop_requested())
-                                break;
+                NF_LOG_DEBUG("status: " << (int)status);
 
-                        task = m_scheduler->nextTask();
-                }
-
-                if (task) {
-                        auto status = task->execute();
-
-                        NF_LOG_DEBUG("status: " << (int)status);
-
-                        task->notifyCompletion(status);
-                        m_scheduler->finalizeTask(task->taskId());
-                }
+                task->notifyCompletion(status);
+                m_scheduler->finalizeTask(task->taskId());
         }
 }
 

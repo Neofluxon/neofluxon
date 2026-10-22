@@ -39,15 +39,9 @@ NfScheduler::~NfScheduler()
         // Wait for worker threads to call finalizeTask()
         // for already-running tasks.
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_conditionVariable.wait(lock, [this] {
+        m_runningTasksConditionVariable.wait(lock, [this] {
                 return m_runningTasks.empty();
         });
-}
-
-void NfScheduler::setTasksAvailableCallback(TasksAvailableCallback callback)
-{
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_tasksAvailableCb = std::move(callback);
 }
 
 void NfScheduler::submit(std::unique_ptr<NfTask> task)
@@ -55,25 +49,28 @@ void NfScheduler::submit(std::unique_ptr<NfTask> task)
         if (!task)
                 return;
 
-        std::lock_guard<std::mutex> lock(m_mutex);
+        {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                auto id = task->taskId();
+                TaskQueueEntry entry{task->priority(), id};
 
-        auto id = task->taskId();
-        TaskQueueEntry entry{task->priority(), id};
+                // Store ownership
+                m_pendingTasks[id] = std::move(task);
+                // Index for priority ordering
+                m_priorityQueue.insert(entry);
+        }
 
-        // Store ownership
-        m_pendingTasks[id] = std::move(task);
-        // Index for priority ordering
-        m_priorityQueue.insert(entry);
-
-        if (m_tasksAvailableCb)
-                m_tasksAvailableCb();
+        m_taskAvailableConditionVariable.notify_one();
 }
 
-NfTask* NfScheduler::nextTask()
+NfTask* NfScheduler::waitNextTask(std::stop_token stoken)
 {
         std::unique_lock<std::mutex> lock(m_mutex);
+        m_taskAvailableConditionVariable.wait(lock, stoken, [this] {
+                return !m_priorityQueue.empty();
+        });
 
-        if (m_priorityQueue.empty())
+        if (stoken.stop_requested())
                 return nullptr;
 
         // Extract the highest priority entry
@@ -157,11 +154,15 @@ bool NfScheduler::isTaskPending(NfTask::TaskId id) const
 
 void NfScheduler::finalizeTask(NfTask::TaskId id)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_runningTasks.erase(id);
+        bool noRunningTasks;
+        {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_runningTasks.erase(id);
+                noRunningTasks = m_runningTasks.empty();
+        }
 
-    if (m_runningTasks.empty())
-            m_conditionVariable.notify_all();
+        if (noRunningTasks)
+                m_runningTasksConditionVariable.notify_all();
 }
 
 } // namespace NfCore

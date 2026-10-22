@@ -74,11 +74,9 @@ public:
         uint64_t m_generationId;
         std::vector<NfPhotoId> m_thumbnailsQueue;
         std::vector<NfPhotoId> m_previewsQueue;
-        uint64_t m_sequence = 0;
         std::unordered_map <NfPhotoId, NfTask::TaskId> m_pendingThumbnailTasks;
 };
 
 } // namespace NfCore
 
 #endif // NF_PHOTO_LOADER_H
-

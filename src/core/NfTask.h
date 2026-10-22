@@ -60,8 +60,6 @@ public:
         int priority() const;
         void setGenerationId(uint64_t generationId);
         uint64_t generationId() const;
-        void setSequence(uint64_t s);
-        uint64_t sequence() const;
         void cancel();
         bool isCancelled() const;
 
@@ -71,7 +69,6 @@ protected:
 private:
         TaskResultHandler m_onComplete;
         int m_priority = static_cast<int>(Priority::Immediate);
-        uint64_t m_sequence = 0;
         uint64_t m_generationId = 0;
         static std::atomic<uint64_t> s_taskIdGenerator;
         std::atomic<bool> m_cancelled{false};

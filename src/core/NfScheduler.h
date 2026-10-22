@@ -28,10 +28,10 @@
 
 #include <mutex>
 #include <memory>
-#include <functional>
 #include <set>
 #include <unordered_map>
 #include <condition_variable>
+#include <stop_token>
 
 namespace NfCore {
 
@@ -48,7 +48,7 @@ namespace NfCore {
  * | Operation           | Complexity
  * |---------------------|---------------------------------------------------------------|
  * | submit()            | O(log n) Map insertion (O(1)) + Set insertion (O(log n)).     |
- * | nextTask()          | O(log n) Get begin() (O(1)) + Set removal (O(log n)).         |
+ * | waitNextTask()      | O(log n) Get begin() (O(1)) + Set removal (O(log n)).         |
  * | cancelTask()        | O(log n) Map lookup (O(1)) + Set arbitrary removal (O(log n)).|
  * | updateTaskPriority()| O(log n) Set erase + Set re-insert (2 * O(log n)).            |
  * | finalizeTask()      | O(1)     Direct removal from the ownership map.               |
@@ -57,16 +57,13 @@ namespace NfCore {
  */
 class NfScheduler {
  public:
-        using TasksAvailableCallback = std::function<void()>;
-
         explicit NfScheduler();
         ~NfScheduler();
 
         NfScheduler(const NfScheduler&) = delete;
         NfScheduler& operator=(const NfScheduler&) = delete;
-        void setTasksAvailableCallback(TasksAvailableCallback callback);
         void submit(std::unique_ptr<NfTask> task);
-        NfTask* nextTask();
+        NfTask* waitNextTask(std::stop_token stoken);
         bool updateTaskPriority(NfTask::TaskId id, NfTask::Priority priority);
         bool updateTaskPriority(NfTask::TaskId id, int priority);
         void cancelTask(NfTask::TaskId id);
@@ -78,8 +75,6 @@ class NfScheduler {
         void finalizeTask(NfTask::TaskId id);
 
  private:
-        TasksAvailableCallback m_tasksAvailableCb;
-
         // Ownership & Quick Lookup. Maps TaskId to task.
         std::unordered_map<NfTask::TaskId, std::unique_ptr<NfTask>> m_pendingTasks;
         std::unordered_map<NfTask::TaskId, std::unique_ptr<NfTask>> m_runningTasks;
@@ -104,7 +99,8 @@ class NfScheduler {
         std::set<TaskQueueEntry> m_priorityQueue;
 
         mutable std::mutex m_mutex;
-        std::condition_variable m_conditionVariable;
+        std::condition_variable_any m_taskAvailableConditionVariable;
+        std::condition_variable m_runningTasksConditionVariable;
 };
 
 } // namespace NfCore

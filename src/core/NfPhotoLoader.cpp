@@ -85,7 +85,6 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequestType request
         task->setGenerationId(m_generationId);
         task->setPriority(priority);
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
-        task->setSequence(m_sequence++);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 auto* thumbnailTask = dynamic_cast<NfThumbnailTask*>(result);
                 if (!thumbnailTask)

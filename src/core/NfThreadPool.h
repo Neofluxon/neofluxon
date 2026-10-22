@@ -24,16 +24,10 @@
 #ifndef NF_THREAD_POOL_H
 #define NF_THREAD_POOL_H
 
-#include <queue>
-#include <mutex>
-#include <condition_variable>
 #include <thread>
 #include <stop_token>
 #include <vector>
-#include <atomic>
-#include <memory>
 #include <cstddef>
-#include <vector>
 
 namespace NfCore {
 
@@ -54,8 +48,6 @@ private:
 
         NfScheduler *m_scheduler;
         std::vector<std::jthread> m_poolThreads;
-        mutable std::mutex m_mutex;
-        std::condition_variable_any m_conditionVariable;
 };
 
 } // namespace NfCore
