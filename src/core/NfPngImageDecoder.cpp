@@ -25,6 +25,7 @@
 #include "NfExifMetadataExtractor.h"
 #include "NfImage.h"
 #include "NfLogger.h"
+#include "utils/NfScopedTimer.h"
 
 #include <png.h>
 
@@ -59,6 +60,7 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
 {
+        NfScopedTimer timer{"PNG fullImageData", getPhoto().path()};
         const auto& path = getPhoto().path();
 #ifdef _WIN32
         FILE *fp = _wfopen(path.c_str(), L"rb");

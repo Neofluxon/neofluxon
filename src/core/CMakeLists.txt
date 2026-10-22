@@ -19,6 +19,7 @@ set(CORE_HEADERS
         utils/NfFileUtils.h
         utils/NfStringUtils.h
         utils/NfTimeUtils.h
+        utils/NfScopedTimer.h
         NfApplicationPaths.h
         NfThreadAllocationManager.h
         NeofluxonCore.h

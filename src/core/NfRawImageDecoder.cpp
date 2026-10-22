@@ -25,6 +25,7 @@
 #include "NfLogger.h"
 #include "NfPhotoMetadata.h"
 #include "NfFileUtils.h"
+#include "utils/NfScopedTimer.h"
 
 #include <filesystem>
 
@@ -111,6 +112,7 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes) const
 {
+        NfScopedTimer timer{"RAW thumbnailImageData", getPhoto().path()};
         NF_LOG_DEBUG("open file: " << getPhoto().path());
 
         LibRaw rawProcessor;
@@ -166,6 +168,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) const
 {
+        NfScopedTimer timer{"RAW previewImageData", getPhoto().path()};
         NF_LOG_DEBUG("open file: " << getPhoto().path());
 
         LibRaw rawProcessor;
@@ -221,6 +224,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
 {
+        NfScopedTimer timer{"RAW fullImageData", getPhoto().path()};
         //        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
 
         LibRaw rawProcessor;
@@ -245,13 +249,8 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
         // Disable heavy noise reduction or brightness loops
         rawProcessor.imgdata.params.no_auto_bright = 1;
 
-        auto start = std::chrono::high_resolution_clock::now();
         if (rawProcessor.dcraw_process() != LIBRAW_SUCCESS)
                 return nullptr;
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        NF_LOG_INFO("load image time: " << duration.count() << "us");
 
 
         int err = 0;
