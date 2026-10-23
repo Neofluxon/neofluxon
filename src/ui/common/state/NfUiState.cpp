@@ -34,6 +34,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
+#include <QStringList>
 
 #include <variant>
 
@@ -73,6 +74,16 @@ void saveBrowserState(QSettings& settings,
                           static_cast<int>(state->viewMode()));
         settings.setValue(key + QStringLiteral("/currentPhoto"),
                           pathToString(state->currentPhoto().path()));
+
+        QStringList formats;
+        const auto& filter = state->formatFilter();
+        if (filter.contains(NfPhoto::PhotoFormat::Raw))
+                formats.append(QStringLiteral("raw"));
+        if (filter.contains(NfPhoto::PhotoFormat::Jpeg))
+                formats.append(QStringLiteral("jpeg"));
+        if (filter.contains(NfPhoto::PhotoFormat::Png))
+                formats.append(QStringLiteral("png"));
+        settings.setValue(key + QStringLiteral("/formatFilter"), formats);
 }
 
 void restoreBrowserState(QSettings& settings,
@@ -89,6 +100,17 @@ void restoreBrowserState(QSettings& settings,
         const auto photoPath = settings.value(key + QStringLiteral("/currentPhoto")).toString();
         if (!photoPath.isEmpty())
                 state->setCurrentPhoto(NfPhoto{stringToPath(photoPath)});
+
+        NfUiBrowserState::PhotoFormatFilter filter;
+        const auto formats =
+                settings.value(key + QStringLiteral("/formatFilter")).toStringList();
+        if (formats.contains(QStringLiteral("raw")))
+                filter.insert(NfPhoto::PhotoFormat::Raw);
+        if (formats.contains(QStringLiteral("jpeg")))
+                filter.insert(NfPhoto::PhotoFormat::Jpeg);
+        if (formats.contains(QStringLiteral("png")))
+                filter.insert(NfPhoto::PhotoFormat::Png);
+        state->setFormatFilter(filter);
 }
 
 void saveLibraryQuery(QSettings& settings, const NfLibraryQuery& query)
@@ -248,6 +270,10 @@ NfUiState::NfUiState(QObject* parent)
         QObject::connect(m_folderModeState->browser(), &NfUiBrowserState::currentPhotoChanged,
                          this, &NfUiState::saveState);
         QObject::connect(m_libraryModeState->browser(), &NfUiBrowserState::currentPhotoChanged,
+                         this, &NfUiState::saveState);
+        QObject::connect(m_folderModeState->browser(), &NfUiBrowserState::formatFilterChanged,
+                         this, &NfUiState::saveState);
+        QObject::connect(m_libraryModeState->browser(), &NfUiBrowserState::formatFilterChanged,
                          this, &NfUiState::saveState);
 }
 

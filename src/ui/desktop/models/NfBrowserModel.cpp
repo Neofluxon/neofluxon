@@ -57,8 +57,8 @@ NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
 void NfBrowserModel::setSource(NfPhotoSource source)
 {
         beginResetModel();
-        m_allPhotos.clear();
         m_visiblePhotos.clear();
+        m_allPhotos.clear();
         m_itemsMap.clear();
         endResetModel();
 
@@ -78,6 +78,8 @@ void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& forma
         m_itemsMap.clear();
         for (int row = 0; row < static_cast<int>(m_visiblePhotos.size()); ++row)
                 m_itemsMap[m_visiblePhotos[row].get().id()] = QPersistentModelIndex(index(row));
+
+        emit photoIndexesUpdated();
 }
 
 NfPhotoSource NfBrowserModel::getSource() const
@@ -196,11 +198,12 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 
         endInsertRows();
 
-        // Map each inserted photo ID to its new model index.
         for (auto i = firstNewVisible; i < m_visiblePhotos.size(); ++i) {
                 const auto& photo = m_visiblePhotos[i].get();
                 m_itemsMap[photo.id()] = QPersistentModelIndex(index(i));
         }
+
+        emit photoIndexesUpdated();
 }
 
 void NfBrowserModel::onThumbnailsLoaded(const std::vector<NfPhotoId> &ids)

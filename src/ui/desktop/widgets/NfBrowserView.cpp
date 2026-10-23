@@ -94,7 +94,7 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                          });
 
         QObject::connect(m_model,
-                         &QAbstractItemModel::rowsInserted,
+                         &NfBrowserModel::photoIndexesUpdated,
                          this,
                          [this]() { restoreCurrentPhoto(); });
 

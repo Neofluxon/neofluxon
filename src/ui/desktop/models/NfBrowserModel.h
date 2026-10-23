@@ -79,6 +79,7 @@ public:
 signals:
         void modelUpdated();
         void previewReady(const QModelIndex& index);
+        void photoIndexesUpdated();
 
 protected slots:
         void onPhotosLoaded(const std::vector<NfPhoto> &newPhotos);
