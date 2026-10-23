@@ -29,6 +29,7 @@
 #include "core/NfPhotoSource.h"
 
 #include <QAbstractListModel>
+#include <functional>
 #include <set>
 
 Q_DECLARE_METATYPE(NfCore::NfPhoto)
@@ -46,6 +47,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
+/**
+ * NfBrowserModel provides a Qt list model for browsing photos.
+ *
+ * Filtering: The model uses references in m_visiblePhotos to expose the
+ * filtered photos stored in m_allPhotos.
+ */
 class NfBrowserModel : public QAbstractListModel
 {
         Q_OBJECT
@@ -63,6 +70,7 @@ public:
         void setSource(NfCore::NfPhotoSource source);
         NfCore::NfPhotoSource getSource() const;
         void setFormatFilter(const std::set<NfCore::NfPhoto::PhotoFormat>& formats);
+        // Returns the model index for a photo ID, or an invalid index if not found.
         QModelIndex indexForPhotoId(const NfCore::NfPhotoId& photoId) const;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -84,9 +92,21 @@ private:
 
         NfContext* m_context;
         NfPhotoProvider *m_photoProvider;
+        // Owns all loaded photos, whether or not they pass the active filter.
         std::vector<NfPhoto> m_allPhotos;
-        std::vector<NfPhoto> m_photos;
+        // References to filtered photos in m_allPhotos, indexed by model row.
+        // The model works only with this list.
+        std::vector<std::reference_wrapper<const NfPhoto>> m_visiblePhotos;
         std::set<NfPhoto::PhotoFormat> m_formatFilter;
+        /**
+         * indexForPhotoId() finds a photo's row without searching m_visiblePhotos.
+         * When thumbnails or previews finish loading asynchronously, the
+         * provider reports photo IDs. This map lets the model find the
+         * corresponding index and emit dataChanged() for that row.
+         * QPersistentModelIndex keeps indexes valid as rows are inserted or
+         * moved. The map is cleared and rebuilt when the model resets or the
+         * filter changes.
+         */
         std::unordered_map<NfPhotoId, QPersistentModelIndex> m_itemsMap;
         const int m_previewRange;
 };
