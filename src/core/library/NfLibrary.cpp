@@ -93,6 +93,7 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         auto info = NfPhotoMetadataExtractor(photo).summaryInfo();
         if (!info) {
                 NF_LOG_ERROR("Failed extract photo info: " << photo.path());
+                return;
         }
 
         NfLibraryDatabase::Transaction tx(m_db);

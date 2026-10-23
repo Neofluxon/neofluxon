@@ -51,21 +51,40 @@ NfTask::TaskStatus NfLibraryFolderImportTask::execute()
         }
 
         NfDirectoryIterator dirIterator;
-        dirIterator.setPath(m_path);
+        if (const auto result = dirIterator.setPath(m_path); !result) {
+                NF_LOG_ERROR("failed to scan folder " << m_path << ": "
+                             << result.error().what());
+                return TaskStatus::Failed;
+        }
 
         // Import photos from the root path.
-        importPhotosFromDirectory(m_path);
+        if (const auto status = importPhotosFromDirectory(m_path);
+            status != TaskStatus::Success)
+                return status;
 
-        while (auto dir = dirIterator.next()) {
+        while (true) {
+                auto nextDirectory = dirIterator.next();
+                if (!nextDirectory) {
+                        NF_LOG_ERROR("failed to scan folder " << m_path << ": "
+                                     << nextDirectory.error().what());
+                        return TaskStatus::Failed;
+                }
+
+                if (!nextDirectory.value())
+                        break;
+
+                auto dir = *nextDirectory.value();
                 if (isCancelled())
                         return TaskStatus::Cancelled;
 
-                if (m_library->folderExists(*dir)) {
-                        NF_LOG_DEBUG("folder already exists, skip:" << *dir);
+                if (m_library->folderExists(dir)) {
+                        NF_LOG_DEBUG("folder already exists, skip:" << dir);
                         continue;
                 }
 
-                importPhotosFromDirectory(*dir);
+                if (const auto status = importPhotosFromDirectory(dir);
+                    status != TaskStatus::Success)
+                        return status;
         }
 
         NF_LOG_DEBUG("folder import finished: " << m_path);
@@ -73,21 +92,38 @@ NfTask::TaskStatus NfLibraryFolderImportTask::execute()
         return TaskStatus::Success;
 }
 
-void NfLibraryFolderImportTask::importPhotosFromDirectory(const std::filesystem::path& path)
+NfTask::TaskStatus
+NfLibraryFolderImportTask::importPhotosFromDirectory(const std::filesystem::path& path)
 {
         NF_LOG_DEBUG("import photos from path: " << path);
 
         m_library->addFolder(path);
 
         NfPhotoDirectoryIterator photoIterator;
-        photoIterator.setPath(path, false);
-
-        while (auto photo = photoIterator.next()) {
-                if (isCancelled())
-                        return;
-
-                m_library->addPhoto(*photo);
+        if (const auto result = photoIterator.setPath(path, false); !result) {
+                NF_LOG_ERROR("failed to scan photos in folder " << path << ": "
+                             << result.error().what());
+                return TaskStatus::Failed;
         }
+
+        while (true) {
+                auto nextPhoto = photoIterator.next();
+                if (!nextPhoto) {
+                        NF_LOG_ERROR("failed to scan photos in folder " << path << ": "
+                                     << nextPhoto.error().what());
+                        return TaskStatus::Failed;
+                }
+
+                if (!nextPhoto.value())
+                        break;
+
+                if (isCancelled())
+                        return TaskStatus::Cancelled;
+
+                m_library->addPhoto(*nextPhoto.value());
+        }
+
+        return TaskStatus::Success;
 }
 
 } // namespace NfCore

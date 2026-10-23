@@ -42,8 +42,9 @@ NfPhotoDirectoryIterator::NfPhotoDirectoryIterator()
                 });
 }
 
-void NfPhotoDirectoryIterator::setPath(const std::filesystem::path& path,
-                                       bool recursive)
+std::expected<void, std::filesystem::filesystem_error>
+NfPhotoDirectoryIterator::setPath(const std::filesystem::path& path,
+                                  bool recursive)
 {
         namespace fs = std::filesystem;
 
@@ -51,16 +52,21 @@ void NfPhotoDirectoryIterator::setPath(const std::filesystem::path& path,
         m_recursive = recursive;
         try {
                 if (m_recursive) {
-                        m_recursiveIterator = fs::recursive_directory_iterator(m_path);
+                        m_recursiveIterator = fs::recursive_directory_iterator(
+                                m_path, fs::directory_options::skip_permission_denied);
                         m_recursiveEnd = fs::recursive_directory_iterator();
 
                 } else {
-                        m_dirIterator = fs::directory_iterator(m_path);
+                        m_dirIterator = fs::directory_iterator(
+                                m_path, fs::directory_options::skip_permission_denied);
                         m_dirEnd = fs::directory_iterator();
                 }
         }
-        catch (const fs::filesystem_error&) {
+        catch (const fs::filesystem_error& error) {
+                return std::unexpected(error);
         }
+
+        return {};
 }
 
 void NfPhotoDirectoryIterator::setRecursive(bool recursive)
@@ -100,19 +106,15 @@ bool NfPhotoDirectoryIterator::isSupportedExtension(const std::filesystem::path&
 {
         namespace fs = std::filesystem;
 
-        try {
-                if (!fs::is_regular_file(path))
-                        return false;
-
-                auto ext = normalizeExtension(path.extension().string());
-                return m_extensions.contains(ext);
-        }
-        catch (const fs::filesystem_error&) {
+        if (!fs::is_regular_file(path))
                 return false;
-        }
+
+        auto ext = normalizeExtension(path.extension().string());
+        return m_extensions.contains(ext);
 }
 
-std::optional<NfPhoto> NfPhotoDirectoryIterator::next()
+std::expected<std::optional<NfPhoto>, std::filesystem::filesystem_error>
+NfPhotoDirectoryIterator::next()
 {
         namespace fs = std::filesystem;
 
@@ -121,12 +123,12 @@ std::optional<NfPhoto> NfPhotoDirectoryIterator::next()
                         fs::path path;
                         if (m_recursive) {
                                 if (m_recursiveIterator == m_recursiveEnd)
-                                        return std::nullopt;
+                                        return std::optional<NfPhoto>{};
                                 path = m_recursiveIterator->path();
                                 ++m_recursiveIterator;
                         } else {
                                 if (m_dirIterator == m_dirEnd)
-                                        return std::nullopt;
+                                        return std::optional<NfPhoto>{};
                                 path = m_dirIterator->path();
                                 ++m_dirIterator;
                         }
@@ -137,8 +139,8 @@ std::optional<NfPhoto> NfPhotoDirectoryIterator::next()
                         return NfPhoto(path);
                 }
         }
-        catch (const fs::filesystem_error&) {
-                return std::nullopt;
+        catch (const fs::filesystem_error& error) {
+                return std::unexpected(error);
         }
 }
 

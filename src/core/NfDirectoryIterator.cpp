@@ -29,16 +29,28 @@ NfDirectoryIterator::NfDirectoryIterator()
 {
 }
 
-void NfDirectoryIterator::setPath(const std::filesystem::path& path,
-                                  bool recursive)
+std::expected<void, std::filesystem::filesystem_error>
+NfDirectoryIterator::setPath(const std::filesystem::path& path, bool recursive)
 {
         m_path = path;
         m_recursive = recursive;
 
-        if (m_recursive)
-                m_recursiveIterator = std::filesystem::recursive_directory_iterator(m_path);
-        else
-                m_dirIterator = std::filesystem::directory_iterator(m_path);
+        try {
+                if (m_recursive) {
+                        m_recursiveIterator =
+                                std::filesystem::recursive_directory_iterator(
+                                        m_path,
+                                        std::filesystem::directory_options::skip_permission_denied);
+                } else {
+                        m_dirIterator = std::filesystem::directory_iterator(
+                                m_path,
+                                std::filesystem::directory_options::skip_permission_denied);
+                }
+        } catch (const std::filesystem::filesystem_error& error) {
+                return std::unexpected(error);
+        }
+
+        return {};
 }
 
 void NfDirectoryIterator::setRecursive(bool recursive)
@@ -46,27 +58,33 @@ void NfDirectoryIterator::setRecursive(bool recursive)
         m_recursive = recursive;
 }
 
-std::optional<std::filesystem::path> NfDirectoryIterator::next()
+std::expected<std::optional<std::filesystem::path>,
+              std::filesystem::filesystem_error>
+NfDirectoryIterator::next()
 {
-        if (m_recursive) {
-                while (m_recursiveIterator != m_recursiveEnd) {
-                        auto entry = *m_recursiveIterator;
-                        ++m_recursiveIterator;
+        try {
+                if (m_recursive) {
+                        while (m_recursiveIterator != m_recursiveEnd) {
+                                auto entry = *m_recursiveIterator;
+                                ++m_recursiveIterator;
 
-                        if (entry.is_directory())
-                                return entry.path();
-                }
-        } else {
-                while (m_dirIterator != m_dirEnd) {
-                        auto entry = *m_dirIterator;
-                        ++m_dirIterator;
+                                if (entry.is_directory())
+                                        return entry.path();
+                        }
+                } else {
+                        while (m_dirIterator != m_dirEnd) {
+                                auto entry = *m_dirIterator;
+                                ++m_dirIterator;
 
-                        if (entry.is_directory())
-                                return entry.path();
+                                if (entry.is_directory())
+                                        return entry.path();
+                        }
                 }
+        } catch (const std::filesystem::filesystem_error& error) {
+                return std::unexpected(error);
         }
 
-        return std::nullopt;
+        return std::optional<std::filesystem::path>{};
 }
 
 } // namespace NfCore

@@ -26,6 +26,7 @@
 
 #include "NfPhoto.h"
 
+#include <expected>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -41,12 +42,13 @@ class NfPhotoDirectoryIterator
 public:
         NfPhotoDirectoryIterator();
 
-        void setPath(const std::filesystem::path& path,
-                     bool recursive = true);
+        std::expected<void, std::filesystem::filesystem_error>
+        setPath(const std::filesystem::path& path, bool recursive = true);
         void setRecursive(bool recursive);
         void setExtensions(const std::vector<std::string>& extensions);
         void addExtension(const std::string& extension);
-        std::optional<NfPhoto> next();
+        std::expected<std::optional<NfPhoto>, std::filesystem::filesystem_error>
+        next();
 
 private:
         bool isSupportedExtension(const std::filesystem::path& path) const;
@@ -65,4 +67,3 @@ private:
 } //namespace NfCore
 
 #endif // NF_PHOTO_DIRECTORY_ITERATOR_H
-

@@ -45,7 +45,7 @@ public:
         NfTask::TaskStatus execute() override;
 
 private:
-        void importPhotosFromDirectory(const std::filesystem::path& path);
+        NfTask::TaskStatus importPhotosFromDirectory(const std::filesystem::path& path);
 
         std::filesystem::path m_path;
         std::unique_ptr<NfLibrary> m_library;

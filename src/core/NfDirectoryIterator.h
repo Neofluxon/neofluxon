@@ -24,6 +24,7 @@
 #ifndef NF_DIRECTORY_ITERATOR_H
 #define NF_DIRECTORY_ITERATOR_H
 
+#include <expected>
 #include <filesystem>
 #include <optional>
 
@@ -34,12 +35,14 @@ class NfDirectoryIterator
 public:
         NfDirectoryIterator();
 
-        void setPath(const std::filesystem::path& path,
-                     bool recursive = true);
+        std::expected<void, std::filesystem::filesystem_error>
+        setPath(const std::filesystem::path& path, bool recursive = true);
 
         void setRecursive(bool recursive);
 
-        std::optional<std::filesystem::path> next();
+        std::expected<std::optional<std::filesystem::path>,
+                      std::filesystem::filesystem_error>
+        next();
 
 private:
         bool m_recursive{true};
