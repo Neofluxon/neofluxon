@@ -54,6 +54,29 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                          &NfUiBrowserState::viewModeChanged,
                          this,
                          &NfBrowserView::updateView);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::formatFilterChanged,
+                         m_model,
+                         &NfBrowserModel::setFormatFilter);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::formatFilterChanged,
+                         this,
+                         [this]() {
+                                 auto index = m_model->indexForPhotoId(
+                                         m_state->currentPhoto().id());
+                                 if (!index.isValid() && m_model->rowCount() > 0)
+                                         index = m_model->index(0, 0);
+
+                                 if (index.isValid()) {
+                                         m_thumbnailsView->setCurrentIndex(index);
+                                         m_thumbnailsView->scrollTo(
+                                                 index,
+                                                 QAbstractItemView::PositionAtCenter);
+                                 } else {
+                                         m_state->setCurrentPhoto(NfPhoto{});
+                                 }
+                         });
+        m_model->setFormatFilter(m_state->formatFilter());
         QObject::connect(m_thumbnailsView, &QListView::doubleClicked,
                          [this](const QModelIndex &index) {
                                  m_state->setViewMode(NfUiBrowserState::ViewMode::Preview);

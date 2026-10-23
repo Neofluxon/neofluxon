@@ -55,6 +55,7 @@ NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
 void NfBrowserModel::setSource(NfPhotoSource source)
 {
         beginResetModel();
+        m_allPhotos.clear();
         m_photos.clear();
         m_itemsMap.clear();
         endResetModel();
@@ -62,9 +63,40 @@ void NfBrowserModel::setSource(NfPhotoSource source)
         m_photoProvider->setSource(std::move(source));
 }
 
+void NfBrowserModel::setFormatFilter(
+        const std::set<NfPhoto::PhotoFormat>& formats)
+{
+        if (m_formatFilter == formats)
+                return;
+
+        m_formatFilter = formats;
+        beginResetModel();
+        rebuildVisiblePhotos();
+        endResetModel();
+
+        m_itemsMap.clear();
+        for (int row = 0; row < static_cast<int>(m_photos.size()); ++row)
+                m_itemsMap[m_photos[row].id()] = QPersistentModelIndex(index(row));
+}
+
 NfPhotoSource NfBrowserModel::getSource() const
 {
         return m_photoProvider->getSource();
+}
+
+bool NfBrowserModel::acceptsPhoto(const NfPhoto& photo) const
+{
+        return m_formatFilter.empty() || m_formatFilter.contains(photo.format());
+}
+
+void NfBrowserModel::rebuildVisiblePhotos()
+{
+        m_photos.clear();
+        m_photos.reserve(m_allPhotos.size());
+        std::ranges::copy_if(m_allPhotos, std::back_inserter(m_photos),
+                             [this](const auto& photo) {
+                                     return acceptsPhoto(photo);
+                             });
 }
 
 QModelIndex NfBrowserModel::indexForPhotoId(const NfPhotoId& photoId) const
@@ -123,16 +155,29 @@ QPixmap NfBrowserModel::getPreview(const QModelIndex& index) const
 
 void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 {
+        m_allPhotos.insert(m_allPhotos.end(),
+                           newPhotos.begin(),
+                           newPhotos.end());
+
+        std::vector<NfPhoto> visiblePhotos;
+        std::ranges::copy_if(newPhotos, std::back_inserter(visiblePhotos),
+                             [this](const auto& photo) {
+                                     return acceptsPhoto(photo);
+                             });
+
         const int firstRow = static_cast<int>(m_photos.size());
-        const int count    = static_cast<int>(newPhotos.size());
+        const int count    = static_cast<int>(visiblePhotos.size());
+        if (count == 0)
+                return;
+
         const int lastRow  = firstRow + count - 1;
 
         beginInsertRows(QModelIndex(), firstRow, lastRow);
 
         m_photos.reserve(m_photos.size() + count);
         m_photos.insert(m_photos.end(),
-                        std::make_move_iterator(newPhotos.begin()),
-                        std::make_move_iterator(newPhotos.end()));
+                        std::make_move_iterator(visiblePhotos.begin()),
+                        std::make_move_iterator(visiblePhotos.end()));
 
         for (int i = 0; i < count; ++i) {
                 const auto& photo = m_photos[firstRow + i];

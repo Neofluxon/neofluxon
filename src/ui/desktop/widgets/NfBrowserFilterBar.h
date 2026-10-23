@@ -25,8 +25,13 @@
 #define NF_BROWSER_FILTERBAR_H
 
 #include "NfStyledWidget.h"
+#include "NfUiBrowserState.h"
 
 #include <QToolButton>
+#include <utility>
+#include <vector>
+
+class QAction;
 
 namespace NfDesktop {
 
@@ -35,13 +40,18 @@ class NfBrowserFilterBar : public NfStyledWidget
         Q_OBJECT
 
 public:
-        explicit NfBrowserFilterBar(QWidget* parent = nullptr);
+        explicit NfBrowserFilterBar(NfUi::NfUiBrowserState* state,
+                                    QWidget* parent = nullptr);
         ~NfBrowserFilterBar() override = default;
 
 private:
         void setupUi();
+        void updateFormatFilter();
 
+        NfUi::NfUiBrowserState* m_state;
         QToolButton* m_button{nullptr};
+        std::vector<std::pair<NfCore::NfPhoto::PhotoFormat, QAction*>> m_formatActions;
+        QAction* m_clearAction{nullptr};
 };
 
 } // namespace NfDesktop

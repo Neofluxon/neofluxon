@@ -29,6 +29,7 @@
 #include "core/NfPhotoSource.h"
 
 #include <QAbstractListModel>
+#include <set>
 
 Q_DECLARE_METATYPE(NfCore::NfPhoto)
 Q_DECLARE_METATYPE(NfCore::NfPhotoId)
@@ -61,6 +62,7 @@ public:
         ~NfBrowserModel() = default;
         void setSource(NfCore::NfPhotoSource source);
         NfCore::NfPhotoSource getSource() const;
+        void setFormatFilter(const std::set<NfCore::NfPhoto::PhotoFormat>& formats);
         QModelIndex indexForPhotoId(const NfCore::NfPhotoId& photoId) const;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -77,10 +79,14 @@ protected slots:
 
 private:
         QPixmap getPreview(const QModelIndex& index) const;
+        bool acceptsPhoto(const NfPhoto& photo) const;
+        void rebuildVisiblePhotos();
 
         NfContext* m_context;
         NfPhotoProvider *m_photoProvider;
+        std::vector<NfPhoto> m_allPhotos;
         std::vector<NfPhoto> m_photos;
+        std::set<NfPhoto::PhotoFormat> m_formatFilter;
         std::unordered_map<NfPhotoId, QPersistentModelIndex> m_itemsMap;
         const int m_previewRange;
 };
