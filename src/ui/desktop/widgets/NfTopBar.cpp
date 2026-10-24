@@ -60,27 +60,18 @@ NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
         logoLabel->setPixmap(logoIcon.pixmap(24, 24));
         logoLabel->setAlignment(Qt::AlignCenter);
         topBarLayout->addWidget(logoLabel, 0, Qt::AlignLeft);
-        topBarLayout->addSpacing(3);
+        topBarLayout->addSpacing(8);
 
-        auto titleSeparator = new QLabel(this);
-        titleSeparator->setObjectName("TitleSeparator");
-        titleSeparator->setPixmap(QIcon(":/icons/breadcrumb-chevron.svg").pixmap(8, 12));
-        topBarLayout->addWidget(titleSeparator, 0, Qt::AlignLeft);
+        // Current library status
+        auto libraryIcon = new QLabel(this);
+        libraryIcon->setObjectName("CurrentLibraryIcon");
+        libraryIcon->setPixmap(QIcon(":/icons/library.svg").pixmap(16, 16));
+        libraryIcon->setAlignment(Qt::AlignCenter);
+        topBarLayout->addWidget(libraryIcon, 0, Qt::AlignLeft);
 
-        // Current library
-        m_libraryButton = new QToolButton(this);
-        m_libraryButton->setObjectName("LibraryModeButton");
-        m_libraryButton->setIcon(QIcon(":/icons/library.svg"));
-        m_libraryButton->setIconSize(QSize(16, 16));
-        m_libraryButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        m_libraryButton->setAutoRaise(true);
-        topBarLayout->addWidget(m_libraryButton, 0, Qt::AlignLeft);
-        QObject::connect(m_libraryButton,
-                         &QToolButton::clicked,
-                         m_context->uiState,
-                         [state = m_context->uiState]() {
-                                 state->setMode(NfUiMode::Library);
-                         });
+        m_libraryName = new QLabel(this);
+        m_libraryName->setObjectName("CurrentLibraryName");
+        topBarLayout->addWidget(m_libraryName, 0, Qt::AlignLeft);
         topBarLayout->addStretch(1);
 
         // Settings
@@ -167,9 +158,9 @@ void NfTopBar::showBrowserViewModeBar(NfUiBrowserState* state)
 void NfTopBar::updateLibraryName(uint64_t libraryId)
 {
         const auto library = m_context->library->getLibrary(libraryId);
-        m_libraryButton->setText(library
-                                 ? QString::fromStdString(library->name())
-                                 : QString{});
+        m_libraryName->setText(library
+                               ? QString::fromStdString(library->name())
+                               : QString{});
 }
 
 } // namespace NfDesktop

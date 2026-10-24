@@ -190,21 +190,12 @@ QScrollBar::sub-page:horizontal {
     background-color: transparent;
 }
 
-#NfTopBar QToolButton#LibraryModeButton {
-    background-color: #2b2e3e;
-    border: none;
+#NfTopBar QLabel#CurrentLibraryIcon,
+#NfTopBar QLabel#CurrentLibraryName {
+    background-color: transparent;
     color: #c5c7d3;
     font-size: 13px;
-    padding: 4px 6px;
-    border-radius: 4px;
-}
-
-#NfTopBar QToolButton#LibraryModeButton:hover {
-    background-color: #323546;
-}
-
-#NfTopBar QToolButton#LibraryModeButton:pressed {
-    background-color: #383b4e;
+    padding: 0;
 }
 
 #NfTopBar QToolButton#SettingsButton {
@@ -574,6 +565,47 @@ NfDesktop--NfThumbnailsView::item:selected:hover {
 NfDesktop--NfThumbnailsView::item:selected:!active {
     background-color: #2c2f3a;
     border: 1px solid #484e5b;
+}
+
+NfDesktop--NfLibraryListView,
+NfDesktop--NfRepresentationListView,
+NfDesktop--NfLibraryTreeView {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+NfDesktop--NfLibraryListView,
+NfDesktop--NfRepresentationListView {
+    border-bottom: 3px solid #242632;
+}
+
+NfDesktop--NfLibraryListView::item,
+NfDesktop--NfRepresentationListView::item,
+NfDesktop--NfLibraryTreeView::item {
+    margin: 2px 6px;
+    border-radius: 3px;
+}
+
+NfDesktop--NfLibraryListView::item:hover,
+NfDesktop--NfRepresentationListView::item:hover,
+NfDesktop--NfLibraryTreeView::item:hover {
+    background-color: #292b37;
+    color: #e6eaf2;
+}
+
+NfDesktop--NfLibraryListView::item:selected,
+NfDesktop--NfRepresentationListView::item:selected,
+NfDesktop--NfLibraryTreeView::item:selected {
+    background-color: #323546;
+    color: #f3f4f6;
+}
+
+NfDesktop--NfLibraryListView::item:selected:!active,
+NfDesktop--NfRepresentationListView::item:selected:!active,
+NfDesktop--NfLibraryTreeView::item:selected:!active {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
 }
 
 /* ================ NfLibraryListHeader ================= */

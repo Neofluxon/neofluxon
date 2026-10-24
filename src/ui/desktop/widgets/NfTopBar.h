@@ -32,6 +32,7 @@ class NfContext;
 class NfUiBrowserState;
 }
 
+class QLabel;
 class QToolButton;
 
 namespace NfDesktop {
@@ -59,7 +60,7 @@ private:
 
         NfUi::NfContext* m_context;
         NfBrowserViewModeBar *m_browserViewModeBar{nullptr};
-        QToolButton* m_libraryButton{nullptr};
+        QLabel* m_libraryName{nullptr};
 };
 
 } // namespace NfDesktop
