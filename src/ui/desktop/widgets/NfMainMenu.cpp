@@ -23,6 +23,8 @@
 
 #include "NfMainMenu.h"
 
+#include <QIcon>
+#include <QSize>
 #include <QVBoxLayout>
 #include <QPushButton>
 
@@ -44,18 +46,30 @@ NfMainMenu::NfMainMenu(QWidget* parent)
         menuLayout->setSpacing(2);
 
         shootsButton = new QPushButton(tr("Shoots"), this);
+        shootsButton->setIcon(QIcon(":/icons/nav-shoots.svg"));
+        shootsButton->setIconSize(QSize(16, 16));
+        shootsButton->setCheckable(true);
+        shootsButton->setAutoExclusive(true);
         QObject::connect(shootsButton,
                          &QPushButton::clicked,
                          this, &NfMainMenu::shootsClicked);
         menuLayout->addWidget(shootsButton);
 
         foldersButton = new QPushButton(tr("Folders"), this);
+        foldersButton->setIcon(QIcon(":/icons/nav-folders.svg"));
+        foldersButton->setIconSize(QSize(16, 16));
+        foldersButton->setCheckable(true);
+        foldersButton->setAutoExclusive(true);
         QObject::connect(foldersButton,
                          &QPushButton::clicked,
                          this, &NfMainMenu::foldersClicked);
         menuLayout->addWidget(foldersButton);
 
         libraryButton = new QPushButton(tr("Library"), this);
+        libraryButton->setIcon(QIcon(":/icons/nav-library.svg"));
+        libraryButton->setIconSize(QSize(16, 16));
+        libraryButton->setCheckable(true);
+        libraryButton->setAutoExclusive(true);
         QObject::connect(libraryButton,
                          &QPushButton::clicked,
                          this, &NfMainMenu::libraryClicked);

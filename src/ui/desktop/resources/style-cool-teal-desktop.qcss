@@ -6,11 +6,11 @@ QWidget {
 }
 
 QPushButton:hover {
-    border: 1px solid #3ddcff;
+    border: 1px solid #ff6b00;
 }
 
 QPushButton:pressed {
-    background-color: #3ddcff;
+    background-color: #ff6b00;
     color: #0b0d12;
 }
 
@@ -31,7 +31,7 @@ QLabel#FolderBrowserTitle {
     border-radius-top-left: 4px;
     border-radius-top-right: 4px;
     margin: 4px 4px 0;
-    border-bottom: 1px solid #292b37;
+    border-bottom: 1px solid #252732;
     padding: 8px 8px 8px;
 }
 
@@ -135,6 +135,36 @@ QScrollBar::sub-page:horizontal {
 
 #NfMainMenu {
     border: none;
+}
+
+#NfMainMenu QPushButton {
+    background-color: transparent;
+    color: #aeb5c0;
+    border: none;
+    border-left: 2px solid transparent;
+    border-radius: 0;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 600;
+}
+
+#NfMainMenu QPushButton:hover {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
+    border: none;
+    border-left: 2px solid transparent;
+}
+
+#NfMainMenu QPushButton:pressed {
+    background-color: transparent;
+    color: #ff6b00;
+}
+
+#NfMainMenu QPushButton:checked {
+    background-color: transparent;
+    color: #f3f4f6;
+    font-weight: 700;
+    border-left-color: #596273;
 }
 
 /* Top bar */
@@ -287,7 +317,7 @@ QListWidget#SettingsCategories::item {
 QListWidget#SettingsCategories::item:selected {
     background-color: #323546;
     color: #e6eaf2;
-    border-left: 2px solid #3ddcff;
+    border-left: 2px solid #ff6b00;
 }
 
 QListWidget#SettingsCategories::item:hover:!selected {
@@ -347,7 +377,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background: #3ddcff;
+    background: #ff6b00;
     color: #0b0d12;
 }
 
@@ -359,11 +389,11 @@ QPushButton {
 }
 
 QPushButton:hover {
-    border: 1px solid #3ddcff;
+    border: 1px solid #ff6b00;
 }
 
 QPushButton:pressed {
-    background-color: #3ddcff;
+    background-color: #ff6b00;
     color: #0b0d12;
 }
 
@@ -587,8 +617,8 @@ NfDesktop--NfLibraryListHeader QPushButton:hover {
 
 NfDesktop--NfLibraryListHeader QPushButton:pressed {
     background-color: #1a2332;
-    color: #3ddcff;
-    border: 1px solid #3ddcff;
+    color: #ff6b00;
+    border: 1px solid #ff6b00;
 }
 
 NfDesktop--NfLibraryListHeader QPushButton:focus {
@@ -611,8 +641,8 @@ NfDesktop--NfCollapsibleSection QToolButton:hover {
 }
 
 NfDesktop--NfCollapsibleSection QToolButton:pressed {
-    background: #1a2332;
-    color: #3ddcff;
+    background: #323546;
+    color: #ff6b00;
 }
 
 NfDesktop--NfCollapsibleSection QToolButton:checked {
@@ -640,4 +670,12 @@ NfDesktop--NfMetadataSectionWidget QLabel#metadataValueColorProbe {
 NfDesktop--NfMetadataSectionWidget QTableView::item {
     padding-top: 2px;
     padding-bottom: 2px;
+    border: none;
+    background: transparent;
+}
+
+NfDesktop--NfMetadataSectionWidget QTableView {
+    background: transparent;
+    border: none;
+    gridline-color: transparent;
 }

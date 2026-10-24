@@ -6,6 +6,9 @@
   <file>logo.png</file>
   <file>logo.svg</file>
   <file>icons/plus.svg</file>
+  <file>icons/nav-shoots.svg</file>
+  <file>icons/nav-folders.svg</file>
+  <file>icons/nav-library.svg</file>
   <file>icons/breadcrumb-chevron.svg</file>
   <file>icons/library.svg</file>
   <file>icons/calendar.svg</file>
