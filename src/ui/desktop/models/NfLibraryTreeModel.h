@@ -64,6 +64,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         int columnCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         Qt::ItemFlags flags(const QModelIndex& index) const override;
+        bool addLibrary(const QString &name);
 
 protected slots:
         void updateTree();
@@ -71,7 +72,8 @@ protected slots:
  private:
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
         void buildTree();
-        void populateLibrary(NfCore::NfLibrary* library,
+        void addLibrary(const NfCore::NfLibrary *library);
+        void populateLibrary(const NfCore::NfLibrary* library,
                              NfLibraryTreeItem* parent);
         void populateRepresentation(NfCore::NfLibraryRepresentation* rep,
                                     NfLibraryTreeItem* parent);

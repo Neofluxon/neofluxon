@@ -47,9 +47,9 @@ NfLibraryAdapter::~NfLibraryAdapter()
         m_library->setFolderImportedCallback({});
 }
 
-void NfLibraryAdapter::addLibrary(std::string_view name)
+std::optional<std::unique_ptr<NfLibrary>> NfLibraryAdapter::addLibrary(std::string_view name)
 {
-        m_library->addLibrary(name);
+        return m_library->addLibrary(name);
 }
 
 void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t libraryId)

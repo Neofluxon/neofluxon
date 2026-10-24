@@ -46,7 +46,7 @@ public:
         explicit NfLibraryAdapter(NfCore::NfLibraryManager *library,
                                   QObject* parent = nullptr);
         ~NfLibraryAdapter();
-        void addLibrary(std::string_view name);
+        std::optional<std::unique_ptr<NfCore::NfLibrary>> addLibrary(std::string_view name);
         void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
         std::unique_ptr<NfCore::NfLibrary> getLibrary(uint64_t libraryId) const;
         std::vector<std::unique_ptr<NfCore::NfLibrary>> libraries() const;

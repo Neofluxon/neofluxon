@@ -157,6 +157,20 @@ Qt::ItemFlags NfLibraryTreeModel::flags(const QModelIndex& index) const
         return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
+bool NfLibraryTreeModel::addLibrary(const QString &name)
+{
+        auto library = m_library->addLibrary(name.toStdString());
+        if (library) {
+                const auto row = m_root->childCount();
+                beginInsertRows(QModelIndex(), row, row);
+                addLibrary(library->get());
+                endInsertRows();
+                return true;
+        }
+
+        return false;
+}
+
 void NfLibraryTreeModel::updateTree()
 {
         beginResetModel();
@@ -178,20 +192,22 @@ void NfLibraryTreeModel::buildTree()
         m_root = std::make_unique<NfLibraryTreeItem>(tr("Libraries"), nodeType);
 
         const auto libraries = m_library->libraries();
-        for (const auto& library : libraries) {
-
-                auto name = QString::fromUtf8(library->name().c_str());
-                nodeType = NfLibraryTreeItem::NodeType::Library;
-                auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
-                                                                       nodeType,
-                                                                       m_root.get());
-                populateLibrary(library.get(), libraryItem.get());
-
-                m_root->appendChild(std::move(libraryItem));
-        }
+        for (const auto& library : libraries)
+                addLibrary(library.get());
 }
 
-void NfLibraryTreeModel::populateLibrary(NfLibrary* library,
+void NfLibraryTreeModel::addLibrary(const NfLibrary *library)
+{
+        auto name = QString::fromUtf8(library->name().c_str());
+        auto nodeType = NfLibraryTreeItem::NodeType::Library;
+        auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
+                                                               nodeType,
+                                                               m_root.get());
+        populateLibrary(library, libraryItem.get());
+        m_root->appendChild(std::move(libraryItem));
+}
+
+void NfLibraryTreeModel::populateLibrary(const NfLibrary* library,
                                          NfLibraryTreeItem* libraryItem)
 {
         libraryItem->setValue(library->id());

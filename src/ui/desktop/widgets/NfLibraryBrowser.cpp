@@ -129,11 +129,8 @@ void NfLibraryBrowser::setupUi()
 void NfLibraryBrowser::addLibrary()
 {
         NfNewLibraryDialog dialog(this);
-        if (dialog.exec() == QDialog::Accepted) {
-                auto name = dialog.name();
-                if (!name.isEmpty())
-                        m_context.library()->addLibrary(name.toStdString());
-        }
+        if (dialog.exec() == QDialog::Accepted)
+                m_model->addLibrary(dialog.name());
 }
 
 } // namespace NfDesktop
