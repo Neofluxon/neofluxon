@@ -25,11 +25,12 @@
 #include "core/NfLogger.h"
 
 #include <QAbstractItemView>
-#include <QBrush>
 #include <QColor>
 #include <QMouseEvent>
+#include <QPalette>
 #include <QPainter>
 #include <QFileSystemModel>
+#include <QWidget>
 
 namespace NfDesktop {
 
@@ -84,7 +85,14 @@ void NfFolderActionDelegate::paint(QPainter* painter,
         QRect btnRect = getButtonRect(option);
 
         painter->setPen(Qt::NoPen);
-        painter->setBrush(btnHovered ? QBrush(QColor("#292b37").darker(110))
+        auto* view = qobject_cast<QAbstractItemView*>(parent());
+        auto* hoverColorSource = view
+                ? view->findChild<QWidget*>("FolderActionHoverColor")
+                : nullptr;
+        QColor hoverColor = hoverColorSource
+                ? hoverColorSource->palette().color(QPalette::Window)
+                : option.palette.base().color();
+        painter->setBrush(btnHovered ? hoverColor.darker(110)
                                      : option.palette.accent());
 
         painter->drawRoundedRect(btnRect, 4, 4);

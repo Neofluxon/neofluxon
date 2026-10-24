@@ -81,6 +81,10 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
         // Tree view
         m_treeView = new QTreeView(this);
         m_treeView->setObjectName("FolderTreeView");
+        // Supplies the QSS-defined hover color to the custom-painted action button.
+        auto* actionHoverColor = new QWidget(m_treeView);
+        actionHoverColor->setObjectName("FolderActionHoverColor");
+        actionHoverColor->hide();
         m_treeView->setHeaderHidden(true);
         m_treeView->setRootIsDecorated(true);
         m_treeView->setModel(m_model);
