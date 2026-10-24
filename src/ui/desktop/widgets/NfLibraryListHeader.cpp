@@ -36,6 +36,7 @@ NfLibraryListHeader::NfLibraryListHeader(QWidget* parent)
         auto* titleLabel = new QLabel(tr("LIBRARIES"), this);
 
         m_addButton = new QPushButton("+", this);
+        m_addButton->setToolTip(tr("Add library"));
         m_addButton->setFixedSize(20, 20);
         m_addButton->setVisible(false);
 

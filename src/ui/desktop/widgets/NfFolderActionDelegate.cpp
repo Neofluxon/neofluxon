@@ -30,6 +30,8 @@
 #include <QPalette>
 #include <QPainter>
 #include <QFileSystemModel>
+#include <QHelpEvent>
+#include <QToolTip>
 #include <QWidget>
 
 namespace NfDesktop {
@@ -155,6 +157,23 @@ bool NfFolderActionDelegate::eventFilter(QObject* object,
                         view->update(old);
 
                 return false;
+        }
+
+        if (event->type() == QEvent::ToolTip) {
+                auto* helpEvent = static_cast<QHelpEvent*>(event);
+                const auto index = view->indexAt(helpEvent->pos());
+                if (index.isValid()) {
+                        QStyleOptionViewItem option;
+                        option.rect = view->visualRect(index);
+                        if (getButtonRect(option).contains(helpEvent->pos())) {
+                                QToolTip::showText(helpEvent->globalPos(),
+                                                   tr("Add folder to library"),
+                                                   view);
+                                return true;
+                        }
+                }
+
+                QToolTip::hideText();
         }
 
         return false;
