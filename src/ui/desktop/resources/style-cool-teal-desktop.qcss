@@ -25,23 +25,57 @@ QListView::item:hover {
     background-color: #242632;
 }
 
+QLabel#FolderBrowserTitle {
+    background: transparent;
+    color: #e6eaf2;
+    border-radius-top-left: 4px;
+    border-radius-top-right: 4px;
+    margin: 4px 4px 0;
+    border-bottom: 1px solid #292b37;
+    padding: 8px 8px 8px;
+}
+
+QTreeView#FolderTreeView {
+    background-color: #1e1f28;
+    color: #aeb5c0;
+    border-radius-bottom-left: 4px;
+    border-radius-bottom-right: 4px;
+    border:none;
+    outline: none;
+    padding: 0 3px 3px;
+}
+
+QTreeView#FolderTreeView::item {
+    padding: 2px 6px;
+    border: none;
+}
+
+QTreeView#FolderTreeView::item:hover {
+    background-color: #292b37;
+    color: #e6eaf2;
+}
+
+QTreeView#FolderTreeView::item:selected {
+    color: #aeb5c0;
+}
+
+QTreeView#FolderTreeView::branch {
+    width: 10px;
+}
+
 #container {
     border-radius: 8px;
 }
 
 QScrollBar:vertical {
     background: transparent;
-
     width: 10px;
-
     margin: 2px;
 }
 
 QScrollBar::handle:vertical {
     background-color: #404452;
-
     min-height: 40px;
-
     border-radius: 5px;
 }
 

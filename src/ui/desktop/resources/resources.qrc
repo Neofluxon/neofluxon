@@ -10,6 +10,8 @@
   <file>icons/library.svg</file>
   <file>icons/calendar.svg</file>
   <file>icons/folder.svg</file>
+  <file>icons/tree-chevron-right.svg</file>
+  <file>icons/tree-chevron-down.svg</file>
   <file>icons/equipment.svg</file>
   <file>icons/collections.svg</file>
   <file>icons/viewmode_grid.svg</file>

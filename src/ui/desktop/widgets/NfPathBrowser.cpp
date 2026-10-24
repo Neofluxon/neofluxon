@@ -31,12 +31,32 @@
 #include <QLabel>
 #include <QTreeView>
 #include <QFileSystemModel>
+#include <QFileIconProvider>
+#include <QPainter>
+#include <QStyle>
+#include <QStyleOption>
 #include <QDir>
 
 using namespace NfUi;
 using namespace NfCore;
 
 namespace NfDesktop {
+
+namespace {
+
+class NfFolderIconProvider : public QFileIconProvider
+{
+public:
+        QIcon icon(const QFileInfo& info) const override
+        {
+                if (info.isDir())
+                        return QIcon(":/icons/folder.svg");
+
+                return QFileIconProvider::icon(info);
+        }
+};
+
+} // namespace
 
 NfPathBrowser::NfPathBrowser(QWidget* parent)
         : QWidget(parent)
@@ -45,6 +65,7 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
 
         // Title
         auto title = new QLabel(tr("Folders"), this);
+        title->setObjectName("FolderBrowserTitle");
         QFont f = title->font();
         f.setBold(true);
         title->setFont(f);
@@ -53,11 +74,13 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
 
         // File system model
         m_model = new QFileSystemModel(this);
+        m_model->setIconProvider(new NfFolderIconProvider);
         m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
         m_model->setRootPath(QDir::homePath()); // or "/" for full system
 
         // Tree view
         m_treeView = new QTreeView(this);
+        m_treeView->setObjectName("FolderTreeView");
         m_treeView->setHeaderHidden(true);
         m_treeView->setRootIsDecorated(true);
         m_treeView->setModel(m_model);
@@ -76,12 +99,13 @@ NfPathBrowser::NfPathBrowser(QWidget* parent)
         m_treeView->setHeaderHidden(true);
         m_treeView->setAnimated(true);
         m_treeView->setIndentation(16);
+        m_treeView->setIconSize(QSize(18, 18));
 
         layout->addWidget(m_treeView);
 
         layout->setContentsMargins(0, 0, 0, 0);
 
-        auto folderDelegate = new NfFolderActionDelegate(this);
+        auto folderDelegate = new NfFolderActionDelegate(m_treeView);
         m_treeView->setItemDelegate(folderDelegate);
 
         QObject::connect(folderDelegate,

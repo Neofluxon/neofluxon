@@ -25,6 +25,8 @@
 #include "core/NfLogger.h"
 
 #include <QAbstractItemView>
+#include <QBrush>
+#include <QColor>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QFileSystemModel>
@@ -44,13 +46,13 @@ NfFolderActionDelegate::NfFolderActionDelegate(QObject* parent)
         }
 }
 
-QRect NfFolderActionDelegate::getButtonRect(
-        const QStyleOptionViewItem& option) const
+QRect NfFolderActionDelegate::getButtonRect(const QStyleOptionViewItem& option) const
 {
         int x = option.rect.right() - m_btnWidth - m_btnPadding;
-        int y = option.rect.top() + (option.rect.height() - m_btnWidth) / 2;
+        int buttonHeight = qMax(1, qMin(m_btnWidth, option.rect.height() - 4));
+        int y = option.rect.top() + (option.rect.height() - buttonHeight) / 2;
 
-        return QRect(x, y, m_btnWidth, m_btnWidth);
+        return QRect(x, y, m_btnWidth, buttonHeight);
 }
 
 void NfFolderActionDelegate::paint(QPainter* painter,
@@ -70,7 +72,7 @@ void NfFolderActionDelegate::paint(QPainter* painter,
         bool isSelected = (option.state & QStyle::State_Selected);
         bool isRowHovered = (index == m_hoveredIndex);
 
-        if (!isSelected)
+        if (!isSelected && !isRowHovered)
                 return;
 
         // Determine if the mouse cursor is directly interacting with the button coordinates
@@ -82,7 +84,7 @@ void NfFolderActionDelegate::paint(QPainter* painter,
         QRect btnRect = getButtonRect(option);
 
         painter->setPen(Qt::NoPen);
-        painter->setBrush(btnHovered ? option.palette.highlight()
+        painter->setBrush(btnHovered ? QBrush(QColor("#292b37").darker(110))
                                      : option.palette.accent());
 
         painter->drawRoundedRect(btnRect, 4, 4);
