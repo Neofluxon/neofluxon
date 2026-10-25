@@ -48,6 +48,16 @@ std::string NfPhoto::name() const
         return NfFileUtils::pathToUtf8(m_filePath.filename());
 }
 
+std::optional<std::uintmax_t> NfPhoto::sizeOnDisk() const
+{
+        std::error_code ec;
+        const auto size = std::filesystem::file_size(m_filePath, ec);
+        if (ec)
+                return std::nullopt;
+
+        return size;
+}
+
 NfPhoto::PhotoFormat NfPhoto::format() const
 {
         return m_format;

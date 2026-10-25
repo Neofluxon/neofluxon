@@ -26,7 +26,9 @@
 
 #include "NfPhotoId.h"
 
+#include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <string>
 
 namespace NfCore {
@@ -44,6 +46,7 @@ class NfPhoto {
         NfPhotoId id() const;
         const std::filesystem::path& path() const;
         std::string name() const;
+        std::optional<std::uintmax_t> sizeOnDisk() const;
         PhotoFormat format() const;
         std::optional<std::chrono::system_clock::time_point> dateTaken() const;
 

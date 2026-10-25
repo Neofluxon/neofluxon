@@ -23,6 +23,7 @@
 
 #include "NfRawImageDecoder.h"
 #include "NfLogger.h"
+#include "NfLimits.h"
 #include "NfPhotoMetadata.h"
 #include "NfFileUtils.h"
 #include "utils/NfScopedTimer.h"
@@ -112,12 +113,31 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes) const
 {
-        NfScopedTimer timer{"RAW thumbnailImageData", getPhoto().path()};
-        NF_LOG_DEBUG("open file: " << getPhoto().path());
+        const auto& path = getPhoto().path();
+        NfScopedTimer timer{"RAW thumbnailImageData", path};
+        NF_LOG_DEBUG("open file: " << path);
+
+        const auto size = getPhoto().sizeOnDisk();
+        if (!size) {
+                NF_LOG_ERROR("can't get image file size: " << path);
+                return nullptr;
+        }
+
+        if (*size == 0) {
+                NF_LOG_ERROR("image file is empty: " << path);
+                return nullptr;
+        }
+
+        if (*size > NfLimits::MaxCompressedImageSize) {
+                NF_LOG_ERROR("maximum compressed image size exceeded ("
+                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << " bytes): " << path);
+                return nullptr;
+        }
 
         LibRaw rawProcessor;
-        if (rawProcessor.open_file(getPhoto().path().c_str()) != LIBRAW_SUCCESS) {
-                NF_LOG_DEBUG("can't open file : " << getPhoto().path());
+        if (rawProcessor.open_file(path.c_str()) != LIBRAW_SUCCESS) {
+                NF_LOG_DEBUG("can't open file : " << path);
                 return nullptr;
         }
 
@@ -159,7 +179,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
         imageData->convertToARGB32Premultiplied();
 
-        NF_LOG_DEBUG("thumbnail loaded:  " << getPhoto().path());
+        NF_LOG_DEBUG("thumbnail loaded:  " << path);
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
 
@@ -168,12 +188,29 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) const
 {
-        NfScopedTimer timer{"RAW previewImageData", getPhoto().path()};
-        NF_LOG_DEBUG("open file: " << getPhoto().path());
+        const auto& path = getPhoto().path();
+        NfScopedTimer timer{"RAW previewImageData", path};
+        NF_LOG_DEBUG("open file: " << path);
+
+        const auto size = getPhoto().sizeOnDisk();
+        if (!size) {
+                NF_LOG_ERROR("can't get image file size: " << path);
+                return nullptr;
+        }
+        if (*size == 0) {
+                NF_LOG_ERROR("image file is empty: " << path);
+                return nullptr;
+        }
+        if (*size > NfLimits::MaxCompressedImageSize) {
+                NF_LOG_ERROR("maximum compressed image size exceeded ("
+                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << " bytes): " << path);
+                return nullptr;
+        }
 
         LibRaw rawProcessor;
-        if (rawProcessor.open_file(getPhoto().path().c_str()) != LIBRAW_SUCCESS) {
-                NF_LOG_ERROR("can't open file: " << getPhoto().path());
+        if (rawProcessor.open_file(path.c_str()) != LIBRAW_SUCCESS) {
+                NF_LOG_ERROR("can't open file: " << path);
                 return nullptr;
         }
 
@@ -215,7 +252,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
         imageData->convertToARGB32Premultiplied();
 
-        NF_LOG_DEBUG("preview loaded:  " << getPhoto().path());
+        NF_LOG_DEBUG("preview loaded:  " << path);
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
 
@@ -224,12 +261,29 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData(bool reducedResolution) const
 {
-        NfScopedTimer timer{"RAW fullImageData", getPhoto().path()};
+        const auto& path = getPhoto().path();
+        NfScopedTimer timer{"RAW fullImageData", path};
         //        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
+
+        const auto size = getPhoto().sizeOnDisk();
+        if (!size) {
+                NF_LOG_ERROR("can't get image file size: " << path);
+                return nullptr;
+        }
+        if (*size == 0) {
+                NF_LOG_ERROR("image file is empty: " << path);
+                return nullptr;
+        }
+        if (*size > NfLimits::MaxCompressedImageSize) {
+                NF_LOG_ERROR("maximum compressed image size exceeded ("
+                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << " bytes): " << path);
+                return nullptr;
+        }
 
         LibRaw rawProcessor;
 
-        if (rawProcessor.open_file(getPhoto().path().c_str()) != LIBRAW_SUCCESS)
+        if (rawProcessor.open_file(path.c_str()) != LIBRAW_SUCCESS)
                 return nullptr;
 
         return rawImageData(rawProcessor, reducedResolution);

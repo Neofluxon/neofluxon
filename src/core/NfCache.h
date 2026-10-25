@@ -50,7 +50,7 @@ class NfImage;
 class NfCache {
 public:
     // Default cache size 250 MB
-    static constexpr std::size_t DEFAULT_MAX_SIZE_BYTES = 1024ULL * 1024 * 1024;
+    static constexpr std::size_t DEFAULT_MAX_SIZE_BYTES = 512ULL * 1024 * 1024;
 
     explicit NfCache(/*NfDiskCache* diskCache = nullptr,*/
                      std::size_t maxSizeBytes = DEFAULT_MAX_SIZE_BYTES);

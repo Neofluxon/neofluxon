@@ -36,4 +36,3 @@ const NfPhoto& NfImageDecoder::getPhoto() const
 }
 
 } // namespace NfCore
-

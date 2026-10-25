@@ -28,6 +28,7 @@
 #include "NfImageData.h"
 
 #include <memory>
+#include <optional>
 
 namespace NfCore {
 

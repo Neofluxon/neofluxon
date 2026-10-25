@@ -74,6 +74,23 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
 {
         NfScopedTimer timer{"PNG fullImageData", getPhoto().path()};
         const auto& path = getPhoto().path();
+
+        const auto size = getPhoto().sizeOnDisk();
+        if (!size) {
+                NF_LOG_ERROR("can't get image file size: " << path);
+                return nullptr;
+        }
+        if (*size == 0) {
+                NF_LOG_ERROR("image file is empty: " << path);
+                return nullptr;
+        }
+        if (*size > NfLimits::MaxCompressedImageSize) {
+                NF_LOG_ERROR("maximum compressed image size exceeded ("
+                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << " bytes): " << path);
+                return nullptr;
+        }
+
 #ifdef _WIN32
         FILE *fp = _wfopen(path.c_str(), L"rb");
 #else

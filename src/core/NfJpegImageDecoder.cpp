@@ -69,35 +69,33 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
 {
         NfScopedTimer timer{"JPEG decodeScaled", getPhoto().path()};
         const auto& path = getPhoto().path();
-        std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+        const auto size = getPhoto().sizeOnDisk();
+        if (!size) {
+                NF_LOG_ERROR("can't get image file size: " << path);
+                return nullptr;
+        }
+
+        if (*size == 0) {
+                NF_LOG_ERROR("image file is empty: " << path);
+                return nullptr;
+        }
+        if (*size > NfLimits::MaxCompressedImageSize) {
+                NF_LOG_ERROR("maximum compressed image size exceeded ("
+                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << " bytes): " << path);
+                return nullptr;
+        }
+
+        std::ifstream file(path, std::ios::binary);
         if (!file.is_open()) {
-                NF_LOG_ERROR("can't open image: " << path);
+                NF_LOG_ERROR("can't open image file: " << path);
                 return nullptr;
         }
 
-        const auto end = file.tellg();
-        if (end <= 0) {
-                NF_LOG_ERROR("invalid or empty image file: " << path);
-                return nullptr;
-        }
-
-        const auto size = static_cast<std::uintmax_t>(end);
-        if (size > std::vector<unsigned char>{}.max_size()
-            || size > static_cast<std::uintmax_t>(std::numeric_limits<std::streamsize>::max())
-            || size > static_cast<std::uintmax_t>(std::numeric_limits<unsigned long>::max())) {
-                NF_LOG_ERROR("image file is too large: " << path);
-                return nullptr;
-        }
-
-        file.seekg(0, std::ios::beg);
-        if (!file) {
-                NF_LOG_ERROR("can't seek image file: " << path);
-                return nullptr;
-        }
-
-        std::vector<unsigned char> jpegBuf(static_cast<std::size_t>(size));
+        std::vector<unsigned char> jpegBuf(static_cast<std::size_t>(*size));
         if (!file.read(reinterpret_cast<char*>(jpegBuf.data()),
-                       static_cast<std::streamsize>(size))) {
+                       static_cast<std::streamsize>(*size))) {
                 NF_LOG_ERROR("can't read image file: " << path);
                 return nullptr;
         }
@@ -116,9 +114,9 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
                 return nullptr;
         }
 
-        int width = 0;
-        int height = 0;
-        int subsamp = 0;
+        int width      = 0;
+        int height     = 0;
+        int subsamp    = 0;
         int colorspace = 0;
         if (tjDecompressHeader3(decompressor.get(), jpegBuf.data(),
                                 static_cast<unsigned long>(jpegBuf.size()),
@@ -199,10 +197,9 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
         }
 
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
-        if (const auto exifOrientation =
-                    NfExifMetadataExtractor(getPhoto()).orientation()) {
+        if (const auto exifOrientation = NfExifMetadataExtractor(getPhoto()).orientation()) {
                 imageData->setOrientation(static_cast<int>(
-                        NfImage::orientationFromExif(*exifOrientation)));
+                                          NfImage::orientationFromExif(*exifOrientation)));
         }
 
         // JPEG has no alpha channel, so decoded pixels are fully opaque.
