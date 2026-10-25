@@ -52,11 +52,13 @@ class NfLibraryTreeItem {
         ~NfLibraryTreeItem();
 
         void appendChild(std::unique_ptr<NfLibraryTreeItem> child);
+        void removeChild(int row);
         NfLibraryTreeItem* child(int row) const;
         NfLibraryTreeItem* parent() const;
         int childCount() const;
         int row() const;
         QString name() const;
+        void setName(const QString& name);
         NodeType type() const;
         void setValue(const Value &v);
         Value value() const;

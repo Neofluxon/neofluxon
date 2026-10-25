@@ -35,6 +35,10 @@ class NfNewLibraryDialog : public QDialog {
         Q_OBJECT
 public:
         explicit NfNewLibraryDialog(QWidget* parent = nullptr);
+        NfNewLibraryDialog(const QString& title,
+                           const QString& initialName,
+                           const QString& acceptText,
+                           QWidget* parent = nullptr);
         QString name() const;
 
 private:

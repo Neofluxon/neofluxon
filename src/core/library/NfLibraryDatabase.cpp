@@ -201,6 +201,59 @@ int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
         return libraryId;
 }
 
+bool NfLibraryDatabase::updateLibrary(int64_t id, std::string_view name)
+{
+        const char* sql = "UPDATE libraries SET name = ? WHERE id = ?;";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return false;
+
+        auto result = sqlite3_bind_text(stmt, 1, name.data(),
+                                        static_cast<int>(name.size()),
+                                        SQLITE_TRANSIENT);
+        if (result == SQLITE_OK)
+                result = sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(id));
+        if (result == SQLITE_OK)
+                result = sqlite3_step(stmt);
+
+        const bool updated = result == SQLITE_DONE && sqlite3_changes(m_db) == 1;
+        sqlite3_finalize(stmt);
+        return updated;
+}
+
+bool NfLibraryDatabase::removeLibrary(int64_t id)
+{
+        // Deleting the library cascades to its folder memberships.
+        sqlite3_stmt* stmt = nullptr;
+        const char* removeLibrarySql =
+                "DELETE FROM libraries WHERE id = ?;";
+
+        if (sqlite3_prepare_v2(m_db, removeLibrarySql, -1, &stmt, nullptr) != SQLITE_OK)
+                return false;
+
+        int result = sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(id));
+        if (result == SQLITE_OK)
+                result = sqlite3_step(stmt);
+        const bool libraryRemoved =
+                result == SQLITE_DONE && sqlite3_changes(m_db) > 0;
+        sqlite3_finalize(stmt);
+        if (!libraryRemoved)
+                return false;
+
+        // Removing orphan folders also cascades to their image records.
+        const char* removeOrphanFoldersSql = R"(
+        DELETE FROM folders
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM library_folders
+            WHERE library_folders.folder_id = folders.id
+        );)";
+
+        return sqlite3_exec(m_db, removeOrphanFoldersSql, nullptr, nullptr, nullptr)
+                == SQLITE_OK;
+}
+
 bool NfLibraryDatabase::libraryExists(int64_t id) const
 {
         const char* sql = R"(

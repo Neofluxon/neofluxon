@@ -26,6 +26,7 @@
 
 #include <QAbstractItemModel>
 
+#include <cstdint>
 #include <memory>
 
 namespace NfCore {
@@ -65,12 +66,15 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         Qt::ItemFlags flags(const QModelIndex& index) const override;
         bool addLibrary(const QString &name);
+        bool updateLibrary(uint64_t libraryId, const QString& name);
+        bool removeLibrary(uint64_t libraryId);
 
 protected slots:
         void updateTree();
 
  private:
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
+        int libraryRow(uint64_t libraryId) const;
         void buildTree();
         void addLibrary(const NfCore::NfLibrary *library);
         void populateLibrary(const NfCore::NfLibrary* library,

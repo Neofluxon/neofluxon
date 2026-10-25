@@ -31,8 +31,10 @@
 #include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfLibraryAdapter.h"
+#include "core/library/NfLibrary.h"
 #include "core/NfLogger.h"
 
+#include <QMessageBox>
 #include <QVBoxLayout>
 
 using namespace NfUi;
@@ -64,6 +66,15 @@ void NfLibraryBrowser::setupUi()
         m_libraryListView = new NfLibraryListView(m_context, m_model, this);
         m_representationListView = new NfRepresentationListView(m_context, m_model, this);
         m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
+
+        QObject::connect(m_libraryListView,
+                         &NfLibraryListView::renameLibraryRequested,
+                         this,
+                         &NfLibraryBrowser::renameLibrary);
+        QObject::connect(m_libraryListView,
+                         &NfLibraryListView::removeLibraryRequested,
+                         this,
+                         &NfLibraryBrowser::removeLibrary);
 
         QObject::connect(m_libraryListView->selectionModel(),
                          &QItemSelectionModel::currentChanged,
@@ -131,6 +142,81 @@ void NfLibraryBrowser::addLibrary()
         NfNewLibraryDialog dialog(this);
         if (dialog.exec() == QDialog::Accepted)
                 m_model->addLibrary(dialog.name());
+}
+
+void NfLibraryBrowser::renameLibrary(uint64_t libraryId)
+{
+        const auto library = m_context.library()->getLibrary(libraryId);
+        if (!library) {
+                NF_LOG_ERROR("Unable to find library " << libraryId);
+                return;
+        }
+
+        const auto oldName = QString::fromStdString(library->name());
+        NfNewLibraryDialog dialog(tr("Rename Library"), oldName, tr("Save"), this);
+        if (dialog.exec() != QDialog::Accepted)
+                return;
+
+        const auto newName = dialog.name();
+        if (newName.isEmpty() || newName == oldName)
+                return;
+
+        if (!m_model->updateLibrary(libraryId, newName))
+                QMessageBox::critical(this,
+                                      tr("Rename Library"),
+                                      tr("Failed to rename library \"%1\".")
+                                              .arg(oldName));
+}
+
+void NfLibraryBrowser::removeLibrary(uint64_t libraryId)
+{
+        const auto library = m_context.library()->getLibrary(libraryId);
+        if (!library) {
+                NF_LOG_ERROR("Unable to find library " << libraryId);
+                return;
+        }
+
+        const auto name = QString::fromStdString(library->name());
+        const auto confirmation = QMessageBox::question(
+                this,
+                tr("Delete Library"),
+                tr("Delete library \"%1\"? Folders not used by other libraries and their indexed images will also be removed.")
+                        .arg(name),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No);
+        if (confirmation != QMessageBox::Yes)
+                return;
+
+        if (!m_model->removeLibrary(libraryId)) {
+                QMessageBox::critical(this,
+                                      tr("Delete Library"),
+                                      tr("Failed to delete library \"%1\".")
+                                              .arg(name));
+                return;
+        }
+
+        QModelIndex selectedLibrary;
+        const auto currentLibraryId = m_state->currentLibrary();
+        for (int row = 0; row < m_model->rowCount(); ++row) {
+                const auto index = m_model->index(row, 0);
+                if (m_model->data(index,
+                                  NfLibraryTreeModel::LibraryIdRole).toULongLong()
+                    == currentLibraryId) {
+                        selectedLibrary = index;
+                        break;
+                }
+        }
+        if (!selectedLibrary.isValid() && m_model->rowCount() > 0)
+                selectedLibrary = m_model->index(0, 0);
+
+        if (selectedLibrary.isValid()) {
+                m_libraryListView->setCurrentIndex(selectedLibrary);
+                return;
+        }
+
+        m_state->setCurrentLibrary(0);
+        m_representationListView->setRootIndex(QModelIndex());
+        m_libraryTreeView->setRootIndex(QModelIndex());
 }
 
 } // namespace NfDesktop

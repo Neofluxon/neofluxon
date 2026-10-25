@@ -27,6 +27,8 @@
 #include <QObject>
 
 #include <filesystem>
+#include <cstdint>
+#include <optional>
 #include <string_view>
 #include <vector>
 #include <memory>
@@ -47,6 +49,8 @@ public:
                                   QObject* parent = nullptr);
         ~NfLibraryAdapter();
         std::optional<std::unique_ptr<NfCore::NfLibrary>> addLibrary(std::string_view name);
+        bool updateLibrary(uint64_t libraryId, std::string_view name);
+        bool removeLibrary(uint64_t libraryId);
         void importPath(const std::filesystem::path &path, uint64_t libraryId = 0);
         std::unique_ptr<NfCore::NfLibrary> getLibrary(uint64_t libraryId) const;
         std::vector<std::unique_ptr<NfCore::NfLibrary>> libraries() const;

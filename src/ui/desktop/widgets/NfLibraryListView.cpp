@@ -24,6 +24,10 @@
 #include "NfLibraryListView.h"
 #include "NfLibraryTreeModel.h"
 
+#include <QAction>
+#include <QContextMenuEvent>
+#include <QMenu>
+
 using namespace NfUi;
 
 namespace NfDesktop {
@@ -37,6 +41,33 @@ NfLibraryListView::NfLibraryListView(const NfLibraryContext& ctx,
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
         setModel(m_model);
+}
+
+void NfLibraryListView::contextMenuEvent(QContextMenuEvent* event)
+{
+        const auto index = indexAt(event->pos());
+        if (!index.isValid()) {
+                event->ignore();
+                return;
+        }
+
+        const auto libraryId = m_model->data(index,
+                                             NfLibraryTreeModel::LibraryIdRole).toULongLong();
+        if (libraryId == 0) {
+                event->ignore();
+                return;
+        }
+        setCurrentIndex(index);
+
+        QMenu menu(this);
+        auto* renameAction = menu.addAction(tr("Rename Library"));
+        auto* removeAction = menu.addAction(tr("Delete Library"));
+
+        const auto* selectedAction = menu.exec(viewport()->mapToGlobal(event->pos()));
+        if (selectedAction == renameAction)
+                emit renameLibraryRequested(libraryId);
+        else if (selectedAction == removeAction)
+                emit removeLibraryRequested(libraryId);
 }
 
 } // namespace NfDesktop

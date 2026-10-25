@@ -27,6 +27,7 @@
 #include "NfLibraryContext.h"
 
 #include <QWidget>
+#include <cstdint>
 
 class QVBoxLayout;
 
@@ -51,6 +52,8 @@ public:
 
 protected slots:
         void addLibrary();
+        void renameLibrary(uint64_t libraryId);
+        void removeLibrary(uint64_t libraryId);
 
 private:
         void setupUi();

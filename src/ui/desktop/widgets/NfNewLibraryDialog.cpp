@@ -32,9 +32,20 @@
 namespace NfDesktop {
 
 NfNewLibraryDialog::NfNewLibraryDialog(QWidget* parent)
+        : NfNewLibraryDialog(tr("New Library"),
+                             tr("New Library"),
+                             tr("Create"),
+                             parent)
+{
+}
+
+NfNewLibraryDialog::NfNewLibraryDialog(const QString& title,
+                                       const QString& initialName,
+                                       const QString& acceptText,
+                                       QWidget* parent)
         : QDialog(parent)
 {
-        setWindowTitle(tr("New Library"));
+        setWindowTitle(title);
         setMinimumWidth(320);
 
         auto* mainLayout = new QVBoxLayout(this);
@@ -42,7 +53,7 @@ NfNewLibraryDialog::NfNewLibraryDialog(QWidget* parent)
         mainLayout->setSpacing(8);
 
         auto* nameLabel = new QLabel(tr("Name"), this);
-        m_nameEdit = new QLineEdit(tr("New Library"), this);
+        m_nameEdit = new QLineEdit(initialName, this);
         m_nameEdit->selectAll();
 
         mainLayout->addWidget(nameLabel);
@@ -52,7 +63,7 @@ NfNewLibraryDialog::NfNewLibraryDialog(QWidget* parent)
         auto* buttonLayout = new QHBoxLayout();
         buttonLayout->setSpacing(8);
         auto* cancelButton = new QPushButton(tr("Cancel"), this);
-        auto* createButton = new QPushButton(tr("Create"), this);
+        auto* createButton = new QPushButton(acceptText, this);
         createButton->setDefault(true);
         buttonLayout->addStretch();
         buttonLayout->addWidget(cancelButton);

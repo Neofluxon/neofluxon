@@ -27,6 +27,7 @@
 #include "NfLibraryContext.h"
 
 #include <QListView>
+#include <cstdint>
 
 namespace NfDesktop {
 
@@ -39,6 +40,13 @@ public:
                                    NfLibraryTreeModel* model,
                                    QWidget* parent = nullptr);
         ~NfLibraryListView() override = default;
+
+signals:
+        void renameLibraryRequested(uint64_t libraryId);
+        void removeLibraryRequested(uint64_t libraryId);
+
+protected:
+        void contextMenuEvent(QContextMenuEvent* event) override;
 
 private:
         NfUi::NfLibraryContext m_context;

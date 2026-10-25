@@ -52,6 +52,16 @@ std::optional<std::unique_ptr<NfLibrary>> NfLibraryAdapter::addLibrary(std::stri
         return m_library->addLibrary(name);
 }
 
+bool NfLibraryAdapter::updateLibrary(uint64_t libraryId, std::string_view name)
+{
+        return m_library->updateLibrary(libraryId, name);
+}
+
+bool NfLibraryAdapter::removeLibrary(uint64_t libraryId)
+{
+        return m_library->removeLibrary(static_cast<int64_t>(libraryId));
+}
+
 void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t libraryId)
 {
         m_library->importPath(path, libraryId);

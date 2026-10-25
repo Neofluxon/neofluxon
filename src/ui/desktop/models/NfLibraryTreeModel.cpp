@@ -171,6 +171,48 @@ bool NfLibraryTreeModel::addLibrary(const QString &name)
         return false;
 }
 
+bool NfLibraryTreeModel::updateLibrary(uint64_t libraryId, const QString& name)
+{
+        const auto row = libraryRow(libraryId);
+        if (row < 0 || !m_library->updateLibrary(libraryId, name.toStdString()))
+                return false;
+
+        auto* item = m_root->child(row);
+        item->setName(name);
+        const auto changedIndex = index(row, 0);
+        emit dataChanged(changedIndex, changedIndex, {Qt::DisplayRole});
+        return true;
+}
+
+bool NfLibraryTreeModel::removeLibrary(uint64_t libraryId)
+{
+        // Find the library row so only its branch needs to be removed.
+        const auto row = libraryRow(libraryId);
+        if (row < 0)
+                return false;
+
+        if (!m_library->removeLibrary(libraryId))
+                return false;
+
+        // Notify views before changing the model's backing tree.
+        beginRemoveRows(QModelIndex(), row, row);
+        m_root->removeChild(row);
+        endRemoveRows();
+        return true;
+}
+
+int NfLibraryTreeModel::libraryRow(uint64_t libraryId) const
+{
+        for (int row = 0; row < m_root->childCount(); ++row) {
+                const auto value = m_root->child(row)->value();
+                if (const auto* id = std::get_if<int64_t>(&value);
+                    id && static_cast<uint64_t>(*id) == libraryId)
+                        return row;
+        }
+
+        return -1;
+}
+
 void NfLibraryTreeModel::updateTree()
 {
         beginResetModel();

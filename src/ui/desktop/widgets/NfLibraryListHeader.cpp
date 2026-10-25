@@ -38,7 +38,6 @@ NfLibraryListHeader::NfLibraryListHeader(QWidget* parent)
         m_addButton = new QPushButton("+", this);
         m_addButton->setToolTip(tr("Add library"));
         m_addButton->setFixedSize(20, 20);
-        m_addButton->setVisible(false);
 
         layout->addWidget(titleLabel);
         layout->addStretch();
@@ -48,18 +47,6 @@ NfLibraryListHeader::NfLibraryListHeader(QWidget* parent)
                 &QPushButton::clicked,
                 this,
                 &NfLibraryListHeader::addLibrary);
-}
-
-void NfLibraryListHeader::enterEvent(QEnterEvent* event)
-{
-        m_addButton->setVisible(true);
-        QWidget::enterEvent(event);
-}
-
-void NfLibraryListHeader::leaveEvent(QEvent* event)
-{
-        m_addButton->setVisible(false);
-        QWidget::leaveEvent(event);
 }
 
 } // namespace NfDesktop

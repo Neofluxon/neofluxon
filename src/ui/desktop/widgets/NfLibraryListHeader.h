@@ -27,7 +27,6 @@
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
-#include <QEnterEvent>
 
 namespace NfDesktop {
 
@@ -38,10 +37,6 @@ public:
 
 signals:
         void addLibrary();
-
-protected:
-        void enterEvent(QEnterEvent* event) override;
-        void leaveEvent(QEvent* event) override;
 
 private:
         QPushButton* m_addButton;

@@ -121,6 +121,30 @@ NfLibraryManager::addLibrary(std::string_view name)
         return std::make_unique<NfLibrary>(m_database.get(), id);
 }
 
+bool NfLibraryManager::updateLibrary(uint64_t libraryId, std::string_view name)
+{
+        using Transaction = NfLibraryDatabase::Transaction;
+        Transaction tx(m_database.get());
+        if (!m_database->updateLibrary(static_cast<int64_t>(libraryId), name))
+                return false;
+
+        tx.commit();
+        return true;
+}
+
+bool NfLibraryManager::removeLibrary(uint64_t libraryId)
+{
+        using Transaction = NfLibraryDatabase::Transaction;
+        Transaction tx(m_database.get());
+        auto res = m_database->removeLibrary(static_cast<int64_t>(libraryId));
+        if (!res)
+                return res;
+
+        tx.commit();
+
+        return true;
+}
+
 std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 {
         using Transaction = NfLibraryDatabase::Transaction;

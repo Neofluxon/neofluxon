@@ -50,6 +50,8 @@ public:
         std::vector<std::unique_ptr<NfLibrary>> libraries() const;
         void importPath(const std::filesystem::path& path, uint64_t libraryId);
         std::optional<std::unique_ptr<NfLibrary>> addLibrary(std::string_view name);
+        bool updateLibrary(uint64_t libraryId, std::string_view name);
+        bool removeLibrary(uint64_t libraryId);
         std::unique_ptr<NfLibrary> getLibrary(uint64_t id) const;
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
         void setFolderImportedCallback(FolderImportedCallback cb);

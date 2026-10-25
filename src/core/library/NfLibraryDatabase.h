@@ -86,6 +86,8 @@ public:
         void close();
         bool initializeSchema(std::string& errorMessage);
         int64_t addLibrary(const std::string_view name);
+        bool updateLibrary(int64_t id, std::string_view name);
+        bool removeLibrary(int64_t id);
         bool libraryExists(int64_t id) const;
         std::unique_ptr<NfLibraryEntry> library(int64_t id) const;
         std::unique_ptr<NfLibraryEntry> library(std::string_view name) const;
