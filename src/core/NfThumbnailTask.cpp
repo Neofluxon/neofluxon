@@ -61,7 +61,7 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
         if (!imageData && (method == ExtractionMethod::FromRaw
                            || method == ExtractionMethod::Fastest)) {
                 NF_LOG_DEBUG("no suitable embedded image, load from raw");
-                imageData = decoder->fullImageData();
+                imageData = decoder->fullImageData(true);
         }
 
         if (!imageData) {

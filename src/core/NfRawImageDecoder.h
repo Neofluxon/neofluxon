@@ -43,9 +43,11 @@ public:
         std::optional<NfPhotoMetadata> metadata() const override;
         std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const override;
         std::unique_ptr<NfImageData> previewImageData(int targetRes) const override;
-        std::unique_ptr<NfImageData> fullImageData() const override;
+        std::unique_ptr<NfImageData> fullImageData(bool reducedResolution) const override;
 
 private:
+        std::unique_ptr<NfImageData> rawImageData(LibRaw& rawProcessor,
+                                                 bool halfSize) const;
         static NfImageData::ImageFormat libRawToNfImageFormat(int format);
         static bool isSupportedFormat(int format);
         static int selectBestForTarget(const libraw_thumbnail_list_t& list,

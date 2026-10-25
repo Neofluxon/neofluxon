@@ -57,9 +57,11 @@ std::unique_ptr<NfImageData> NfJpegImageDecoder::previewImageData(int targetRes)
         return decodeScaled(targetRes);
 }
 
-std::unique_ptr<NfImageData> NfJpegImageDecoder::fullImageData() const
+std::unique_ptr<NfImageData>
+NfJpegImageDecoder::fullImageData(bool reducedResolution) const
 {
-        return decodeScaled(0);
+        constexpr int thumbnailTarget = 250;
+        return decodeScaled(reducedResolution ? thumbnailTarget : 0);
 }
 
 std::unique_ptr<NfImageData>
@@ -143,14 +145,20 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
                         return nullptr;
                 }
 
-                // Select the smallest available scaling factor that keeps
-                // at least one dimension >= targetRes.
+                std::size_t bestPixelCount = 0;
                 for (int i = 0; i < numScalingFactors; ++i) {
                         const int w = TJSCALED(width, factors[i]);
                         const int h = TJSCALED(height, factors[i]);
-                        if (w >= targetRes || h >= targetRes) {
+                        if (w <= 0 || h <= 0)
+                                continue;
+
+                        const auto pixelCount = static_cast<std::size_t>(w)
+                                * static_cast<std::size_t>(h);
+                        if ((w >= targetRes || h >= targetRes)
+                            && (bestPixelCount == 0 || pixelCount < bestPixelCount)) {
                                 scaledWidth = w;
                                 scaledHeight = h;
+                                bestPixelCount = pixelCount;
                         }
                 }
         }
@@ -180,21 +188,17 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
                 return nullptr;
         }
 
-        const std::size_t bufferSize = w * h * 4;
-        std::vector<unsigned char> dstBuf(bufferSize);
+        auto imageData = std::make_unique<NfImageData>(
+                scaledWidth, scaledHeight, 4);
         if (tjDecompress2(decompressor.get(), jpegBuf.data(),
                           static_cast<unsigned long>(jpegBuf.size()),
-                          dstBuf.data(), scaledWidth, 0, scaledHeight,
+                          imageData->data(), scaledWidth, 0, scaledHeight,
                           TJPF_BGRA, TJFLAG_FASTDCT) != 0) {
                 NF_LOG_ERROR("can't decompress image: " << path);
                 return nullptr;
         }
 
-        auto imageData = std::make_unique<NfImageData>();
-        imageData->setData(dstBuf.data(), dstBuf.size());
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
-        imageData->setWidth(scaledWidth);
-        imageData->setHeight(scaledHeight);
         if (const auto exifOrientation =
                     NfExifMetadataExtractor(getPhoto()).orientation()) {
                 imageData->setOrientation(static_cast<int>(

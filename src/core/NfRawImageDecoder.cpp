@@ -222,7 +222,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
         return imageData;
 }
 
-std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
+std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData(bool reducedResolution) const
 {
         NfScopedTimer timer{"RAW fullImageData", getPhoto().path()};
         //        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
@@ -232,7 +232,13 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
         if (rawProcessor.open_file(getPhoto().path().c_str()) != LIBRAW_SUCCESS)
                 return nullptr;
 
-        //rawProcessor.imgdata.params.half_size = 1;
+        return rawImageData(rawProcessor, reducedResolution);
+}
+
+std::unique_ptr<NfImageData>
+NfRawImageDecoder::rawImageData(LibRaw& rawProcessor, bool halfSize) const
+{
+        rawProcessor.imgdata.params.half_size = halfSize ? 1 : 0;
         rawProcessor.imgdata.params.use_fuji_rotate = 0;
 
         if (rawProcessor.unpack() != LIBRAW_SUCCESS)
@@ -254,22 +260,33 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
 
 
         int err = 0;
-        auto* processed = rawProcessor.dcraw_make_mem_image(&err);
+        struct ProcessedImageDeleter {
+                LibRaw* processor;
+                void operator()(libraw_processed_image_t* image) const
+                {
+                        if (image)
+                                processor->dcraw_clear_mem(image);
+                }
+        };
+        std::unique_ptr<libraw_processed_image_t, ProcessedImageDeleter> processed{
+                rawProcessor.dcraw_make_mem_image(&err),
+                ProcessedImageDeleter{&rawProcessor}};
         if (!processed || processed->colors != 3) {
-                if (processed)
-                        rawProcessor.dcraw_clear_mem(processed);
                 return nullptr;
         }
 
-        auto imageData = std::make_unique<NfImageData>();
+        const auto width = static_cast<std::size_t>(processed->width);
+        const auto height = static_cast<std::size_t>(processed->height);
+        if (width == 0 || height == 0
+            || width > std::vector<unsigned char>{}.max_size() / height / 4)
+                return nullptr;
 
-        // Calculate RGBA size: width * height * 4
-        size_t pixelCount = processed->width * processed->height;
-        size_t rgbaSize = pixelCount * 4;
-        std::vector<unsigned char> rgbaBuffer(rgbaSize);
+        auto imageData = std::make_unique<NfImageData>(
+                static_cast<int>(width), static_cast<int>(height), 4);
+        const auto pixelCount = width * height;
 
         const unsigned char* src = processed->data;
-        unsigned char* dst = rgbaBuffer.data();
+        unsigned char* dst = imageData->data();
         for (size_t i = 0; i < pixelCount; i++) {
                 dst[0] = src[2]; // Blue
                 dst[1] = src[1]; // Green
@@ -279,16 +296,12 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData() const
                 src += 3;
                 dst += 4;
         }
-        // Set the data into your NfImage object
-        imageData->setData(rgbaBuffer.data(), rgbaBuffer.size());
+        processed.reset();
+
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
-        imageData->setWidth(processed->width);
-        imageData->setHeight(processed->height);
         imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
 
-        rawProcessor.dcraw_clear_mem(processed);
-
-        NF_LOG_INFO("thumbnail loaded:  " << getPhoto().path());
+        NF_LOG_INFO("RAW image decoded:  " << getPhoto().path());
         NF_LOG_INFO("format: " << static_cast<int>(imageData->format()));
         NF_LOG_INFO("dimentions: " << imageData->width() << "x" << imageData->height());
 

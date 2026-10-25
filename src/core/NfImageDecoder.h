@@ -40,7 +40,7 @@ class NfImageDecoder {
         virtual ~NfImageDecoder() = default;
         virtual std::unique_ptr<NfImageData> thumbnailImageData(int targetRes) const = 0;
         virtual std::unique_ptr<NfImageData> previewImageData(int targetRes) const = 0;
-        virtual std::unique_ptr<NfImageData> fullImageData() const = 0;
+        virtual std::unique_ptr<NfImageData> fullImageData(bool reducedResolution) const = 0;
         virtual std::optional<NfPhotoMetadata> metadata() const = 0;
 
 protected:

@@ -24,16 +24,28 @@
 #include "NfPngImageDecoder.h"
 #include "NfExifMetadataExtractor.h"
 #include "NfImage.h"
+#include "NfLimits.h"
 #include "NfLogger.h"
 #include "utils/NfScopedTimer.h"
 
 #include <png.h>
+
+#include <cstdlib>
+#include <memory>
 
 #ifdef _WIN32
 #include <cstdio>
 #endif
 
 namespace NfCore {
+
+namespace {
+
+struct PngDecodeBuffer {
+        unsigned char* data;
+};
+
+} // namespace
 
 NfPngImageDecoder::NfPngImageDecoder(const NfPhoto &photo)
         : NfImageDecoder(photo)
@@ -50,7 +62,7 @@ std::optional<NfPhotoMetadata> NfPngImageDecoder::metadata() const
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::thumbnailImageData(int targetRes) const
 {
-        return fullImageData();
+        return fullImageData(false);
 }
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::previewImageData(int targetRes) const
@@ -58,7 +70,7 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::previewImageData(int targetRes) 
         return thumbnailImageData(targetRes);
 }
 
-std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
+std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
 {
         NfScopedTimer timer{"PNG fullImageData", getPhoto().path()};
         const auto& path = getPhoto().path();
@@ -88,7 +100,17 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
                 return nullptr;
         }
 
+        auto* decodeBuffer = static_cast<PngDecodeBuffer*>(
+                std::calloc(1, sizeof(PngDecodeBuffer)));
+        if (!decodeBuffer) {
+                png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+                fclose(fp);
+                return nullptr;
+        }
+
         if (setjmp(png_jmpbuf(png_ptr))) {
+                std::free(decodeBuffer->data);
+                std::free(decodeBuffer);
                 png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
                 fclose(fp);
                 return nullptr;
@@ -116,6 +138,18 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
         if (width == 0 || height == 0) {
                 png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
                 fclose(fp);
+                std::free(decodeBuffer);
+                return nullptr;
+        }
+
+        if (width > NfLimits::MaxImageDimension
+            || height > NfLimits::MaxImageDimension
+            || width > NfLimits::MaxDecodedImagePixels / height) {
+                png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+                fclose(fp);
+                std::free(decodeBuffer);
+                NF_LOG_ERROR("PNG dimensions exceed maximum: "
+                             << width << "x" << height << " for " << path);
                 return nullptr;
         }
 
@@ -147,29 +181,38 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData() const
 
         size_t rowBytes = png_get_rowbytes(png_ptr, info_ptr);
 
-        if (height != 0 && rowBytes > SIZE_MAX / height) {
+        if (rowBytes != static_cast<size_t>(width) * 4
+            || rowBytes > SIZE_MAX / height) {
                 png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
                 fclose(fp);
+                std::free(decodeBuffer);
                 return nullptr;
         }
 
         size_t imageSize = rowBytes * static_cast<size_t>(height);
 
-        std::vector<unsigned char> data(imageSize);
+        decodeBuffer->data = static_cast<unsigned char*>(std::malloc(imageSize));
+        if (!decodeBuffer->data) {
+                png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+                fclose(fp);
+                std::free(decodeBuffer);
+                return nullptr;
+        }
 
-        std::vector<png_bytep> row_pointers(height);
-
-        for (png_uint_32 i = 0; i < height; ++i)
-                row_pointers[i] = data.data() + (i * rowBytes);
-
-        png_read_image(png_ptr, row_pointers.data());
+        for (png_uint_32 row = 0; row < height; ++row)
+                png_read_row(png_ptr, decodeBuffer->data + row * rowBytes, nullptr);
         png_read_end(png_ptr, nullptr);
 
         png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
         fclose(fp);
 
+        std::unique_ptr<unsigned char, decltype(&std::free)> data{
+                decodeBuffer->data, &std::free};
+        std::free(decodeBuffer);
+
         auto imageData = std::make_unique<NfImageData>();
-        imageData->setData(data.data(), data.size());
+        imageData->setData(data.get(), imageSize);
+        data.reset();
         imageData->setWidth(static_cast<int>(width));
         imageData->setHeight(static_cast<int>(height));
         imageData->setFormat(NfImageData::ImageFormat::Format_RGBA8888);
