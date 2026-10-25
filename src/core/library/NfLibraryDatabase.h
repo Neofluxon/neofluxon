@@ -97,12 +97,16 @@ public:
                          int64_t timestamp,
                          int64_t cameraId,
                          int64_t lensId);
-        std::vector<std::filesystem::path> getImagePathsByFolderId(const int64_t folderId) const;
-        std::vector<std::filesystem::path> getImagePathsByDate(const NfDateRange &dateRange) const;
+        std::vector<std::filesystem::path> getImagePathsByFolderId(int64_t folderId,
+                                                                    int64_t libraryId) const;
+        std::vector<std::filesystem::path> getImagePathsByDate(const NfDateRange& dateRange,
+                                                               int64_t libraryId) const;
         std::vector<std::filesystem::path> getImagePathsByEquipment(
-                const NfEquipmentQuery& equipment) const;
+                const NfEquipmentQuery& equipment,
+                int64_t libraryId) const;
 
-        int64_t getFolderIdByPath(std::filesystem::path &folder) const;
+        int64_t getFolderIdByPath(const std::filesystem::path& folder,
+                                  int64_t libraryId) const;
 
         int64_t addCamera(std::string_view maker,
                           std::string_view model);

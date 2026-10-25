@@ -159,7 +159,7 @@ bool NfLibrary::folderExists(std::filesystem::path &folder) const
 {
         using Mode = NfLibraryDatabase::Transaction::Mode;
         NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
-        return m_db->getFolderIdByPath(folder) != -1;
+        return m_db->getFolderIdByPath(folder, id()) != -1;
 }
 
 int64_t NfLibrary::storeCamera(std::string_view maker,

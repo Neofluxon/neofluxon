@@ -114,12 +114,17 @@ bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
         VALUES ('Default Library');
 
         CREATE TABLE IF NOT EXISTS folders (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            library_id  INTEGER NOT NULL,
-            path        TEXT NOT NULL,
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            path    TEXT NOT NULL UNIQUE
+        );
 
+        CREATE TABLE IF NOT EXISTS library_folders (
+            library_id  INTEGER NOT NULL,
+            folder_id   INTEGER NOT NULL,
+
+            PRIMARY KEY (library_id, folder_id),
             FOREIGN KEY (library_id) REFERENCES libraries(id) ON DELETE CASCADE,
-            UNIQUE (library_id, path)
+            FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS cameras (
@@ -145,53 +150,30 @@ bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
 
             FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
             FOREIGN KEY (camera_id) REFERENCES cameras(id) ON DELETE SET NULL,
-            FOREIGN KEY (lens_id)   REFERENCES lenses(id)  ON DELETE SET NULL
+            FOREIGN KEY (lens_id)   REFERENCES lenses(id)  ON DELETE SET NULL,
+            UNIQUE (folder_id, file_name)
         );
 
-        CREATE TABLE IF NOT EXISTS collections (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            library_id  INTEGER NOT NULL,
-            name        TEXT NOT NULL,
-            description TEXT,
-            created_at  INTEGER,
+       CREATE INDEX IF NOT EXISTS idx_images_camera_id
+          ON images(camera_id);
 
-            FOREIGN KEY (library_id) REFERENCES libraries(id) ON DELETE CASCADE,
-            UNIQUE (library_id, name)
-        );
+       CREATE INDEX IF NOT EXISTS idx_images_lens_id
+          ON images(lens_id);
 
-        CREATE TABLE IF NOT EXISTS collection_images (
-            collection_id INTEGER NOT NULL,
-            image_id      INTEGER NOT NULL,
-            position      INTEGER,
-
-            PRIMARY KEY (collection_id, image_id),
-
-            FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
-            FOREIGN KEY (image_id)      REFERENCES images(id)      ON DELETE CASCADE
-        );
-
-       CREATE INDEX IF NOT EXISTS idx_images_folder
-           ON images(folder_id);
-
-       CREATE INDEX IF NOT EXISTS idx_images_datetime
-          ON images(datetime_taken);
-
-       CREATE INDEX IF NOT EXISTS idx_coll_img_id
-          ON collection_images(image_id);
-
-       CREATE INDEX IF NOT EXISTS idx_folders_library_path
-          ON folders(library_id, path);)";
+       CREATE INDEX IF NOT EXISTS idx_library_folders_folder_id
+          ON library_folders(folder_id);)";
 
        char* sqliteError = nullptr;
        const auto result = sqlite3_exec(m_db, sql, nullptr, nullptr, &sqliteError);
-       if (result == SQLITE_OK) {
-               errorMessage.clear();
-               return true;
+       if (result != SQLITE_OK) {
+               errorMessage = sqliteError ? sqliteError : sqlite3_errmsg(m_db);
+               sqlite3_free(sqliteError);
+               return false;
        }
-
-       errorMessage = sqliteError ? sqliteError : sqlite3_errmsg(m_db);
        sqlite3_free(sqliteError);
-       return false;
+
+       errorMessage.clear();
+       return true;
 }
 
 int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
@@ -377,38 +359,28 @@ int64_t NfLibraryDatabase::addFolder(const std::filesystem::path& path,
 {
         const std::string pathStr = path.lexically_normal().generic_string();
 
-        // 1. Insert (or ignore if already exists)
-        const char* insertSql = R"(
-        INSERT OR IGNORE INTO folders (library_id, path)
-        VALUES (?, ?);
-        )";
-
         sqlite3_stmt* stmt = nullptr;
-        if (sqlite3_prepare_v2(m_db, insertSql, -1, &stmt, nullptr) != SQLITE_OK)
+        const char* insertFolderSql =
+                "INSERT OR IGNORE INTO folders (path) VALUES (?);";
+        if (sqlite3_prepare_v2(m_db, insertFolderSql, -1, &stmt, nullptr) != SQLITE_OK)
                 return -1;
 
-        sqlite3_bind_int64(stmt, 1, libraryId);
-        sqlite3_bind_text(stmt, 2,
+        sqlite3_bind_text(stmt, 1,
                            pathStr.c_str(),
                            -1,
                            SQLITE_TRANSIENT);
 
-        sqlite3_step(stmt);
+        const auto insertResult = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
+        if (insertResult != SQLITE_DONE)
+                return -1;
 
-        // 2. Always fetch the id (existing or newly inserted)
-        const char* selectSql = R"(
-        SELECT id
-        FROM folders
-        WHERE library_id = ? AND path = ?
-        LIMIT 1;
-        )";
+        const char* selectSql = "SELECT id FROM folders WHERE path = ?;";
 
         if (sqlite3_prepare_v2(m_db, selectSql, -1, &stmt, nullptr) != SQLITE_OK)
                 return -1;
 
-        sqlite3_bind_int64(stmt, 1, libraryId);
-        sqlite3_bind_text(stmt, 2,
+        sqlite3_bind_text(stmt, 1,
                           pathStr.c_str(),
                           -1,
                           SQLITE_TRANSIENT);
@@ -419,6 +391,20 @@ int64_t NfLibraryDatabase::addFolder(const std::filesystem::path& path,
                 id = sqlite3_column_int64(stmt, 0);
 
         sqlite3_finalize(stmt);
+        if (id < 0)
+                return -1;
+
+        const char* associateSql =
+                "INSERT OR IGNORE INTO library_folders (library_id, folder_id) VALUES (?, ?);";
+        if (sqlite3_prepare_v2(m_db, associateSql, -1, &stmt, nullptr) != SQLITE_OK)
+                return -1;
+
+        sqlite3_bind_int64(stmt, 1, libraryId);
+        sqlite3_bind_int64(stmt, 2, id);
+        const auto associateResult = sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+        if (associateResult != SQLITE_DONE)
+                return -1;
 
         return id;
 }
@@ -430,20 +416,24 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
                                     int64_t lensId)
 {
         NF_LOG_DEBUG("folderId: " << folderId
-                     << "timestamp: " << timestamp
+                     << ", timestamp: " << timestamp
                      << ", cameraId: " << cameraId
-                     << ", cameraId: " << lensId
-                     << fileName);
-        NF_LOG_DEBUG("timestamp: " << timestamp);
+                     << ", lensId: " << lensId
+                     << ", fileName: " << fileName);
+
         const char* sql = R"(
         INSERT INTO images (folder_id, file_name, datetime_taken, camera_id, lens_id)
-        VALUES (?, ?, ?, ?, ?);)";
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(folder_id, file_name) DO UPDATE SET
+            datetime_taken = excluded.datetime_taken,
+            camera_id = excluded.camera_id,
+            lens_id = excluded.lens_id
+        RETURNING id;)";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
                 return -1;
 
-        // Bind parameters (1-indexed mapping to the '?' placeholders)
         sqlite3_bind_int64(stmt, 1, folderId);
         sqlite3_bind_text(stmt, 2, fileName.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int64(stmt, 3, timestamp);
@@ -459,8 +449,8 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
                 sqlite3_bind_null(stmt, 5);
 
         int64_t resultId = -1;
-        if (sqlite3_step(stmt) == SQLITE_DONE)
-                resultId = sqlite3_last_insert_rowid(m_db);
+        if (sqlite3_step(stmt) == SQLITE_ROW)
+                resultId = sqlite3_column_int64(stmt, 0);
 
         sqlite3_finalize(stmt);
 
@@ -468,7 +458,8 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
 }
 
 std::vector<std::filesystem::path>
-NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
+NfLibraryDatabase::getImagePathsByFolderId(int64_t folderId,
+                                           int64_t libraryId) const
 {
         std::vector<std::filesystem::path> result;
 
@@ -477,17 +468,16 @@ NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
         FROM images
         JOIN folders
             ON images.folder_id = folders.id
-        WHERE images.folder_id IN (
-                SELECT child.id
-                FROM folders AS parent
-                JOIN folders AS child
-                    ON child.library_id = parent.library_id
-                WHERE parent.id = ?
-                  AND (
-                        child.path = parent.path
-                        OR child.path LIKE parent.path || '/%'
-                      )
-        );
+        JOIN library_folders parent_membership
+            ON parent_membership.folder_id = ?
+           AND parent_membership.library_id = ?
+        JOIN folders parent
+            ON parent.id = parent_membership.folder_id
+        JOIN library_folders child_membership
+            ON child_membership.folder_id = folders.id
+           AND child_membership.library_id = parent_membership.library_id
+        WHERE folders.path = parent.path
+           OR folders.path LIKE parent.path || '/%';
         )";
 
         sqlite3_stmt* stmt = nullptr;
@@ -495,6 +485,7 @@ NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
                 return result;
 
         sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(folderId));
+        sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(libraryId));
         while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
                 if (path)
@@ -507,7 +498,8 @@ NfLibraryDatabase::getImagePathsByFolderId(const int64_t folderId) const
 }
 
 std::vector<std::filesystem::path>
-NfLibraryDatabase::getImagePathsByDate(const NfDateRange &dateRange) const
+NfLibraryDatabase::getImagePathsByDate(const NfDateRange& dateRange,
+                                       int64_t libraryId) const
 {
         std::vector<std::filesystem::path> result;
 
@@ -516,7 +508,10 @@ NfLibraryDatabase::getImagePathsByDate(const NfDateRange &dateRange) const
         FROM images
         JOIN folders
             ON images.folder_id = folders.id
-        WHERE images.datetime_taken >= ?
+        JOIN library_folders
+            ON library_folders.folder_id = folders.id
+        WHERE library_folders.library_id = ?
+            AND images.datetime_taken >= ?
             AND images.datetime_taken < ?;
         )";
 
@@ -524,8 +519,9 @@ NfLibraryDatabase::getImagePathsByDate(const NfDateRange &dateRange) const
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
                 return result;
 
-        sqlite3_bind_int64(stmt, 1, dateRange.start_ticks);
-        sqlite3_bind_int64(stmt, 2, dateRange.end_ticks);
+        sqlite3_bind_int64(stmt, 1, libraryId);
+        sqlite3_bind_int64(stmt, 2, dateRange.start_ticks);
+        sqlite3_bind_int64(stmt, 3, dateRange.end_ticks);
 
         while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
@@ -539,7 +535,8 @@ NfLibraryDatabase::getImagePathsByDate(const NfDateRange &dateRange) const
 }
 
 std::vector<std::filesystem::path>
-NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment) const
+NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment,
+                                            int64_t libraryId) const
 {
         std::vector<std::filesystem::path> result;
 
@@ -550,7 +547,8 @@ NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment) c
                 SELECT folders.path || '/' || images.file_name
                 FROM images
                 JOIN folders ON images.folder_id = folders.id
-                WHERE images.camera_id = ?;
+                JOIN library_folders lf ON lf.folder_id = folders.id
+                WHERE images.camera_id = ? AND lf.library_id = ?;
                 )";
                 break;
         case NfEquipmentQuery::Kind::Lens:
@@ -558,7 +556,8 @@ NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment) c
                 SELECT folders.path || '/' || images.file_name
                 FROM images
                 JOIN folders ON images.folder_id = folders.id
-                WHERE images.lens_id = ?;
+                JOIN library_folders lf ON lf.folder_id = folders.id
+                WHERE images.lens_id = ? AND lf.library_id = ?;
                 )";
                 break;
         }
@@ -570,6 +569,7 @@ NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment) c
                 return result;
 
         sqlite3_bind_int64(stmt, 1, equipment.id);
+        sqlite3_bind_int64(stmt, 2, libraryId);
         while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const auto* path = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
                 if (path)
@@ -580,23 +580,26 @@ NfLibraryDatabase::getImagePathsByEquipment(const NfEquipmentQuery& equipment) c
         return result;
 }
 
-int64_t NfLibraryDatabase::getFolderIdByPath(std::filesystem::path &folder) const
+int64_t NfLibraryDatabase::getFolderIdByPath(const std::filesystem::path& folder,
+                                             int64_t libraryId) const
 {
         const char* sql = R"(
-        SELECT id
+        SELECT folders.id
         FROM folders
-        WHERE path = ?;)";
+        JOIN library_folders ON library_folders.folder_id = folders.id
+        WHERE folders.path = ? AND library_folders.library_id = ?;)";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
                 return -1;
 
-        const auto path = folder.generic_string();
+        const auto path = folder.lexically_normal().generic_string();
         sqlite3_bind_text(stmt,
                           1,
                           path.c_str(),
                           -1,
                           SQLITE_TRANSIENT);
+        sqlite3_bind_int64(stmt, 2, libraryId);
 
         int64_t result = -1;
         if (sqlite3_step(stmt) == SQLITE_ROW)
@@ -754,8 +757,9 @@ void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libra
                 "SELECT DISTINCT i.datetime_taken "
                 "FROM images i "
                 "JOIN folders f ON f.id = i.folder_id "
+                "JOIN library_folders lf ON lf.folder_id = f.id "
                 "WHERE i.datetime_taken IS NOT NULL "
-                "AND f.library_id = ? "
+                "AND lf.library_id = ? "
                 "ORDER BY i.datetime_taken;";
 
         sqlite3_stmt* stmt = nullptr;
@@ -778,10 +782,11 @@ void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libr
 {
         auto* record = static_cast<NfCanonicalSourceRecord*>(source);
         const char* sql =
-                "SELECT id, path "
-                "FROM folders "
-                "WHERE library_id = ? "
-                "ORDER BY path ASC;";
+                "SELECT f.id, f.path "
+                "FROM folders f "
+                "JOIN library_folders lf ON lf.folder_id = f.id "
+                "WHERE lf.library_id = ? "
+                "ORDER BY f.path ASC;";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
@@ -807,10 +812,13 @@ void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libr
                 "SELECT DISTINCT c.id, c.maker, c.model "
                 "FROM cameras c "
                 "INNER JOIN images i ON c.id = i.camera_id "
+                "INNER JOIN library_folders lf ON lf.folder_id = i.folder_id "
+                "WHERE lf.library_id = ? "
                 "ORDER BY c.maker ASC, c.model ASC;";
 
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sqlCameras, -1, &stmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_int64(stmt, 1, libraryId);
                 while (sqlite3_step(stmt) == SQLITE_ROW) {
                         int id = sqlite3_column_int(stmt, 0);
                         const char* maker = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
@@ -827,9 +835,12 @@ void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libr
                 "SELECT DISTINCT l.id, l.name "
                 "FROM lenses l "
                 "INNER JOIN images i ON l.id = i.lens_id "
+                "INNER JOIN library_folders lf ON lf.folder_id = i.folder_id "
+                "WHERE lf.library_id = ? "
                 "ORDER BY l.name ASC;";
 
         if (sqlite3_prepare_v2(m_db, sqlLenses, -1, &stmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_int64(stmt, 1, libraryId);
                 while (sqlite3_step(stmt) == SQLITE_ROW) {
                         auto id = sqlite3_column_int(stmt, 0);
                         const auto* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
