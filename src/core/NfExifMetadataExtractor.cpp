@@ -147,6 +147,7 @@ NfExifMetadataExtractor::NfExifMetadataExtractor(const NfPhoto& photo)
 std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
 {
         const auto& path = m_photo.path();
+
         const auto format = formatName(m_photo.format());
         NF_LOG_DEBUG("read " << format << " metadata: " << path);
 
@@ -167,10 +168,8 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
                 metadata.height = static_cast<int>(image->pixelHeight());
                 metadata.format = format;
 
-                std::error_code error;
-                const auto fileSize = std::filesystem::file_size(path, error);
-                if (!error)
-                        metadata.fileSize = static_cast<std::int64_t>(fileSize);
+                if (const auto fileSize = m_photo.sizeOnDisk())
+                        metadata.fileSize = static_cast<std::int64_t>(*fileSize);
 
                 metadata.cameraMaker = exifString(exif, "Exif.Image.Make");
                 metadata.cameraModel = exifString(exif, "Exif.Image.Model");

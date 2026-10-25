@@ -43,19 +43,19 @@ NfPreviewTask::~NfPreviewTask() = default;
 
 NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
-        auto photo = getPhoto();
+        const auto& photo = getPhoto();
+        const auto& path = photo.path();
+
         auto decoder = NfImageDecoderFactory::createDecoder(photo);
         if (!decoder) {
-                NF_LOG_ERROR("can't create decoder for photo: " << photo.path());
+                NF_LOG_ERROR("can't create decoder for photo: " << path);
                 return TaskStatus::Failed;
         }
 
-        std::unique_ptr<NfImageData> imageData;
         constexpr int minTarget = 900;
         constexpr int maxTarget = 2000;
-
+        std::unique_ptr<NfImageData> imageData;
         const auto method = extractionMethod();
-
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
                 NF_LOG_DEBUG("load embedded image");
@@ -69,7 +69,7 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
         }
 
         if (!imageData) {
-                NF_LOG_ERROR("can't extract image data for photo: " << photo.path());
+                NF_LOG_ERROR("can't extract image data for photo: " << path);
                 return TaskStatus::Failed;
         }
 
@@ -85,7 +85,7 @@ NfPreviewTask::TaskStatus NfPreviewTask::execute()
                 getImage()->applyOrientation();
         }
 
-        NF_LOG_DEBUG("preview loaded for : " << photo.path());
+        NF_LOG_DEBUG("preview loaded for : " << path);
 
         return TaskStatus::Success;
 }

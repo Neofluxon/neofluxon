@@ -33,7 +33,7 @@ NfPhoto::NfPhoto(const std::filesystem::path &filePath)
         m_format = determineFormat(filePath);
 }
 
-NfPhotoId NfPhoto::id() const
+const NfPhotoId& NfPhoto::id() const
 {
         return m_photoId;
 }
@@ -56,6 +56,11 @@ std::optional<std::uintmax_t> NfPhoto::sizeOnDisk() const
                 return std::nullopt;
 
         return size;
+}
+
+bool NfPhoto::fileExists() const
+{
+        return NfFileUtils::fileExists(m_filePath);
 }
 
 NfPhoto::PhotoFormat NfPhoto::format() const

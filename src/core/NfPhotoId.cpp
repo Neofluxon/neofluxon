@@ -67,25 +67,10 @@ bool NfPhotoId::isValid() const
 
 uint64_t NfPhotoId::computeHash(const std::filesystem::path& filePath)
 {
-        try {
-                if (!std::filesystem::exists(filePath))
-                        return 0;
+         if (filePath.empty())
+                 return 0;
 
-                auto size = std::filesystem::file_size(filePath);
-                auto ftime = std::filesystem::last_write_time(filePath);
-                auto sctp = std::chrono::system_clock::now() +
-                        (ftime - decltype(ftime)::clock::now());
-                auto time = std::chrono::system_clock::to_time_t(sctp);
-
-                std::string key = NfFileUtils::pathToUtf8(filePath) + "|" +
-                        std::to_string(size) + "|" +
-                        std::to_string(time);
-
-                return fnv1a_64(key);
-        }
-        catch (...) {
-                return 0;
-        }
+         return fnv1a_64(NfFileUtils::pathToUtf8(filePath.lexically_normal()));
 }
 
 } // NfCore

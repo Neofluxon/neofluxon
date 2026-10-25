@@ -39,22 +39,22 @@ NfThumbnailTask::~NfThumbnailTask() = default;
 
 NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
 {
-        auto photo = getPhoto();
+        const auto& photo = getPhoto();
+        const auto& path = photo.path();
+
         auto decoder = NfImageDecoderFactory::createDecoder(photo);
         if (!decoder) {
-                NF_LOG_ERROR("can't create decoder for photo: " << photo.path());
+                NF_LOG_ERROR("can't create decoder for photo: " << path);
                 return TaskStatus::Failed;
         }
 
-        std::unique_ptr<NfImageData> imageData;
         constexpr int maxTarget = 250;
         constexpr int minTarget = 120;
-
+        std::unique_ptr<NfImageData> imageData;
         const auto method = extractionMethod();
-
         if (method == ExtractionMethod::Embedded
             || method == ExtractionMethod::Fastest) {
-                NF_LOG_DEBUG("load embedded image for : " << photo.path());
+                NF_LOG_DEBUG("load embedded image for : " << path);
                 imageData = decoder->thumbnailImageData(minTarget);
         }
 
@@ -65,12 +65,11 @@ NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
         }
 
         if (!imageData) {
-                NF_LOG_ERROR("can't extract image data for photo: " << photo.path());
+                NF_LOG_ERROR("can't extract image data for photo: " << path);
                 return TaskStatus::Failed;
         }
 
         auto* image = getImage();
-
         image->setData(std::move(imageData));
         if (image->height() > maxTarget) {
                 NF_LOG_DEBUG("resize to target: " << maxTarget);

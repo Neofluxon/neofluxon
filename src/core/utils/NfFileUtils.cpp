@@ -61,4 +61,10 @@ std::string NfFileUtils::extension(const std::filesystem::path& path, Case casin
         return result;
 }
 
+bool NfFileUtils::fileExists(const std::filesystem::path& path)
+{
+        std::error_code ec;
+        return std::filesystem::is_regular_file(path, ec);
+}
+
 } // namespace NfCore

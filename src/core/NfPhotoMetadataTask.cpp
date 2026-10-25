@@ -37,11 +37,6 @@ NfPhotoMetadataTask::~NfPhotoMetadataTask() = default;
 
 NfPhotoMetadataTask::TaskStatus NfPhotoMetadataTask::execute()
 {
-        if (!m_photo.id().isValid()) {
-                NF_LOG_ERROR("invalid photo");
-                return TaskStatus::Failed;
-        }
-
         NfPhotoMetadataExtractor extractor(m_photo);
         auto metadata = extractor.metadata();
         if (!metadata) {

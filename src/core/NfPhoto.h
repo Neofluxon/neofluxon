@@ -43,8 +43,9 @@ class NfPhoto {
         };
 
         explicit NfPhoto(const std::filesystem::path &filePath = {});
-        NfPhotoId id() const;
+        const NfPhotoId& id() const;
         const std::filesystem::path& path() const;
+        bool fileExists() const;
         std::string name() const;
         std::optional<std::uintmax_t> sizeOnDisk() const;
         PhotoFormat format() const;

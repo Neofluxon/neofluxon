@@ -72,10 +72,11 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
 {
-        NfScopedTimer timer{"PNG fullImageData", getPhoto().path()};
-        const auto& path = getPhoto().path();
+        const auto& photo = getPhoto();
+        const auto& path = photo.path();
+        NfScopedTimer timer{"PNG fullImageData", path};
 
-        const auto size = getPhoto().sizeOnDisk();
+        const auto size = photo.sizeOnDisk();
         if (!size) {
                 NF_LOG_ERROR("can't get image file size: " << path);
                 return nullptr;
@@ -234,7 +235,7 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
         imageData->setHeight(static_cast<int>(height));
         imageData->setFormat(NfImageData::ImageFormat::Format_RGBA8888);
         if (const auto exifOrientation =
-                    NfExifMetadataExtractor(getPhoto()).orientation()) {
+                    NfExifMetadataExtractor(photo).orientation()) {
                 imageData->setOrientation(static_cast<int>(
                         NfImage::orientationFromExif(*exifOrientation)));
         }

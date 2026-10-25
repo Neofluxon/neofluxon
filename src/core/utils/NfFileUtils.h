@@ -43,6 +43,7 @@ public:
         static std::string pathToUtf8(const std::filesystem::path& path);
         static std::string extension(const std::filesystem::path& path,
                                      Case casing = Case::Preserve);
+        static bool fileExists(const std::filesystem::path& path);
 };
 
 } // namespace NfCore

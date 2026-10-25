@@ -28,8 +28,6 @@
 #include "NfFileUtils.h"
 #include "utils/NfScopedTimer.h"
 
-#include <filesystem>
-
 namespace NfCore {
 
 NfRawImageDecoder::NfRawImageDecoder(const NfPhoto &photo)
@@ -41,16 +39,15 @@ NfRawImageDecoder::~NfRawImageDecoder() = default;
 
 std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
 {
-        auto photoPath = getPhoto().path();
-        NF_LOG_DEBUG("open file: " << photoPath);
+        const auto& photo = getPhoto();
+        const auto& photoPath = photo.path();
 
+        NF_LOG_DEBUG("open file: " << photoPath);
         LibRaw rawProcessor;
         if (rawProcessor.open_file(photoPath.c_str()) != LIBRAW_SUCCESS) {
                 NF_LOG_ERROR("can't open file: " << photoPath);
                 return std::nullopt;
         }
-
-        NF_LOG_DEBUG("open file OK");
 
         const auto& idata = rawProcessor.imgdata.idata;
         const auto& sizes = rawProcessor.imgdata.sizes;
@@ -65,9 +62,8 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
             && sizes.raw_aspect <= LIBRAW_IMAGE_ASPECT_MAXIMAL_REAL_ASPECT_VALUE)
                 metadata.cameraAspectRatio = sizes.raw_aspect / 1000.0;
         metadata.format = NfFileUtils::extension(photoPath, NfFileUtils::Case::Upper);
-        std::error_code error;
-        auto size = std::filesystem::file_size(photoPath, error);
-        metadata.fileSize = static_cast<std::int64_t>(size);
+        if (const auto size = photo.sizeOnDisk())
+                metadata.fileSize = static_cast<std::int64_t>(*size);
         metadata.cameraMaker = idata.make;
         metadata.cameraModel = idata.model;
         metadata.lens = lens.makernotes.Lens;
@@ -113,11 +109,11 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes) const
 {
-        const auto& path = getPhoto().path();
+        const auto& photo = getPhoto();
+        const auto& path = photo.path();
         NfScopedTimer timer{"RAW thumbnailImageData", path};
-        NF_LOG_DEBUG("open file: " << path);
 
-        const auto size = getPhoto().sizeOnDisk();
+        const auto size = photo.sizeOnDisk();
         if (!size) {
                 NF_LOG_ERROR("can't get image file size: " << path);
                 return nullptr;
@@ -135,13 +131,14 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
                 return nullptr;
         }
 
+        NF_LOG_DEBUG("open file: " << path);
+
         LibRaw rawProcessor;
         if (rawProcessor.open_file(path.c_str()) != LIBRAW_SUCCESS) {
                 NF_LOG_DEBUG("can't open file : " << path);
                 return nullptr;
         }
 
-        NF_LOG_DEBUG("open file OK");
         NF_LOG_DEBUG("original size:"
                      << rawProcessor.imgdata.sizes.width
                      << "x" << rawProcessor.imgdata.sizes.height);
@@ -188,11 +185,11 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) const
 {
-        const auto& path = getPhoto().path();
+        const auto& photo = getPhoto();
+        const auto& path = photo.path();
         NfScopedTimer timer{"RAW previewImageData", path};
-        NF_LOG_DEBUG("open file: " << path);
 
-        const auto size = getPhoto().sizeOnDisk();
+        const auto size = photo.sizeOnDisk();
         if (!size) {
                 NF_LOG_ERROR("can't get image file size: " << path);
                 return nullptr;
@@ -208,13 +205,13 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
                 return nullptr;
         }
 
+        NF_LOG_DEBUG("open file: " << path);
         LibRaw rawProcessor;
         if (rawProcessor.open_file(path.c_str()) != LIBRAW_SUCCESS) {
                 NF_LOG_ERROR("can't open file: " << path);
                 return nullptr;
         }
 
-        NF_LOG_DEBUG("open file OK");
         NF_LOG_DEBUG("original size:"
                      << rawProcessor.imgdata.sizes.width
                      << "x" << rawProcessor.imgdata.sizes.height);
@@ -261,11 +258,11 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
 std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData(bool reducedResolution) const
 {
-        const auto& path = getPhoto().path();
-        NfScopedTimer timer{"RAW fullImageData", path};
-        //        NF_LOG_DEBUG("OMP Threads available: " << omp_get_max_threads());
+        const auto& photo = getPhoto();
+        NfScopedTimer timer{"RAW fullImageData", photo.path()};
 
-        const auto size = getPhoto().sizeOnDisk();
+        const auto size = photo.sizeOnDisk();
+        const auto& path = photo.path();
         if (!size) {
                 NF_LOG_ERROR("can't get image file size: " << path);
                 return nullptr;
@@ -292,6 +289,7 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData(bool reducedResolu
 std::unique_ptr<NfImageData>
 NfRawImageDecoder::rawImageData(LibRaw& rawProcessor, bool halfSize) const
 {
+        const auto& photo = getPhoto();
         rawProcessor.imgdata.params.half_size = halfSize ? 1 : 0;
         rawProcessor.imgdata.params.use_fuji_rotate = 0;
 
@@ -355,7 +353,7 @@ NfRawImageDecoder::rawImageData(LibRaw& rawProcessor, bool halfSize) const
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
         imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
 
-        NF_LOG_INFO("RAW image decoded:  " << getPhoto().path());
+        NF_LOG_INFO("RAW image decoded:  " << photo.path());
         NF_LOG_INFO("format: " << static_cast<int>(imageData->format()));
         NF_LOG_INFO("dimentions: " << imageData->width() << "x" << imageData->height());
 

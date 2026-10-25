@@ -67,10 +67,11 @@ NfJpegImageDecoder::fullImageData(bool reducedResolution) const
 std::unique_ptr<NfImageData>
 NfJpegImageDecoder::decodeScaled(int targetRes) const
 {
-        NfScopedTimer timer{"JPEG decodeScaled", getPhoto().path()};
-        const auto& path = getPhoto().path();
+        const auto& photo = getPhoto();
+        const auto& path = photo.path();
+        NfScopedTimer timer{"JPEG decodeScaled", path};
 
-        const auto size = getPhoto().sizeOnDisk();
+        const auto size = photo.sizeOnDisk();
         if (!size) {
                 NF_LOG_ERROR("can't get image file size: " << path);
                 return nullptr;
@@ -197,7 +198,7 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
         }
 
         imageData->setFormat(NfImageData::ImageFormat::Format_ARGB32_Premultiplied);
-        if (const auto exifOrientation = NfExifMetadataExtractor(getPhoto()).orientation()) {
+        if (const auto exifOrientation = NfExifMetadataExtractor(photo).orientation()) {
                 imageData->setOrientation(static_cast<int>(
                                           NfImage::orientationFromExif(*exifOrientation)));
         }
