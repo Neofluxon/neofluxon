@@ -29,17 +29,17 @@ namespace NfCore {
 
 void NfLogger::log(NfLogger::LogLevel level, std::string msg)
 {
-        /*auto& inst = instance();
+        auto& inst = instance();
         {
                 std::lock_guard lock(inst.m_mutex);
                 inst.m_queue.emplace_back(level, std::move(msg));
         }
-        inst.m_cv.notify_one();*/
+        inst.m_cv.notify_one();
 }
 
 void NfLogger::log(NfLogger::LogLevel level, std::string_view msg)
 {
-        //log(level, msg);
+        log(level, msg);
 }
 
 NfLogger& NfLogger::instance()
