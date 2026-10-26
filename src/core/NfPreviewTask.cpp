@@ -34,8 +34,8 @@
 
 namespace NfCore {
 
-NfPreviewTask::NfPreviewTask(const NfPhoto& photo)
-        : NfImageTask(photo)
+NfPreviewTask::NfPreviewTask(const NfPhoto& photo, NfDiskCache* diskCache)
+        : NfImageTask(photo, diskCache, NfDiskCache::CacheType::Preview)
 {
 }
 
@@ -43,6 +43,9 @@ NfPreviewTask::~NfPreviewTask() = default;
 
 NfPreviewTask::TaskStatus NfPreviewTask::execute()
 {
+        if (loadCachedImage())
+                return TaskStatus::Success;
+
         const auto& photo = getPhoto();
         const auto& path = photo.path();
 

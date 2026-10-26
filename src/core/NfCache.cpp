@@ -22,15 +22,17 @@
  */
 
 #include "NfCache.h"
-//#include "NfDiskCache.h"
 #include "NfImage.h"
 #include "NfLogger.h"
 
 namespace NfCore {
 
-NfCache::NfCache(/*NfDiskCache* diskCache, */std::size_t maxSizeBytes)
-//        : m_diskCache{diskCache}
-        : m_maxSizeBytes{maxSizeBytes}
+NfCache::NfCache(std::size_t maxSizeBytes,
+                 NfDiskCache* diskCache,
+                 NfDiskCache::CacheType cacheType)
+        : m_diskCache{diskCache}
+        , m_cacheType{cacheType}
+        , m_maxSizeBytes{maxSizeBytes}
         , m_currentSizeBytes{0}
 {
 }
@@ -154,11 +156,11 @@ void NfCache::evictUntilFits(std::size_t requiredSize)
                 if (it != m_memoryCache.end()) {
                         std::size_t evictedSize = it->second.second->size();
 
-                        // Save to disk if available, otherwise discard
-                        //if (m_diskCache)
-                        //        m_diskCache->add(oldestId, std::move(it->second));
                         NF_LOG_DEBUG("photo evicted: " << it->first.value());
 
+                        if (m_diskCache)
+                                m_diskCache->enqueue(m_cacheType, oldestId,
+                                                     std::move(it->second.second));
                         m_memoryCache.erase(it);
                         m_currentSizeBytes -= evictedSize;
                 }

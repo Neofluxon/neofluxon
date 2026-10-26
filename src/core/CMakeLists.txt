@@ -21,6 +21,8 @@ set(CORE_HEADERS
         utils/NfTimeUtils.h
         utils/NfScopedTimer.h
         NfApplicationPaths.h
+        NfDiskCache.h
+        NfDiskCacheSettings.h
         NfThreadAllocationManager.h
         NeofluxonCore.h
         Neofluxon.h
@@ -75,6 +77,8 @@ set(CORE_SOURCES
         utils/NfFileUtils.cpp
         utils/NfStringUtils.cpp
         NfApplicationPaths.cpp
+        NfDiskCache.cpp
+        NfDiskCacheSettings.cpp
         NfThreadAllocationManager.cpp
         NeofluxonCore.cpp
         NfCache.cpp

@@ -26,6 +26,8 @@
 
 #include <QDialog>
 
+#include "core/NfDiskCacheSettings.h"
+
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -46,7 +48,9 @@ private:
         void setupUI();
         void setupConnections();
         void updateAvailableDiskSpace();
+        void accept() override;
 
+        NfCore::NfDiskCacheSettings m_diskCacheSettings;
         QListWidget* m_categories{nullptr};
         QStackedWidget* m_pages{nullptr};
         QSpinBox* m_thumbnailMemoryLimit{nullptr};

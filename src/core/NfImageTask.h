@@ -27,6 +27,7 @@
 #include "NfTask.h"
 #include "NfPhoto.h"
 #include "NfThumbnail.h"
+#include "NfDiskCache.h"
 
 #include <memory>
 #include <cstdint>
@@ -46,7 +47,9 @@ public:
                 Fastest
         };
 
-        NfImageTask(const NfPhoto& photo);
+        NfImageTask(const NfPhoto& photo,
+                    NfDiskCache* diskCache = nullptr,
+                    NfDiskCache::CacheType cacheType = NfDiskCache::CacheType::Thumbnail);
         NfImageTask(NfImageTask&&) noexcept = default;
         NfImageTask& operator=(NfImageTask&&) noexcept = default;
         NfImageTask(const NfImageTask&) = delete;
@@ -58,6 +61,7 @@ public:
         NfImage* getImage() const;
         std::unique_ptr<NfImage> takeImage();
         const NfPhoto& getPhoto() const;
+        bool loadCachedImage();
 
 protected:
         NfImage* imageContainer() const;
@@ -66,6 +70,8 @@ private:
         NfPhoto m_photo;
         std::unique_ptr<NfImage> m_image;
         ExtractionMethod m_extractionMethod;
+        NfDiskCache* m_diskCache;
+        NfDiskCache::CacheType m_cacheType;
 };
 
 } // namespace NfCore

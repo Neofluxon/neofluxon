@@ -25,6 +25,7 @@
 #define NF_GUI_CACHE_H
 
 #include "NfPhotoId.h"
+#include "NfDiskCache.h"
 
 #include <memory>
 #include <mutex>
@@ -33,9 +34,6 @@
 #include <cstddef>
 
 namespace NfCore {
-
-//class NfDiskCache;
-class NfImage;
 
 /**
  * @brief GUI image cache with LRU eviction and optional disk overflow.
@@ -52,8 +50,9 @@ public:
     // Default cache size 250 MB
     static constexpr std::size_t DEFAULT_MAX_SIZE_BYTES = 512ULL * 1024 * 1024;
 
-    explicit NfCache(/*NfDiskCache* diskCache = nullptr,*/
-                     std::size_t maxSizeBytes = DEFAULT_MAX_SIZE_BYTES);
+    explicit NfCache(std::size_t maxSizeBytes = DEFAULT_MAX_SIZE_BYTES,
+                     NfDiskCache* diskCache = nullptr,
+                     NfDiskCache::CacheType cacheType = NfDiskCache::CacheType::Thumbnail);
     ~NfCache();
 
     NfCache(const NfCache&) = delete;
@@ -93,7 +92,8 @@ private:
     void evictUntilFits(std::size_t requiredSize);
 
 private:
-    //    NfDiskCache* m_diskCache;
+    NfDiskCache* m_diskCache;
+    NfDiskCache::CacheType m_cacheType;
     mutable std::mutex m_mutex;
     std::size_t m_maxSizeBytes;
     std::size_t m_currentSizeBytes;

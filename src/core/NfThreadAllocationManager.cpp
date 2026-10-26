@@ -58,20 +58,22 @@ unsigned int NfThreadAllocationManager::getBackgroundThreadCount() const noexcep
 
 void NfThreadAllocationManager::calculateAllocation() noexcept
 {
-        if (m_totalAvailableThreads <= 4) {
-                m_foregroundThreads = std::max(1U, m_totalAvailableThreads - 1);
+        if (m_totalAvailableThreads <= 6) {
+                m_foregroundThreads = std::max(1U, m_totalAvailableThreads - 5);
                 m_backgroundThreads = 1;
         } else {
                 // Two threads for background tasks.
                 m_backgroundThreads = 2;
 
                 /*
-                 * Account for 4 threads outside the foreground pool:
+                 * Account for 6 threads outside the foreground pool:
                  * - 2 Background threads
                  * - 1 Dedicated File Scanner thread
+                 * - 1 Dedicated Logger thread
+                 * - 1 Dedicated Disk Cache thread
                  * - 1 GUI / OS overhead thread
                  */
-                m_foregroundThreads = m_totalAvailableThreads - 4;
+                m_foregroundThreads = m_totalAvailableThreads - 6;
         }
 
         NF_LOG_DEBUG("Thread allocation: "

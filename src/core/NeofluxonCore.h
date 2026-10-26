@@ -34,6 +34,7 @@ namespace NfCore {
 class NfPhotoLoader;
 class NfPhotoMetadataLoader;
 class NfCache;
+class NfDiskCache;
 class NfScheduler;
 class NfThreadPool;
 class NfThreadAllocationManager;
@@ -57,6 +58,7 @@ public:
 private:
         std::unique_ptr<NfCache> m_thumbnailCache;
         std::unique_ptr<NfCache> m_previewCache;
+        std::unique_ptr<NfDiskCache> m_diskCache;
         std::unique_ptr<NfThreadAllocationManager> m_threadAllocationManager;
         std::unique_ptr<NfScheduler> m_foregroundScheduler;
         std::unique_ptr<NfThreadPool> m_foregroundThreadPool;

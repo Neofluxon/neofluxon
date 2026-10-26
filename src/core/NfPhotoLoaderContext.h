@@ -27,6 +27,7 @@
 namespace NfCore {
 
 class NfCache;
+class NfDiskCache;
 class NfScheduler;
 class NfLibraryManager;
 
@@ -34,6 +35,7 @@ struct NfPhotoLoaderContext
 {
     NfCache* thumbnailCache{};
     NfCache* previewCache{};
+    NfDiskCache* diskCache{};
     NfScheduler* scheduler{};
     NfLibraryManager* libraryManager{};
 };

@@ -28,6 +28,8 @@
 #include "NfPhotoMetadataLoader.h"
 #include "NfLibraryManager.h"
 #include "NfCache.h"
+#include "NfDiskCache.h"
+#include "NfDiskCacheSettings.h"
 #include "NfScheduler.h"
 #include "NfThreadPool.h"
 #include "NfLogger.h"
@@ -80,8 +82,17 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
 
         try {
                 auto threadAllocationManager = std::make_unique<NfThreadAllocationManager>();
-                auto thumbnailCache = std::make_unique<NfCache>(2 * NfCache::DEFAULT_MAX_SIZE_BYTES);
-                auto previewCache = std::make_unique<NfCache>();
+                std::string diskCacheSettingsError;
+                auto diskCacheSettings = NfDiskCacheSettings::load(&diskCacheSettingsError);
+                if (!diskCacheSettingsError.empty())
+                        NF_LOG_ERROR(diskCacheSettingsError);
+                auto diskCache = std::make_unique<NfDiskCache>(std::move(diskCacheSettings));
+                auto thumbnailCache = std::make_unique<NfCache>(
+                        2 * NfCache::DEFAULT_MAX_SIZE_BYTES, diskCache.get(),
+                        NfDiskCache::CacheType::Thumbnail);
+                auto previewCache = std::make_unique<NfCache>(
+                        NfCache::DEFAULT_MAX_SIZE_BYTES, diskCache.get(),
+                        NfDiskCache::CacheType::Preview);
                 auto foregroundScheduler = std::make_unique<NfScheduler>();
                 auto foregroundThreadPool = std::make_unique<NfThreadPool>(foregroundScheduler.get(),
                                                                            threadAllocationManager->getForegroundThreadCount());
@@ -99,6 +110,7 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 auto photoLoader = std::make_unique<NfPhotoLoader>(NfPhotoLoaderContext{
                         .thumbnailCache = thumbnailCache.get(),
                         .previewCache = previewCache.get(),
+                        .diskCache = diskCache.get(),
                         .scheduler = foregroundScheduler.get(),
                         .libraryManager = libraryManager.get()});
 
@@ -111,6 +123,7 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 m_threadAllocationManager = std::move(threadAllocationManager);
                 m_thumbnailCache = std::move(thumbnailCache);
                 m_previewCache = std::move(previewCache);
+                m_diskCache = std::move(diskCache);
                 m_foregroundScheduler = std::move(foregroundScheduler);
                 m_foregroundThreadPool = std::move(foregroundThreadPool);
                 m_backgroundScheduler = std::move(backgroundScheduler);

@@ -33,10 +33,11 @@
 namespace NfCore {
 
 class NfImage;
+class NfDiskCache;
 
 class NfPreviewTask : public NfImageTask {
 public:
-        NfPreviewTask(const NfPhoto& photo);
+        NfPreviewTask(const NfPhoto& photo, NfDiskCache* diskCache = nullptr);
         NfPreviewTask(NfPreviewTask&&) noexcept = default;
         NfPreviewTask& operator=(NfPreviewTask&&) noexcept = default;
         NfPreviewTask(const NfPreviewTask&) = delete;

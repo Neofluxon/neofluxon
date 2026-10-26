@@ -26,10 +26,14 @@
 
 namespace NfCore {
 
-NfImageTask::NfImageTask(const NfPhoto& photo)
+NfImageTask::NfImageTask(const NfPhoto& photo,
+                         NfDiskCache* diskCache,
+                         NfDiskCache::CacheType cacheType)
         : m_photo{photo}
         , m_image{std::make_unique<NfImage>()}
         , m_extractionMethod{ExtractionMethod::Fastest}
+        , m_diskCache{diskCache}
+        , m_cacheType{cacheType}
 {
 }
 
@@ -58,6 +62,19 @@ std::unique_ptr<NfImage> NfImageTask::takeImage()
 const NfPhoto& NfImageTask::getPhoto() const
 {
         return m_photo;
+}
+
+bool NfImageTask::loadCachedImage()
+{
+        if (!m_diskCache)
+                return false;
+
+        auto image = m_diskCache->get(m_cacheType, m_photo.id());
+        if (!image)
+                return false;
+
+        m_image = std::move(image);
+        return true;
 }
 
 } // namespace NfCore

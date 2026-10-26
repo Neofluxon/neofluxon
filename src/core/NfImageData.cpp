@@ -116,7 +116,7 @@ int NfImageData::height() const
 
 void NfImageData::setChannels(int c)
 {
-        m_channels;
+        m_channels = c;
 }
 
 int NfImageData::channels() const

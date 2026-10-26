@@ -38,6 +38,7 @@ NfPhotoLoader::NfPhotoLoader(NfPhotoLoaderContext ctx)
         , m_scheduler{m_context.scheduler}
         , m_thumbnailsCache{m_context.thumbnailCache}
         , m_previewsCache{m_context.previewCache}
+        , m_diskCache{m_context.diskCache}
         , m_generationId{0}
 {
 }
@@ -81,7 +82,7 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequestType request
                 return;
         }
 
-        auto task = std::make_unique<NfThumbnailTask>(photo);
+        auto task = std::make_unique<NfThumbnailTask>(photo, m_diskCache);
         task->setGenerationId(m_generationId);
         task->setPriority(priority);
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);
@@ -121,7 +122,7 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequestType request
 void NfPhotoLoader::requestPreview(const NfPhoto &photo, NfRequestType request)
 {
         std::scoped_lock lock(m_mutex);
-        auto task = std::make_unique<NfPreviewTask>(photo);
+        auto task = std::make_unique<NfPreviewTask>(photo, m_diskCache);
         task->setGenerationId(m_generationId);
         task->setPriority(NfRequestUtils::getTaskPriority(request));
         task->setExtractionMethod(NfImageTask::ExtractionMethod::Fastest);

@@ -31,11 +31,12 @@
 namespace NfCore {
 
 class NfImage;
+class NfDiskCache;
 class NfThumbnail;
 
 class NfThumbnailTask : public NfImageTask {
 public:
-        NfThumbnailTask(const NfPhoto& photo);
+        NfThumbnailTask(const NfPhoto& photo, NfDiskCache* diskCache = nullptr);
         NfThumbnailTask(NfThumbnailTask&&) noexcept = default;
         NfThumbnailTask& operator=(NfThumbnailTask&&) noexcept = default;
         NfThumbnailTask(const NfThumbnailTask&) = delete;

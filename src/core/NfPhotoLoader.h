@@ -46,6 +46,7 @@ class NfPhotoScanner;
 class NfScheduler;
 class NfImage;
 class NfCache;
+class NfDiskCache;
 
 class NfPhotoLoader {
 public:
@@ -70,6 +71,7 @@ public:
         NfScheduler* m_scheduler;
         NfCache* m_thumbnailsCache;
         NfCache* m_previewsCache;
+        NfDiskCache* m_diskCache;
         std::mutex m_mutex;
         uint64_t m_generationId;
         std::vector<NfPhotoId> m_thumbnailsQueue;

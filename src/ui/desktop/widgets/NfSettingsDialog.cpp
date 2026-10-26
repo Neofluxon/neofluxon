@@ -23,6 +23,8 @@
 
 #include "NfSettingsDialog.h"
 
+#include "core/NfApplicationPaths.h"
+
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -34,6 +36,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QLocale>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
@@ -58,6 +61,7 @@ QLabel* createDescription(const QString& text, QWidget* parent)
 
 NfSettingsDialog::NfSettingsDialog(QWidget* parent)
         : QDialog(parent)
+        , m_diskCacheSettings{NfCore::NfDiskCacheSettings::load()}
 {
         setupUI();
         setupConnections();
@@ -119,7 +123,8 @@ void NfSettingsDialog::setupUI()
         auto* diskLayout = new QFormLayout(diskGroup);
         m_diskCacheLimit = new QSpinBox(diskGroup);
         m_diskCacheLimit->setRange(1, 4096);
-        m_diskCacheLimit->setValue(50);
+        m_diskCacheLimit->setValue(static_cast<int>(
+                m_diskCacheSettings.maxSizeBytes / (1024ULL * 1024 * 1024)));
         m_diskCacheLimit->setSuffix(tr(" GB"));
         m_diskCacheLimit->setMaximumWidth(180);
         diskLayout->addRow(tr("Disk cache limit:"), m_diskCacheLimit);
@@ -132,8 +137,8 @@ void NfSettingsDialog::setupUI()
         locationLayout->setContentsMargins(0, 0, 0, 0);
         m_diskCacheLocation = new QLineEdit(locationRow);
         m_diskCacheLocation->setReadOnly(true);
-        m_diskCacheLocation->setText(
-                QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+        m_diskCacheLocation->setText(QString::fromStdString(
+                m_diskCacheSettings.directory.string()));
         m_browseDiskCache = new QPushButton(tr("Browse…"), locationRow);
         locationLayout->addWidget(m_diskCacheLocation, 1);
         locationLayout->addWidget(m_browseDiskCache);
@@ -145,7 +150,8 @@ void NfSettingsDialog::setupUI()
 
         m_minimumFreeDiskSpace = new QSpinBox(diskGroup);
         m_minimumFreeDiskSpace->setRange(1, 4096);
-        m_minimumFreeDiskSpace->setValue(10);
+        m_minimumFreeDiskSpace->setValue(static_cast<int>(
+                m_diskCacheSettings.minimumFreeSpaceBytes / (1024ULL * 1024 * 1024)));
         m_minimumFreeDiskSpace->setSuffix(tr(" GB"));
         m_minimumFreeDiskSpace->setMaximumWidth(180);
         m_minimumFreeDiskSpace->setToolTip(
@@ -234,6 +240,24 @@ void NfSettingsDialog::setupConnections()
 
         QObject::connect(m_okButton, &QPushButton::clicked, this, &QDialog::accept);
         QObject::connect(m_cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+}
+
+void NfSettingsDialog::accept()
+{
+        m_diskCacheSettings.directory =
+                std::filesystem::path(m_diskCacheLocation->text().toStdString());
+        m_diskCacheSettings.maxSizeBytes =
+                static_cast<std::uint64_t>(m_diskCacheLimit->value())
+                * 1024ULL * 1024 * 1024;
+        m_diskCacheSettings.minimumFreeSpaceBytes =
+                static_cast<std::uint64_t>(m_minimumFreeDiskSpace->value())
+                * 1024ULL * 1024 * 1024;
+        std::string error;
+        if (!m_diskCacheSettings.save(error)) {
+                QMessageBox::warning(this, tr("Disk Cache Settings"), QString::fromStdString(error));
+                return;
+        }
+        QDialog::accept();
 }
 
 void NfSettingsDialog::updateAvailableDiskSpace()

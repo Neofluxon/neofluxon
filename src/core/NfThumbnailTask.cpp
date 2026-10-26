@@ -30,8 +30,8 @@
 
 namespace NfCore {
 
-NfThumbnailTask::NfThumbnailTask(const NfPhoto& photo)
-        : NfImageTask(photo)
+NfThumbnailTask::NfThumbnailTask(const NfPhoto& photo, NfDiskCache* diskCache)
+        : NfImageTask(photo, diskCache, NfDiskCache::CacheType::Thumbnail)
 {
 }
 
@@ -39,6 +39,9 @@ NfThumbnailTask::~NfThumbnailTask() = default;
 
 NfThumbnailTask::TaskStatus NfThumbnailTask::execute()
 {
+        if (loadCachedImage())
+                return TaskStatus::Success;
+
         const auto& photo = getPhoto();
         const auto& path = photo.path();
 
