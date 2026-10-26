@@ -37,8 +37,10 @@
 
 namespace NfCore {
 
-NfLibraryManager::NfLibraryManager(NfScheduler *scheduler)
-        : m_scheduler{scheduler}
+NfLibraryManager::NfLibraryManager(NfScheduler *backgroundScheduler,
+                                   NfScheduler *foregroundScheduler)
+        : m_backgroundScheduler{backgroundScheduler}
+        , m_foregroundScheduler{foregroundScheduler}
 {
 }
 
@@ -184,7 +186,7 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
 
         NF_LOG_DEBUG("import task submitted for : " << path);
 
-        m_scheduler->submit(std::move(task));
+        m_backgroundScheduler->submit(std::move(task));
 }
 
 std::vector<NfPhoto>
@@ -205,10 +207,11 @@ NfLibraryManager::queryPhotos(const NfLibraryQuery& query) const
         return result;
 }
 
-void NfLibraryManager::loadTreeAsync(LibraryTreeResultCallback resultCb)
+void NfLibraryManager::loadTreeAsync(LibraryTreeResultCallback resultCb,
+                                     NfRequestType request)
 {
         auto task = std::make_unique<NfLibraryTreeTask>(this);
-        task->setPriority(NfTask::Priority::Low);
+        task->setPriority(NfRequestUtils::getTaskPriority(request));
         task->setResult([resultCb = std::move(resultCb)](NfTask* result,
                                                          NfTask::TaskStatus status) mutable {
                 if (status != NfTask::TaskStatus::Success)
@@ -221,14 +224,15 @@ void NfLibraryManager::loadTreeAsync(LibraryTreeResultCallback resultCb)
                 resultCb(treeTask->takeSnapshot());
         });
 
-        m_scheduler->submit(std::move(task));
+        m_foregroundScheduler->submit(std::move(task));
 }
 
 void NfLibraryManager::loadLibraryBranchAsync(int64_t libraryId,
-                                              LibraryResultCallback resultCb)
+                                              LibraryResultCallback resultCb,
+                                              NfRequestType request)
 {
         auto task = std::make_unique<NfLibraryTreeTask>(this, libraryId);
-        task->setPriority(NfTask::Priority::Low);
+        task->setPriority(NfRequestUtils::getTaskPriority(request));
         task->setResult([resultCb = std::move(resultCb)](NfTask* result,
                                                          NfTask::TaskStatus status) mutable {
                 if (status != NfTask::TaskStatus::Success)
@@ -243,7 +247,7 @@ void NfLibraryManager::loadLibraryBranchAsync(int64_t libraryId,
                         resultCb(std::move(snapshot.front()));
         });
 
-        m_scheduler->submit(std::move(task));
+        m_foregroundScheduler->submit(std::move(task));
 }
 
 void NfLibraryManager::setFolderImportedCallback(FolderImportedCallback cb)

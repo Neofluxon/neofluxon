@@ -45,7 +45,7 @@ enum class NfRequestType : int {
         PrefetchThumbnail = PrefetchData,
         PrefetchPreview = PrefetchData,
         PrefetchMetadata = PrefetchData,
-        PrefertchLiraryTree = PrefetchData;
+        PrefetchLibraryTree = PrefetchData,
 };
 
 namespace NfRequestUtils {

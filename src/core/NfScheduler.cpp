@@ -138,6 +138,28 @@ void NfScheduler::cancelTask(NfTask::TaskId id)
         m_pendingTasks.erase(it);
 }
 
+void NfScheduler::cancelTasks(const std::vector<NfTask::TaskId>& ids)
+{
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (const auto id : ids) {
+                auto pendingIt = m_pendingTasks.find(id);
+                if (pendingIt != m_pendingTasks.end()) {
+                        const auto sequenceIt = m_pendingTaskSequences.find(id);
+                        if (sequenceIt != m_pendingTaskSequences.end()) {
+                                m_priorityQueue.erase(
+                                        {pendingIt->second->priority(), sequenceIt->second, id});
+                                m_pendingTaskSequences.erase(sequenceIt);
+                        }
+                        m_pendingTasks.erase(pendingIt);
+                        continue;
+                }
+
+                const auto runningIt = m_runningTasks.find(id);
+                if (runningIt != m_runningTasks.end())
+                        runningIt->second->cancel();
+        }
+}
+
 void NfScheduler::cancelAll()
 {
         std::lock_guard<std::mutex> lock(m_mutex);

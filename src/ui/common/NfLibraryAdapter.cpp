@@ -80,18 +80,20 @@ std::vector<std::unique_ptr<NfLibrary>> NfLibraryAdapter::libraries() const
         return m_library->libraries();
 }
 
-void NfLibraryAdapter::requestLibraryTree()
+void NfLibraryAdapter::requestLibraryTree(NfRequestType request)
 {
         m_library->loadTreeAsync([this](NfLibraryTreeSnapshot snapshot) {
                 emit libraryTreeUpdated(snapshot);
-        });
+        }, request);
 }
 
-void NfLibraryAdapter::requestLibraryBranch(uint64_t libraryId)
+void NfLibraryAdapter::requestLibraryBranch(uint64_t libraryId,
+                                            NfRequestType request)
 {
         m_library->loadLibraryBranchAsync(static_cast<int64_t>(libraryId),
                                           [this](NfLibrarySnapshot snapshot) {
                                                   emit libraryBranchUpdated(snapshot);
-                                          });
+                                          },
+                                          request);
 }
 } // namespace NfUi

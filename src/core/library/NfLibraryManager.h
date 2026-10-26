@@ -25,6 +25,7 @@
 #define NF_LIBRARY_MANAGER_H
 
 #include "NfPhoto.h"
+#include "NfRequest.h"
 #include "NfLibraryTreeTask.h"
 #include "NfLibraryTreeSnapshot.h"
 
@@ -48,7 +49,8 @@ public:
         using FolderImportedCallback = std::function<void()>;
         using LibraryTreeResultCallback = std::function<void(NfLibraryTreeSnapshot snapshot)>;
         using LibraryResultCallback = std::function<void(NfLibrarySnapshot snapshot)>;
-        NfLibraryManager(NfScheduler *scheduler);
+        NfLibraryManager(NfScheduler *backgroundScheduler,
+                         NfScheduler *foregroundScheduler);
         ~NfLibraryManager();
         [[nodiscard]] bool initialize(std::string& errorMessage);
         std::vector<std::unique_ptr<NfLibrary>> libraries() const;
@@ -58,12 +60,17 @@ public:
         bool removeLibrary(uint64_t libraryId);
         std::unique_ptr<NfLibrary> getLibrary(uint64_t id) const;
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
-        void loadTreeAsync(LibraryTreeResultCallback resultCb);
-        void loadLibraryBranchAsync(int64_t libraryId, LibraryResultCallback resultCb);
+        void loadTreeAsync(LibraryTreeResultCallback resultCb,
+                           NfRequestType request = NfRequestType::VisibleLibraryTree);
+        void loadLibraryBranchAsync(
+                int64_t libraryId,
+                LibraryResultCallback resultCb,
+                NfRequestType request = NfRequestType::VisibleLibraryTree);
         void setFolderImportedCallback(FolderImportedCallback cb);
 
 private:
-        NfScheduler* m_scheduler;
+        NfScheduler* m_backgroundScheduler;
+        NfScheduler* m_foregroundScheduler;
         std::unique_ptr<NfLibraryDatabase> m_database;
         std::mutex m_mutex;
         FolderImportedCallback m_folderImportedCb;

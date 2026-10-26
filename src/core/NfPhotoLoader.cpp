@@ -49,16 +49,16 @@ NfPhotoLoader::~NfPhotoLoader()
 
 void NfPhotoLoader::setSource(const NfPhotoSource &source)
 {
+        std::vector<NfTask::TaskId> pendingTaskIds;
         {
                 std::scoped_lock lock(m_mutex);
                 m_thumbnailsQueue.clear();
                 m_generationId++;
-        }
-
-        m_scheduler->cancelAll();
-        {
-                std::scoped_lock lock(m_mutex);
+                pendingTaskIds.reserve(m_pendingThumbnailTasks.size());
+                for (const auto& [photoId, taskId] : m_pendingThumbnailTasks)
+                        pendingTaskIds.push_back(taskId);
                 m_pendingThumbnailTasks.clear();
+                m_scheduler->cancelTasks(pendingTaskIds);
         }
 
         m_source = source;
@@ -112,7 +112,6 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequestType request
 
                 std::scoped_lock lock(m_mutex);
                 m_thumbnailsQueue.push_back(photoId);
-                m_pendingThumbnailTasks.erase(photoId);
         });
 
         m_pendingThumbnailTasks.insert({photo.id(), task->taskId()});
@@ -163,7 +162,10 @@ std::vector<NfPhoto> NfPhotoLoader::takePhotos()
 std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()
 {
         std::scoped_lock lock(m_mutex);
-        return std::move(m_thumbnailsQueue);
+        auto thumbnails = std::move(m_thumbnailsQueue);
+        for (const auto& photoId : thumbnails)
+                m_pendingThumbnailTasks.erase(photoId);
+        return thumbnails;
 }
 
 std::vector<NfPhotoId> NfPhotoLoader::takePreviews()

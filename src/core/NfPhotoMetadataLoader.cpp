@@ -44,11 +44,15 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo,
 {
         std::scoped_lock lock(m_mutex);
 
-        if (m_pendingRequests.contains(photo.id()))
+        const auto priority = NfRequestUtils::getTaskPriority(request);
+        if (const auto it = m_pendingRequests.find(photo.id());
+            it != m_pendingRequests.end()) {
+                m_scheduler->updateTaskPriority(it->second, priority);
                 return;
+        }
 
         auto task = std::make_unique<NfPhotoMetadataTask>(photo);
-        task->setPriority(NfRequestUtils::getTaskPriority(request));
+        task->setPriority(priority);
 
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 auto* metadataTask = dynamic_cast<NfPhotoMetadataTask*>(result);
@@ -62,10 +66,11 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo,
                 }
 
                 std::scoped_lock lock(m_mutex);
-                m_pendingRequests.erase(metadataTask->photoId());
                 auto metadata = metadataTask->takeMetadata();
-                if (!metadata)
+                if (!metadata) {
+                        m_pendingRequests.erase(metadataTask->photoId());
                         return;
+                }
 
                 NF_LOG_DEBUG("metadata ready for photo id: "
                              << metadataTask->photoId().value());
@@ -73,7 +78,7 @@ void NfPhotoMetadataLoader::requestMetadata(const NfPhoto &photo,
                                              std::move(*metadata));
         });
 
-        m_pendingRequests.insert(photo.id());
+        m_pendingRequests.insert({photo.id(), task->taskId()});
         m_scheduler->submit(std::move(task));
 
         NF_LOG_DEBUG("metadata task submitted for photo: "
@@ -84,7 +89,10 @@ std::vector<std::pair<NfPhotoId, NfPhotoMetadata>>
 NfPhotoMetadataLoader::takeMetadata()
 {
         std::scoped_lock lock(m_mutex);
-        return std::move(m_metadataQueue);
+        auto metadata = std::move(m_metadataQueue);
+        for (const auto& item : metadata)
+                m_pendingRequests.erase(item.first);
+        return metadata;
 }
 
 } // namespace NfCore

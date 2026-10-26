@@ -26,6 +26,7 @@
 
 #include <QObject>
 
+#include "core/NfRequest.h"
 #include "core/library/NfLibraryTreeTask.h"
 
 #include <filesystem>
@@ -57,8 +58,11 @@ public:
         std::unique_ptr<NfCore::NfLibrary> getLibrary(uint64_t libraryId) const;
         std::vector<std::unique_ptr<NfCore::NfLibrary>> libraries() const;
         void loadTreeAsync(NfCore::NfLibraryTreeResultHandler handler);
-        void requestLibraryTree();
-        void requestLibraryBranch(uint64_t libraryId);
+        void requestLibraryTree(
+                NfCore::NfRequestType request = NfCore::NfRequestType::VisibleLibraryTree);
+        void requestLibraryBranch(
+                uint64_t libraryId,
+                NfCore::NfRequestType request = NfCore::NfRequestType::VisibleLibraryTree);
 
 signals:
         void folderImported();

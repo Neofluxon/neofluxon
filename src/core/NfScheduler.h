@@ -32,6 +32,7 @@
 #include <unordered_map>
 #include <condition_variable>
 #include <stop_token>
+#include <vector>
 
 namespace NfCore {
 
@@ -86,6 +87,7 @@ class NfScheduler {
         // Removes a pending task, or cancels all running tasks and removes all
         // pending tasks.
         void cancelTask(NfTask::TaskId id);
+        void cancelTasks(const std::vector<NfTask::TaskId>& ids);
         void cancelAll();
 
         size_t pendingTaskCount() const;

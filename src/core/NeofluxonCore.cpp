@@ -89,7 +89,8 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 auto backgroundThreadPool = std::make_unique<NfThreadPool>(backgroundScheduler.get(),
                                                                            threadAllocationManager->getBackgroundThreadCount());
 
-                auto libraryManager = std::make_unique<NfLibraryManager>(backgroundScheduler.get());
+                auto libraryManager = std::make_unique<NfLibraryManager>(
+                        backgroundScheduler.get(), foregroundScheduler.get());
                 if (!libraryManager->initialize(errorMessage)) {
                         NF_LOG_ERROR(errorMessage);
                         return false;

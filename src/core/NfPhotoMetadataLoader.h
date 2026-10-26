@@ -37,7 +37,7 @@
 #include <cstdint>
 #include <mutex>
 #include <utility>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace NfCore {
 
@@ -62,7 +62,7 @@ public:
          NfScheduler* m_scheduler;
          std::mutex m_mutex;
          std::vector<std::pair<NfPhotoId, NfPhotoMetadata>> m_metadataQueue;
-         std::unordered_set<NfPhotoId> m_pendingRequests;
+         std::unordered_map<NfPhotoId, NfTask::TaskId> m_pendingRequests;
  };
 
 } // namespace NfCore
