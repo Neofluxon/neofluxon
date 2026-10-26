@@ -31,8 +31,11 @@
 #include "core/NfPhoto.h"
 
 #include <QMessageBox>
+#include <QElapsedTimer>
+#include <QTimer>
 
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -42,28 +45,49 @@ using namespace NfDesktop;
 
 int main(int argc, char **argv)
 {
+        QElapsedTimer startupTimer;
+        startupTimer.start();
+
         auto coreApp = std::make_unique<NeofluxonCore>();
 
         NfApplication app(coreApp.get(), argc, argv);
 
         std::string initializationError;
+        const auto coreInitializationStart = startupTimer.elapsed();
         if (!coreApp->initialize(initializationError)) {
+                std::cout << "Startup failed after " << startupTimer.elapsed()
+                          << " ms (core initialization: "
+                          << startupTimer.elapsed() - coreInitializationStart
+                          << " ms)" << std::endl;
                 QMessageBox::critical(nullptr,
                                       "Neofluxon startup error",
                                       QString::fromStdString(initializationError));
                 return EXIT_FAILURE;
         }
+        const auto coreInitializationTime =
+                startupTimer.elapsed() - coreInitializationStart;
 
         qRegisterMetaType<NfPhoto>("NfPhoto");
         qRegisterMetaType<NfPhotoId>("NfPhotoId");
         qRegisterMetaType<std::vector<NfPhoto>>("std::vector<NfPhoto>");
         qRegisterMetaType<std::vector<NfPhotoId>>("std::vector<NfPhotoId>");
 
+        const auto uiConstructionStart = startupTimer.elapsed();
         NfUiState uiState;
         NfContext context(coreApp.get(), &uiState);
 
         NfMainWindow mainWin(&context);
         mainWin.show();
+
+        const auto uiConstructionTime = startupTimer.elapsed() - uiConstructionStart;
+        QTimer::singleShot(0, &app, [&startupTimer,
+                                     coreInitializationTime,
+                                     uiConstructionTime]() {
+                std::cout << "Startup to event loop: " << startupTimer.elapsed()
+                          << " ms (core initialization: " << coreInitializationTime
+                          << " ms, UI construction: " << uiConstructionTime
+                          << " ms)" << std::endl;
+        });
 
         return app.exec();
 }

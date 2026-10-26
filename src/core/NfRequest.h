@@ -31,30 +31,32 @@ namespace NfCore {
 // Defines application-wide request types.
 enum class NfRequestType : int {
         // Active/ in focused items
-        SelectedMetadata,
-        SelectedPreview,
+        SelectedData,
+        SelectedMetadata = SelectedData,
+        SelectedPreview =  SelectedData,
 
         // Render in the viewport
-        VisibleThumbnail,
+        VisibleData,
+        VisibleThumbnail   = VisibleData,
+        VisibleLibraryTree = VisibleData,
 
         // Anticipated to enter the viewport
-        PrefetchThumbnail,
-        PrefetchPreview,
-        PrefetchMetadata
+        PrefetchData,
+        PrefetchThumbnail = PrefetchData,
+        PrefetchPreview = PrefetchData,
+        PrefetchMetadata = PrefetchData,
+        PrefertchLiraryTree = PrefetchData;
 };
 
 namespace NfRequestUtils {
 constexpr NfTask::Priority getTaskPriority(NfRequestType type)
 {
         switch (type) {
-        case NfRequestType::SelectedMetadata:
-        case NfRequestType::SelectedPreview:
+        case NfRequestType::SelectedData:
                 return NfTask::Priority::Critical;
-        case NfRequestType::VisibleThumbnail:
+        case NfRequestType::VisibleData:
                 return NfTask::Priority::Immediate;
-        case NfRequestType::PrefetchThumbnail:
-        case NfRequestType::PrefetchPreview:
-        case NfRequestType::PrefetchMetadata:
+        case NfRequestType::PrefetchData:
                 return NfTask::Priority::High;
         default:
                 return NfTask::Priority::Normal;

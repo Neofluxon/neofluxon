@@ -25,6 +25,8 @@
 #define NF_LIBRARY_MANAGER_H
 
 #include "NfPhoto.h"
+#include "NfLibraryTreeTask.h"
+#include "NfLibraryTreeSnapshot.h"
 
 #include <vector>
 #include <memory>
@@ -44,6 +46,8 @@ class NfLibraryQuery;
 class NfLibraryManager {
 public:
         using FolderImportedCallback = std::function<void()>;
+        using LibraryTreeResultCallback = std::function<void(NfLibraryTreeSnapshot snapshot)>;
+        using LibraryResultCallback = std::function<void(NfLibrarySnapshot snapshot)>;
         NfLibraryManager(NfScheduler *scheduler);
         ~NfLibraryManager();
         [[nodiscard]] bool initialize(std::string& errorMessage);
@@ -54,6 +58,8 @@ public:
         bool removeLibrary(uint64_t libraryId);
         std::unique_ptr<NfLibrary> getLibrary(uint64_t id) const;
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
+        void loadTreeAsync(LibraryTreeResultCallback resultCb);
+        void loadLibraryBranchAsync(int64_t libraryId, LibraryResultCallback resultCb);
         void setFolderImportedCallback(FolderImportedCallback cb);
 
 private:

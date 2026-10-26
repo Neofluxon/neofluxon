@@ -66,6 +66,8 @@ set(CORE_HEADERS
         library/NfLibraryManager.h
         library/NfLibraryRepresentation.h
         library/NfLibraryTreeNode.h
+        library/NfLibraryTreeSnapshot.h
+        library/NfLibraryTreeTask.h
         )
 
 set(CORE_SOURCES
@@ -112,6 +114,7 @@ set(CORE_SOURCES
         library/NfLibraryManager.cpp
         library/NfLibraryRepresentation.cpp
         library/NfLibraryTreeNode.cpp
+        library/NfLibraryTreeTask.cpp
         )
 
 add_library(NfCore STATIC

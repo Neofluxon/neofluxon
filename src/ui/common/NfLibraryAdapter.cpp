@@ -35,8 +35,10 @@ NfLibraryAdapter::NfLibraryAdapter(NfLibraryManager *library,
         : QObject(parent)
         , m_library{library}
 {
+        // TODO: do the same way as for requestLibraryTree()
         m_library->setFolderImportedCallback([this]() {
-                emit folderImported();
+                // emit folderImported();
+                requestLibraryTree();
         });
 }
 
@@ -64,6 +66,7 @@ bool NfLibraryAdapter::removeLibrary(uint64_t libraryId)
 
 void NfLibraryAdapter::importPath(const std::filesystem::path &path, uint64_t libraryId)
 {
+        // TODO: pass here better a callback result
         m_library->importPath(path, libraryId);
 }
 
@@ -77,4 +80,18 @@ std::vector<std::unique_ptr<NfLibrary>> NfLibraryAdapter::libraries() const
         return m_library->libraries();
 }
 
+void NfLibraryAdapter::requestLibraryTree()
+{
+        m_library->loadTreeAsync([this](NfLibraryTreeSnapshot snapshot) {
+                emit libraryTreeUpdated(snapshot);
+        });
+}
+
+void NfLibraryAdapter::requestLibraryBranch(uint64_t libraryId)
+{
+        m_library->loadLibraryBranchAsync(static_cast<int64_t>(libraryId),
+                                          [this](NfLibrarySnapshot snapshot) {
+                                                  emit libraryBranchUpdated(snapshot);
+                                          });
+}
 } // namespace NfUi

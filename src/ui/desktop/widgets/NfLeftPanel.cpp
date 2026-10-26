@@ -44,7 +44,7 @@ NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
         , m_pathBrowser{new NfPathBrowser(this)}
-        , m_libraryBrowser{new NfLibraryBrowser(NfLibraryContext(m_context), this)}
+        , m_libraryBrowser{nullptr}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);
@@ -54,7 +54,6 @@ NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         panelLayout->addWidget(mainMenu);
 
         m_stack->addWidget(m_pathBrowser);
-        m_stack->addWidget(m_libraryBrowser);
 
         panelLayout->addWidget(m_stack);
 
@@ -116,6 +115,12 @@ void NfLeftPanel::showPathBrowser()
 void NfLeftPanel::showLibraryBrowser()
 {
         NF_LOG_INFO("showlibrary");
+        if (!m_libraryBrowser) {
+                m_libraryBrowser =
+                        new NfLibraryBrowser(NfLibraryContext(m_context), this);
+                m_stack->addWidget(m_libraryBrowser);
+        }
+
         m_stack->setCurrentWidget(m_libraryBrowser);
         m_libraryBrowser->show();
 }

@@ -26,6 +26,8 @@
 
 #include <QAbstractItemModel>
 
+#include "core/library/NfLibraryTreeTask.h"
+
 #include <cstdint>
 #include <memory>
 
@@ -66,26 +68,28 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         Qt::ItemFlags flags(const QModelIndex& index) const override;
         bool addLibrary(const QString &name);
-        bool updateLibrary(uint64_t libraryId, const QString& name);
+        bool updateLibraryName(uint64_t libraryId, const QString& name);
         bool removeLibrary(uint64_t libraryId);
 
 protected slots:
-        void updateTree();
+        void onTreeUpdated(const NfCore::NfLibraryTreeSnapshot& snapshot);
+        void onLibraryBranchUpdated(const NfCore::NfLibrarySnapshot& snapshot);
+
+signals:
+        void treeLoaded();
 
  private:
         NfLibraryTreeItem* itemFromIndex(const QModelIndex& index) const;
         int libraryRow(uint64_t libraryId) const;
-        void buildTree();
-        void addLibrary(const NfCore::NfLibrary *library);
-        void populateLibrary(const NfCore::NfLibrary* library,
-                             NfLibraryTreeItem* parent);
-        void populateRepresentation(NfCore::NfLibraryRepresentation* rep,
-                                    NfLibraryTreeItem* parent);
-        void populateChildNodes(const std::vector<std::unique_ptr<NfCore::NfLibraryTreeNode>>& children,
+        void updateTree();
+        void installTree(const NfCore::NfLibraryTreeSnapshot& snapshot);
+        void addLibrarySnapshot(const NfCore::NfLibrarySnapshot& library);
+        void populateChildNodes(const std::vector<NfCore::NfLibraryTreeNodeSnapshot>& children,
                                 NfLibraryTreeItem* parentItem);
 
         NfUi::NfLibraryAdapter* m_library;
         std::unique_ptr<NfLibraryTreeItem> m_root;
+        uint64_t m_loadGeneration{0};
 };
 
 } // namespace NfDesktop

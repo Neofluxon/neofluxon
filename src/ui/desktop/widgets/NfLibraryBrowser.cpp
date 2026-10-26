@@ -107,25 +107,28 @@ void NfLibraryBrowser::setupUi()
                                          m_libraryTreeView->setRootIndex(QModelIndex());
                          });
 
-        // Find the library's model index using the current library ID from state.
-        QModelIndex selectedLibrary;
-        const auto currentLibraryId = m_state->currentLibrary();
-        for (int row = 0; row < m_model->rowCount(); ++row) {
-                const auto index = m_model->index(row, 0);
-                const auto role = NfLibraryTreeModel::LibraryIdRole;
-                if (m_model->data(index, role).toULongLong() == currentLibraryId) {
-                        selectedLibrary = index;
-                        break;
-                }
-        }
+        QObject::connect(m_model,
+                         &NfLibraryTreeModel::treeLoaded,
+                         this,
+                         [this]() {
+                                 QModelIndex selectedLibrary;
+                                 const auto currentLibraryId = m_state->currentLibrary();
+                                 for (int row = 0; row < m_model->rowCount(); ++row) {
+                                         const auto index = m_model->index(row, 0);
+                                         const auto role = NfLibraryTreeModel::LibraryIdRole;
+                                         if (m_model->data(index, role).toULongLong()
+                                             == currentLibraryId) {
+                                                 selectedLibrary = index;
+                                                 break;
+                                         }
+                                 }
 
-        // Select the first library if the current library ID was not found.
-        if (!selectedLibrary.isValid() && m_model->rowCount() > 0)
-                selectedLibrary = m_model->index(0, 0);
+                                 if (!selectedLibrary.isValid() && m_model->rowCount() > 0)
+                                         selectedLibrary = m_model->index(0, 0);
 
-        // Select the current library in the list view.
-        if (selectedLibrary.isValid())
-                m_libraryListView->setCurrentIndex(selectedLibrary);
+                                 if (selectedLibrary.isValid())
+                                         m_libraryListView->setCurrentIndex(selectedLibrary);
+                         });
 
         m_mainLayout->addWidget(libraryListHeader);
         m_mainLayout->addWidget(m_libraryListView);
@@ -161,7 +164,7 @@ void NfLibraryBrowser::renameLibrary(uint64_t libraryId)
         if (newName.isEmpty() || newName == oldName)
                 return;
 
-        if (!m_model->updateLibrary(libraryId, newName))
+        if (!m_model->updateLibraryName(libraryId, newName))
                 QMessageBox::critical(this,
                                       tr("Rename Library"),
                                       tr("Failed to rename library \"%1\".")

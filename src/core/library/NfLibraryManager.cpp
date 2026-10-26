@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryManager.h"
+#include "NfLibraryTreeTask.h"
 #include "NfApplicationPaths.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryDatabase.h"
@@ -202,6 +203,47 @@ NfLibraryManager::queryPhotos(const NfLibraryQuery& query) const
         }
 
         return result;
+}
+
+void NfLibraryManager::loadTreeAsync(LibraryTreeResultCallback resultCb)
+{
+        auto task = std::make_unique<NfLibraryTreeTask>(this);
+        task->setPriority(NfTask::Priority::Low);
+        task->setResult([resultCb = std::move(resultCb)](NfTask* result,
+                                                         NfTask::TaskStatus status) mutable {
+                if (status != NfTask::TaskStatus::Success)
+                        return;
+
+                auto* treeTask = dynamic_cast<NfLibraryTreeTask*>(result);
+                if (!treeTask)
+                        return;
+
+                resultCb(treeTask->takeSnapshot());
+        });
+
+        m_scheduler->submit(std::move(task));
+}
+
+void NfLibraryManager::loadLibraryBranchAsync(int64_t libraryId,
+                                              LibraryResultCallback resultCb)
+{
+        auto task = std::make_unique<NfLibraryTreeTask>(this, libraryId);
+        task->setPriority(NfTask::Priority::Low);
+        task->setResult([resultCb = std::move(resultCb)](NfTask* result,
+                                                         NfTask::TaskStatus status) mutable {
+                if (status != NfTask::TaskStatus::Success)
+                        return;
+
+                auto* treeTask = dynamic_cast<NfLibraryTreeTask*>(result);
+                if (!treeTask)
+                        return;
+
+                auto snapshot = treeTask->takeSnapshot();
+                if (!snapshot.empty())
+                        resultCb(std::move(snapshot.front()));
+        });
+
+        m_scheduler->submit(std::move(task));
 }
 
 void NfLibraryManager::setFolderImportedCallback(FolderImportedCallback cb)
