@@ -45,8 +45,8 @@ NfPhotoProvider::NfPhotoProvider(NeofluxonCore *core,
         , m_previewCache{core->previewCache()}
         , m_thumbnailPixmapCache{QCache<uint64_t, QPixmap>(150 * 1024 * 1024)}
         , m_previewPixmapCache{QCache<uint64_t, QPixmap>(50 * 1024 * 1024)}
-        , m_thumbnailPlaceholder{":/placeholder_thumbnail.jpg"}
-        , m_previewPlaceholder{":/placeholder_preview.jpg"}
+        , m_thumbnailPlaceholder{":/placeholder_thumbnail.svg"}
+        , m_previewPlaceholder{":/placeholder_preview.svg"}
 {
         auto timer = new QTimer(this);
         QObject::connect(timer, &QTimer::timeout, this, &NfPhotoProvider::onTimeout);
