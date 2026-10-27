@@ -41,6 +41,8 @@ namespace NfCore {
 
 namespace {
 
+// Magic number to put in the cache file header
+// to be able to detect if it is the format we need.
 constexpr std::array<char, 8> magic{'N', 'F', 'D', 'C', 'A', 'C', 'H', 'E'};
 constexpr std::uint32_t formatVersion = 1;
 constexpr std::uint64_t headerSize = 8 + 6 * sizeof(std::uint32_t) + sizeof(std::uint64_t);
@@ -88,13 +90,15 @@ NfDiskCache::NfDiskCache(NfDiskCacheSettings settings)
         : m_settings{std::move(settings)}
         , m_worker{[this] { workerLoop(); }}
 {
-        NfScopedTimer timer{"NfDiskCache: disk cache initialization", m_settings.directory};
+        NfScopedTimer timer{"disk cache initialization: ", m_settings.directory};
 
         std::vector<IndexedEntry> entries;
         indexEntries(CacheType::Thumbnail, entries);
         indexEntries(CacheType::Preview, entries);
 
-        std::sort(entries.begin(), entries.end(), [](const auto& lhs, const auto& rhs) {
+        std::sort(entries.begin(),
+                  entries.end(),
+                  [](const auto& lhs, const auto& rhs) {
                 return lhs.second > rhs.second;
         });
 
@@ -126,12 +130,13 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
                 removeEntry(type, id.value());
                 return nullptr;
         }
-        std::error_code error;
+
 
         std::ifstream file(path, std::ios::binary);
         if (!file)
                 return nullptr;
 
+        std::error_code error;
         std::array<char, magic.size()> readMagic{};
         file.read(readMagic.data(), static_cast<std::streamsize>(readMagic.size()));
         std::uint32_t version{};
@@ -183,6 +188,7 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
         data->setChannels(static_cast<int>(channels));
         data->setOrientation(static_cast<int>(orientation));
         data->setFormat(static_cast<NfImageData::ImageFormat>(imageFormat));
+
         touchEntry(type, id.value());
 
         return std::make_unique<NfImage>(std::move(data));
@@ -306,12 +312,26 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
                 return false;
         }
 
+        // The idea is that if the file exists than caculate
+        // how much size additional storage need for size update.
+        // If the file is new just add new size.
+
+        // Find an existing cache entry with the same type and ID.
         const auto key = std::make_pair(type, id.value());
         const auto existingEntry = m_lruOrderById.find(key);
+
+        // Get the size of the existing file, or zero if this is a new entry.
         const auto previousFileSize = existingEntry == m_lruOrderById.end()
                 ? 0 : existingEntry->second->size;
+
+        // Calculate the cache size excluding the existing
+        // file being replaced.
         const auto currentSizeWithoutDestination =
                 m_currentCacheSize - std::min(m_currentCacheSize, previousFileSize);
+
+        // Calculate the additional storage required if the new file is larger
+        // than the existing file. If the new file is not the existing file
+        // then additional storage will be the size of new file.
         const auto additionalBytes = fileSize > previousFileSize
                 ? fileSize - previousFileSize : 0;
 
@@ -367,12 +387,15 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
         }
 
         if (existingEntry != m_lruOrderById.end()) {
+                // File exists, upate its size.
                 m_currentCacheSize -= existingEntry->second->size;
                 existingEntry->second->size = fileSize;
                 m_currentCacheSize += fileSize;
+                // Move to front of LRU
                 m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder,
                                       existingEntry->second);
         } else {
+                // New file
                 m_lruOrder.push_front({type, id.value(), fileSize});
                 m_lruOrderById.emplace(key, m_lruOrder.begin());
                 m_currentCacheSize += fileSize;
@@ -384,7 +407,14 @@ bool NfDiskCache::evictToFit(std::uint64_t requiredBytes,
                              CacheType protectedType,
                              std::uint64_t protectedId)
 {
-        // Evict at least 10% of the disk cache
+        if (requiredBytes == 0)
+                return true;
+
+        /*
+         * Evict at least 10% of the disk cache
+         * This avoids evicting files in tiny increments
+         * every time the cache fills up.
+         */
         size_t freeSpace = 0.1 * m_settings.maxSizeBytes;
         if (requiredBytes < freeSpace)
                 requiredBytes = freeSpace;
@@ -398,12 +428,21 @@ bool NfDiskCache::evictToFit(std::uint64_t requiredBytes,
         while (!m_lruOrder.empty()
                && m_currentCacheSize - std::min(m_currentCacheSize, protectedSize)
                        > targetSize) {
+
+                /**
+                 * If the selected entry is the protected entry,
+                 * the code moves one position toward the front
+                 * to select another entry. If the protected entry
+                 * is also the only entry in the list, the loop stops
+                 * because there is nothing else to evict.
+                 */
                 auto it = std::prev(m_lruOrder.end());
                 if (it->type == protectedType && it->id == protectedId) {
                         if (it == m_lruOrder.begin())
                                 break;
                         --it;
                 }
+
                 const auto type = it->type;
                 const auto id = it->id;
                 const auto path = entryPath(type, id);
@@ -414,6 +453,12 @@ bool NfDiskCache::evictToFit(std::uint64_t requiredBytes,
                         m_lruOrderById.erase(std::make_pair(type, id));
                         m_lruOrder.erase(it);
                 } else {
+                        // Break if the failed to delete item is
+                        // also the front of LRU
+                        if (it == m_lruOrder.begin())
+                                break;
+
+                        // Move failed item to the front
                         m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder, it);
                 }
         }
@@ -427,7 +472,11 @@ void NfDiskCache::touchEntry(CacheType type, std::uint64_t id)
         const auto entry = m_lruOrderById.find(std::make_pair(type, id));
         if (entry == m_lruOrderById.end())
                 return;
-        m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder, entry->second);
+
+        // Move the element to the front of the LRU list O(1).
+        m_lruOrder.splice(m_lruOrder.begin(),
+                          m_lruOrder,
+                          entry->second);
 }
 
 void NfDiskCache::removeEntry(CacheType type, std::uint64_t id)
