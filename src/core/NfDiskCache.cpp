@@ -24,12 +24,15 @@
 #include "NfImage.h"
 #include "NfImageData.h"
 #include "NfLimits.h"
+#include "NfFileUtils.h"
 #include "NfLogger.h"
+#include "utils/NfScopedTimer.h"
 
 #include <algorithm>
 #include <array>
 #include <charconv>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <optional>
 #include <vector>
@@ -79,20 +82,28 @@ bool readU64(std::istream& stream, std::uint64_t& value)
         return true;
 }
 
-struct CacheFile {
-        std::filesystem::path path;
-        std::uint64_t size;
-        std::filesystem::file_time_type modified;
-};
-
 } // namespace
 
 NfDiskCache::NfDiskCache(NfDiskCacheSettings settings)
         : m_settings{std::move(settings)}
         , m_worker{[this] { workerLoop(); }}
 {
-        indexEntries(CacheType::Thumbnail);
-        indexEntries(CacheType::Preview);
+        NfScopedTimer timer{"NfDiskCache: disk cache initialization", m_settings.directory};
+
+        std::vector<IndexedEntry> entries;
+        indexEntries(CacheType::Thumbnail, entries);
+        indexEntries(CacheType::Preview, entries);
+
+        std::sort(entries.begin(), entries.end(), [](const auto& lhs, const auto& rhs) {
+                return lhs.second > rhs.second;
+        });
+
+        for (const auto& [entry, modified] : entries) {
+                m_lruOrder.push_back(entry);
+                const auto it = std::prev(m_lruOrder.end());
+                m_currentCacheSize += entry.size;
+                m_lruOrderById.emplace(std::make_pair(entry.type, entry.id), it);
+        }
 }
 
 NfDiskCache::~NfDiskCache()
@@ -110,12 +121,12 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
 {
         std::lock_guard lock(m_mutex);
         const auto path = entryPath(type, id);
-        std::error_code error;
-        const auto fileSize = std::filesystem::file_size(path, error);
-        if (error) {
-                eraseId(type, id.value());
+        const auto fileSize = NfFileUtils::fileSize(path);
+        if (!fileSize) {
+                removeEntry(type, id.value());
                 return nullptr;
         }
+        std::error_code error;
 
         std::ifstream file(path, std::ios::binary);
         if (!file)
@@ -145,11 +156,11 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
             || imageFormat > static_cast<std::uint32_t>(
                                      NfImageData::ImageFormat::Format_ARGB32_Premultiplied)
             || dataSize != static_cast<std::uint64_t>(width) * height * channels
-            || fileSize != headerSize + dataSize
+            || *fileSize != headerSize + dataSize
             || dataSize > NfLimits::maxDecompressedImageSize) {
                 file.close();
-                std::filesystem::remove(path, error);
-                eraseId(type, id.value());
+                if (std::filesystem::remove(path, error) && !error)
+                        removeEntry(type, id.value());
                 NF_LOG_ERROR("discarding invalid disk cache entry: " << path);
                 return nullptr;
         }
@@ -159,8 +170,8 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
                   static_cast<std::streamsize>(pixels.size()));
         if (!file) {
                 file.close();
-                std::filesystem::remove(path, error);
-                eraseId(type, id.value());
+                if (std::filesystem::remove(path, error) && !error)
+                        removeEntry(type, id.value());
                 NF_LOG_ERROR("discarding truncated disk cache entry: " << path);
                 return nullptr;
         }
@@ -172,13 +183,12 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
         data->setChannels(static_cast<int>(channels));
         data->setOrientation(static_cast<int>(orientation));
         data->setFormat(static_cast<NfImageData::ImageFormat>(imageFormat));
-        std::filesystem::last_write_time(path, std::filesystem::file_time_type::clock::now(),
-                                         error);
+        touchEntry(type, id.value());
 
         return std::make_unique<NfImage>(std::move(data));
 }
 
-void NfDiskCache::indexEntries(CacheType type)
+void NfDiskCache::indexEntries(CacheType type, std::vector<IndexedEntry>& entries)
 {
         const auto directory = m_settings.directory
                 / (type == CacheType::Thumbnail ? "thumbnails" : "previews");
@@ -197,6 +207,15 @@ void NfDiskCache::indexEntries(CacheType type)
                 if (!it->is_regular_file(error) || error || it->path().extension() != ".nfc")
                         continue;
 
+                const auto fileSize = NfFileUtils::fileSize(it->path());
+                if (!fileSize)
+                        continue;
+                const auto modified = it->last_write_time(error);
+                if (error) {
+                        error.clear();
+                        continue;
+                }
+
                 // Get photo id value
                 const auto name = it->path().stem().string();
                 std::uint64_t id{};
@@ -206,9 +225,7 @@ void NfDiskCache::indexEntries(CacheType type)
                 if (parseError != std::errc{} || endName != name.data() + name.size())
                         continue;
 
-                auto& ids = type == CacheType::Thumbnail
-                        ? m_thumbnailIds : m_previewIds;
-                ids.insert(id);
+                entries.push_back({{type, id, *fileSize}, modified});
         }
 }
 
@@ -220,14 +237,13 @@ void NfDiskCache::enqueue(CacheType type,
                 return;
 
         {
-                std::lock_guard lock(m_queueMutex);
+                std::lock_guard cacheLock(m_mutex);
+                std::lock_guard queueLock(m_queueMutex);
                 if (m_stopping)
                         return;
-                auto& diskIds = type == CacheType::Thumbnail
-                        ? m_thumbnailIds : m_previewIds;
                 auto& queuedIds = type == CacheType::Thumbnail
                         ? m_queuedThumbnailIds : m_queuedPreviewIds;
-                if (diskIds.find(id.value()) != diskIds.end()
+                if (m_lruOrderById.contains(std::make_pair(type, id.value()))
                     || !queuedIds.insert(id.value()).second)
                         return;
 
@@ -258,7 +274,7 @@ void NfDiskCache::workerLoop()
                 }
 
                 put(request->type, request->id, *request->image);
-                eraseId(request->id.value(), request->type);
+                removeQueuedId(request->id.value(), request->type);
         }
 }
 
@@ -286,9 +302,18 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
 
         const auto space = std::filesystem::space(destination.parent_path(), error);
         if (error || fileSize > space.available) {
-                NF_LOG_ERROR("disk cache write skipped, not enouth free space";
+                NF_LOG_ERROR("disk cache write skipped, not enouth free space");
                 return false;
         }
+
+        const auto key = std::make_pair(type, id.value());
+        const auto existingEntry = m_lruOrderById.find(key);
+        const auto previousFileSize = existingEntry == m_lruOrderById.end()
+                ? 0 : existingEntry->second->size;
+        const auto currentSizeWithoutDestination =
+                m_currentCacheSize - std::min(m_currentCacheSize, previousFileSize);
+        const auto additionalBytes = fileSize > previousFileSize
+                ? fileSize - previousFileSize : 0;
 
         const auto temporary = destination.string() + ".tmp";
         {
@@ -317,9 +342,9 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
                 }
         }
 
-        bool isOk = false;
-        if (m_cacheSize + fileSize > m_settings.maxSizeBytes)
-                isOk = evictToFit(fileSize);
+        const bool fits = currentSizeWithoutDestination <= m_settings.maxSizeBytes
+                && fileSize <= m_settings.maxSizeBytes - currentSizeWithoutDestination;
+        const bool isOk = fits || evictToFit(additionalBytes, type, id.value());
 
         if (!isOk) {
                 std::filesystem::remove(temporary, error);
@@ -341,92 +366,100 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
                 return false;
         }
 
-        {
-                std::lock_guard queueLock(m_queueMutex);
-                auto& ids = type == CacheType::Thumbnail ? m_thumbnailIds : m_previewIds;
-                ids.insert(id.value());
+        if (existingEntry != m_lruOrderById.end()) {
+                m_currentCacheSize -= existingEntry->second->size;
+                existingEntry->second->size = fileSize;
+                m_currentCacheSize += fileSize;
+                m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder,
+                                      existingEntry->second);
+        } else {
+                m_lruOrder.push_front({type, id.value(), fileSize});
+                m_lruOrderById.emplace(key, m_lruOrder.begin());
+                m_currentCacheSize += fileSize;
         }
-
         return true;
 }
 
 bool NfDiskCache::evictToFit(std::uint64_t requiredBytes,
-                             const std::filesystem::path& protectedPath)
+                             CacheType protectedType,
+                             std::uint64_t protectedId)
 {
         // Evict at least 10% of the disk cache
         size_t freeSpace = 0.1 * m_settings.maxSizeBytes;
         if (requiredBytes < freeSpace)
                 requiredBytes = freeSpace;
 
-        std::vector<CacheFile> files;
-        std::uint64_t totalBytes = 0;
-        std::error_code error;
-        if (!std::filesystem::exists(m_settings.directory, error))
-                return !error;
+        const auto protectedEntry =
+                m_lruOrderById.find(std::make_pair(protectedType, protectedId));
+        const auto protectedSize = protectedEntry == m_lruOrderById.end()
+                ? 0 : protectedEntry->second->size;
+        const auto targetSize = m_settings.maxSizeBytes - requiredBytes;
 
-        // TODO: remove this, use in memory tracking
-        for (std::filesystem::recursive_directory_iterator it(m_settings.directory, error), end;
-             !error && it != end; it.increment(error)) {
-                if (!it->is_regular_file(error) || error || it->path() == protectedPath
-                    || it->path().extension() != ".nfc")
-                        continue;
-                const auto size = it->file_size(error);
-                if (error)
-                        continue;
-                const auto modified = it->last_write_time(error);
-                if (error)
-                        continue;
-                files.push_back({it->path(), size, modified});
-        }
-
-        if (error)
-                return false;
-
-        std::sort(files.begin(), files.end(), [](const auto& lhs, const auto& rhs) {
-                return lhs.modified < rhs.modified;
-        });
-
-        for (const auto& file : files) {
-                if (m_cacheSize <= m_settings.maxSizeBytes - requiredBytes)
-                        break;
-
-                if (std::filesystem::remove(file.path, error) && !error) {
-                        m_cacheSize -= file.size;
-                        const auto typeName = file.path.parent_path().filename();
-                        const auto name = file.path.stem().string();
-                        std::uint64_t id{};
-                        const auto [endName, parseError] = std::from_chars(
-                                name.data(), name.data() + name.size(), id);
-                        if (parseError == std::errc{}
-                            && endName == name.data() + name.size()) {
-                                std::lock_guard queueLock(m_queueMutex);
-                                if (typeName == "thumbnails")
-                                        m_thumbnailIds.erase(id);
-                                else if (typeName == "previews")
-                                        m_previewIds.erase(id);
-
-                                NF_LOG_DEBUG("cache file evicted: " << file);
-                        }
+        while (!m_lruOrder.empty()
+               && m_currentCacheSize - std::min(m_currentCacheSize, protectedSize)
+                       > targetSize) {
+                auto it = std::prev(m_lruOrder.end());
+                if (it->type == protectedType && it->id == protectedId) {
+                        if (it == m_lruOrder.begin())
+                                break;
+                        --it;
                 }
-                error.clear();
+                const auto type = it->type;
+                const auto id = it->id;
+                const auto path = entryPath(type, id);
+                std::error_code error;
+                if (std::filesystem::remove(path, error) && !error) {
+                        NF_LOG_DEBUG("cache file evicted: " << path);
+                        m_currentCacheSize -= it->size;
+                        m_lruOrderById.erase(std::make_pair(type, id));
+                        m_lruOrder.erase(it);
+                } else {
+                        m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder, it);
+                }
         }
 
-        return  m_cacheSize <= m_settings.maxSizeBytes - requiredBytes;
+        return m_currentCacheSize - std::min(m_currentCacheSize, protectedSize)
+                <= targetSize;
+}
+
+void NfDiskCache::touchEntry(CacheType type, std::uint64_t id)
+{
+        const auto entry = m_lruOrderById.find(std::make_pair(type, id));
+        if (entry == m_lruOrderById.end())
+                return;
+        m_lruOrder.splice(m_lruOrder.begin(), m_lruOrder, entry->second);
+}
+
+void NfDiskCache::removeEntry(CacheType type, std::uint64_t id)
+{
+        const auto entry = m_lruOrderById.find(std::make_pair(type, id));
+        if (entry == m_lruOrderById.end())
+                return;
+        m_currentCacheSize -= std::min(m_currentCacheSize, entry->second->size);
+        m_lruOrder.erase(entry->second);
+        m_lruOrderById.erase(entry);
 }
 
 std::filesystem::path NfDiskCache::entryPath(CacheType type,
                                              const NfPhotoId& id) const
 {
-        const auto name = std::to_string(id.value()) + ".nfc";
+        return entryPath(type, id.value());
+}
+
+std::filesystem::path NfDiskCache::entryPath(CacheType type,
+                                             std::uint64_t id) const
+{
+        const auto name = std::to_string(id) + ".nfc";
         const auto typeDirectory = type == CacheType::Thumbnail ? "thumbnails" : "previews";
         return m_settings.directory / typeDirectory / name;
 }
 
-void NfDiskCache::eraseId(uint64_t id, CacheType type)
+void NfDiskCache::removeQueuedId(std::uint64_t id, CacheType type)
 {
         std::lock_guard queueLock(m_queueMutex);
-        auto& ids = type == CacheType::Thumbnail ? m_thumbnailIds : m_previewIds;
-        ids.erase(id.value());
+        auto& ids = type == CacheType::Thumbnail
+                ? m_queuedThumbnailIds : m_queuedPreviewIds;
+        ids.erase(id);
 }
 
 } // namespace NfCore

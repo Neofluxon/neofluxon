@@ -85,9 +85,9 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::MaxCompressedImageSize) {
+        if (*size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << *size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -160,9 +160,9 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
                 return nullptr;
         }
 
-        if (width > NfLimits::MaxImageDimension
-            || height > NfLimits::MaxImageDimension
-            || width > NfLimits::MaxDecodedImagePixels / height) {
+        if (width > NfLimits::maxImageDimension
+            || height > NfLimits::maxImageDimension
+            || width > NfLimits::maxDecodedImagePixels / height) {
                 png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
                 fclose(fp);
                 std::free(decodeBuffer);

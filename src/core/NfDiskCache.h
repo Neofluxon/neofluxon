@@ -30,10 +30,13 @@
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <map>
 #include <unordered_set>
+#include <vector>
 
 namespace NfCore {
 
@@ -60,26 +63,39 @@ private:
                 std::unique_ptr<NfImage> image;
         };
 
-        void indexEntrie(CacheType type);
+        struct CacheEntry {
+                CacheType type;
+                std::uint64_t id;
+                std::uint64_t size;
+        };
+
+        using IndexedEntry =
+                std::pair<CacheEntry, std::filesystem::file_time_type>;
+
+        void indexEntries(CacheType type, std::vector<IndexedEntry>& entries);
+        void touchEntry(CacheType type, std::uint64_t id);
+        void removeEntry(CacheType type, std::uint64_t id);
+        void removeQueuedId(std::uint64_t id, CacheType type);
         void workerLoop();
         bool put(CacheType type, const NfPhotoId& id, const NfImage& image);
-        bool evictToFit(std::uint64_t requiredBytes,
-                        const std::filesystem::path& protectedPath);
+        bool evictToFit(std::uint64_t requiredBytes, CacheType protectedType,
+                        std::uint64_t protectedId);
         std::filesystem::path entryPath(CacheType type, const NfPhotoId& id) const;
-        void eraseId(uint64_t id, CacheType type);
+        std::filesystem::path entryPath(CacheType type, std::uint64_t id) const;
 
         NfDiskCacheSettings m_settings;
-        std::mutex m_mutex;
         std::mutex m_queueMutex;
-        std::condition_variable m_queueCondition;
-        std::deque<WriteRequest> m_writeQueue;
-        std::unordered_set<std::uint64_t> m_thumbnailIds;
-        std::unordered_set<std::uint64_t> m_previewIds;
         std::unordered_set<std::uint64_t> m_queuedThumbnailIds;
         std::unordered_set<std::uint64_t> m_queuedPreviewIds;
+        std::mutex m_mutex;
+        std::condition_variable m_queueCondition;
+        std::deque<WriteRequest> m_writeQueue;
+        std::list<CacheEntry> m_lruOrder;
+        std::map<std::pair<CacheType, std::uint64_t>,
+                 std::list<CacheEntry>::iterator> m_lruOrderById;
         bool m_stopping{false};
         std::thread m_worker;
-        size_t m_currentCacheSize{0};
+        std::uint64_t m_currentCacheSize{0};
 };
 
 } // namespace NfCore

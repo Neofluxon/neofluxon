@@ -81,9 +81,9 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::MaxCompressedImageSize) {
+        if (*size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << *size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -171,8 +171,8 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
 
         const auto w = static_cast<std::size_t>(scaledWidth);
         const auto h = static_cast<std::size_t>(scaledHeight);
-        if (w > NfLimits::MaxImageDimension
-            || h > NfLimits::MaxImageDimension) {
+        if (w > NfLimits::maxImageDimension
+            || h > NfLimits::maxImageDimension) {
                 NF_LOG_ERROR("image dimension exceeds maximum: "
                              << scaledWidth << "x" << scaledHeight
                              << " for " << path);
@@ -180,7 +180,7 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
         }
 
         // Check maximum allowed width for the given height
-        if (w == 0 || h == 0 || w > NfLimits::MaxDecodedImagePixels / h) {
+        if (w == 0 || h == 0 || w > NfLimits::maxDecodedImagePixels / h) {
                 NF_LOG_ERROR("image dimensions exceed maximum: "
                              << scaledWidth << "x" << scaledHeight
                              << " for " << path);

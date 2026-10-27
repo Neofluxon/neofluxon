@@ -67,4 +67,15 @@ bool NfFileUtils::fileExists(const std::filesystem::path& path)
         return std::filesystem::is_regular_file(path, ec);
 }
 
+std::optional<std::uintmax_t> NfFileUtils::fileSize(const std::filesystem::path& path)
+{
+        std::error_code error;
+        const auto size = std::filesystem::file_size(path, error);
+
+        if (error)
+                return std::nullopt;
+
+        return size;
+}
+
 } // namespace NfCore

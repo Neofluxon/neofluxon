@@ -65,30 +65,27 @@ public:
     /// Image is rejected if it exceeds max cache size.
     void add(const NfPhotoId &id, std::unique_ptr<NfImage> image, bool replace = false);
 
-    // Returns image if present and marks it as recently used.
-    /// @warning Returned pointer may become invalid after any cache modification.
     [[nodiscard]] std::unique_ptr<NfImage> get(const NfPhotoId& id);
 
-    /// Removes image if present.
     [[nodiscard]] bool remove(const NfPhotoId& id);
 
-    /// Clears all cached images.
+    // Clears all cached images.
     void clear();
 
     [[nodiscard]] std::size_t currentSizeBytes() const noexcept;
     [[nodiscard]] std::size_t maxSizeBytes() const noexcept;
 
-    /// Updates max cache size and evicts items if necessary.
+    // Updates max cache size and evicts items if necessary.
     void setMaxSizeBytes(std::size_t maxSizeBytes);
 
 private:
-    /// Marks item as recently used.
+    // Marks item as recently used.
     void refreshAccess(std::list<NfPhotoId>::iterator it);
 
-    /// Removes id from LRU list.
+    // Removes id from LRU list.
     void removeFromLRU(std::list<NfPhotoId>::iterator it);
 
-    /// Evicts least-recently-used items until required space is available.
+    // Evicts least-recently-used items until required space is available.
     void evictUntilFits(std::size_t requiredSize);
 
 private:

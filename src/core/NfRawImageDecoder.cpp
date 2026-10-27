@@ -124,9 +124,9 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
                 return nullptr;
         }
 
-        if (*size > NfLimits::MaxCompressedImageSize) {
+        if (*size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << *size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -198,9 +198,9 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::MaxCompressedImageSize) {
+        if (*size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << *size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -271,9 +271,9 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData(bool reducedResolu
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::MaxCompressedImageSize) {
+        if (*size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::MaxCompressedImageSize
+                             << *size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
