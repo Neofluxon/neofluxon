@@ -148,7 +148,12 @@ void NfCache::removeFromLRU(std::list<NfPhotoId>::iterator it)
 
 void NfCache::evictUntilFits(std::size_t requiredSize)
 {
-        // Evict LRU items until we have enough space for the new image
+        // Reuiqre at least 30% of free space
+        const auto freeSpace = 0.3 * m_maxSizeBytes;
+        if (requiredSize < freeSpace)
+                requiredSize = freeSpace;
+
+        // Evict LRU items until we have at least 30% of free space
         while (!m_lruOrder.empty() && (m_currentSizeBytes + requiredSize > m_maxSizeBytes)) {
                 const auto& oldestId = m_lruOrder.back();
 
@@ -158,9 +163,10 @@ void NfCache::evictUntilFits(std::size_t requiredSize)
 
                         NF_LOG_DEBUG("photo evicted: " << it->first.value());
 
-                        if (m_diskCache)
-                                m_diskCache->enqueue(m_cacheType, oldestId,
-                                                     std::move(it->second.second));
+                        //if (m_diskCache)
+                        //m_diskCache->enqueue(m_cacheType, oldestId,
+                        //std::move(it->second.second));
+
                         m_memoryCache.erase(it);
                         m_currentSizeBytes -= evictedSize;
                 }

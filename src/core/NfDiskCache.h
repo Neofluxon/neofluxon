@@ -28,10 +28,12 @@
 #include "NfPhotoId.h"
 
 #include <condition_variable>
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <unordered_set>
 
 namespace NfCore {
 
@@ -48,7 +50,8 @@ public:
         NfDiskCache& operator=(const NfDiskCache&) = delete;
         void enqueue(CacheType type, const NfPhotoId& id, std::unique_ptr<NfImage> image);
         std::unique_ptr<NfImage> get(CacheType type, const NfPhotoId& id);
-        bool put(CacheType type, const NfPhotoId& id, const NfImage& image);
+
+protected:
 
 private:
         struct WriteRequest {
@@ -57,18 +60,26 @@ private:
                 std::unique_ptr<NfImage> image;
         };
 
-        std::filesystem::path entryPath(CacheType type, const NfPhotoId& id) const;
+        void indexEntrie(CacheType type);
+        void workerLoop();
+        bool put(CacheType type, const NfPhotoId& id, const NfImage& image);
         bool evictToFit(std::uint64_t requiredBytes,
                         const std::filesystem::path& protectedPath);
-        void workerLoop();
+        std::filesystem::path entryPath(CacheType type, const NfPhotoId& id) const;
+        void eraseId(uint64_t id, CacheType type);
 
         NfDiskCacheSettings m_settings;
         std::mutex m_mutex;
         std::mutex m_queueMutex;
         std::condition_variable m_queueCondition;
         std::deque<WriteRequest> m_writeQueue;
+        std::unordered_set<std::uint64_t> m_thumbnailIds;
+        std::unordered_set<std::uint64_t> m_previewIds;
+        std::unordered_set<std::uint64_t> m_queuedThumbnailIds;
+        std::unordered_set<std::uint64_t> m_queuedPreviewIds;
         bool m_stopping{false};
         std::thread m_worker;
+        size_t m_currentCacheSize{0};
 };
 
 } // namespace NfCore

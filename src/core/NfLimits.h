@@ -30,9 +30,10 @@ namespace NfCore {
 
 namespace NfLimits {
 
-inline constexpr std::size_t MaxDecodedImagePixels = 100'000'000;
-inline constexpr std::size_t MaxImageDimension = 100'000;
-inline constexpr std::size_t MaxCompressedImageSize = 200ULL * 1024 * 1024;
+inline constexpr std::size_t maxDecodedImagePixels = 100'000'000;
+inline constexpr std::size_t maxImageDimension = 100'000;
+inline constexpr std::size_t maxCompressedImageSize = 200ULL * 1024 * 1024;
+inline constexpr std::size_t maxDecompressedImageSize = maxCompressedImageSize;
 
 } // namespace NfLimits
 
