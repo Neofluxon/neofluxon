@@ -27,6 +27,7 @@
 #include "core/NfPhoto.h"
 
 #include <QObject>
+#include <unordered_set>
 #include <set>
 
 namespace NfUi {
@@ -37,10 +38,22 @@ class NfUiBrowserState : public QObject
 
 public:
         using PhotoFormatFilter = std::set<NfCore::NfPhoto::PhotoFormat>;
-
         enum class ViewMode {
                 Grid,
                 Preview
+        };
+
+        enum class SortField {
+                Name,
+                DateTaken,
+                FileSize
+        };
+        using SortFields = std::unordered_set<SortField>;
+
+        enum class SortOrder {
+                None,
+                Ascending,
+                Descending
         };
 
         explicit NfUiBrowserState(QObject* parent = nullptr);
@@ -48,20 +61,28 @@ public:
         void setCurrentPhoto(const NfCore::NfPhoto& photo);
         const NfCore::NfPhoto& currentPhoto() const;
         const PhotoFormatFilter& formatFilter() const;
+        const SortFields& sortingFields() const;
+        SortOrder sortOrder() const;
 
 signals:
         void viewModeChanged(ViewMode mode);
         void currentPhotoChanged(const NfCore::NfPhoto& photo);
         void formatFilterChanged(const PhotoFormatFilter& formats);
+        void sortingUpdated();
 
 public slots:
         void setViewMode(ViewMode mode);
         void setFormatFilter(const PhotoFormatFilter& formats);
+        void setSortFields(const SortFields &fields);
+        void enableSortField(SortField field, bool b);
+        void setSortOrder(SortOrder sortOrder);
 
 private:
         ViewMode m_viewMode;
         NfCore::NfPhoto m_photo;
         PhotoFormatFilter m_formatFilter;
+        SortFields m_sortFields;
+        SortOrder m_sortOrder{};
 };
 } // namespace NfUi
 

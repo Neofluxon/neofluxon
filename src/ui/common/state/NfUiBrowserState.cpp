@@ -22,6 +22,7 @@
  */
 
 #include "NfUiBrowserState.h"
+#include "core/NfLogger.h"
 
 using namespace NfCore;
 
@@ -70,6 +71,42 @@ void NfUiBrowserState::setFormatFilter(const PhotoFormatFilter& formats)
 
         m_formatFilter = formats;
         emit formatFilterChanged(m_formatFilter);
+}
+
+const NfUiBrowserState::SortFields& NfUiBrowserState::sortingFields() const
+{
+        return m_sortFields;
+}
+
+NfUiBrowserState::SortOrder NfUiBrowserState::sortOrder() const
+{
+        return m_sortOrder;
+}
+
+void NfUiBrowserState::setSortFields(const NfUiBrowserState::SortFields &fields)
+{
+        if (m_sortFields != fields) {
+                m_sortFields = fields;
+                emit sortingUpdated();
+        }
+}
+
+void NfUiBrowserState::enableSortField(NfUiBrowserState::SortField field,
+                                       bool b)
+{
+        NF_LOG_DEBUG("b: " << b);
+        if (b ? m_sortFields.insert(field).second
+            : m_sortFields.erase(field) > 0) {
+                emit sortingUpdated();
+        }
+}
+
+void NfUiBrowserState::setSortOrder(NfUiBrowserState::SortOrder sortOrder)
+{
+        if (m_sortOrder != sortOrder) {
+                m_sortOrder = sortOrder;
+                emit sortingUpdated();
+        }
 }
 
 } // namespace NfUi

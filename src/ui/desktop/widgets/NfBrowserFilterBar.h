@@ -25,13 +25,17 @@
 #define NF_BROWSER_FILTERBAR_H
 
 #include "NfStyledWidget.h"
-#include "NfUiBrowserState.h"
+#include "core/NfPhoto.h"
 
 #include <QToolButton>
 #include <utility>
 #include <vector>
 
 class QAction;
+
+namespace NfUi {
+        class NfUiBrowserState;
+}
 
 namespace NfDesktop {
 

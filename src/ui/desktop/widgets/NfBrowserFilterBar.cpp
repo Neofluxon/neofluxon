@@ -22,22 +22,25 @@
  */
 
 #include "NfBrowserFilterBar.h"
+#include "NfUiBrowserState.h"
 
 #include <QAction>
 #include <QSignalBlocker>
 #include <QHBoxLayout>
 #include <QMenu>
 
+using namespace NfUi;
+
 namespace NfDesktop {
 
-NfBrowserFilterBar::NfBrowserFilterBar(NfUi::NfUiBrowserState* state,
+NfBrowserFilterBar::NfBrowserFilterBar(NfUiBrowserState* state,
                                        QWidget* parent)
         : NfStyledWidget(parent)
         , m_state{state}
 {
         setupUi();
         QObject::connect(m_state,
-                         &NfUi::NfUiBrowserState::formatFilterChanged,
+                         &NfUiBrowserState::formatFilterChanged,
                          this,
                          &NfBrowserFilterBar::updateFormatFilter);
         updateFormatFilter();

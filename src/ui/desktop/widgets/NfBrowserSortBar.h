@@ -25,8 +25,10 @@
 #define NF_BROWSER_SORTBAR_H
 
 #include "NfStyledWidget.h"
+#include "NfUiBrowserState.h"
 
-#include <QToolButton>
+class QAction;
+class QToolButton;
 
 namespace NfDesktop {
 
@@ -34,14 +36,23 @@ class NfBrowserSortBar : public NfStyledWidget
 {
         Q_OBJECT
 
+        using SortField = NfUi::NfUiBrowserState::SortField;
+        using SortOrder = NfUi::NfUiBrowserState::SortOrder;
+
 public:
-        explicit NfBrowserSortBar(QWidget* parent = nullptr);
+        explicit NfBrowserSortBar(NfUi::NfUiBrowserState *state,
+                                  QWidget* parent = nullptr);
         ~NfBrowserSortBar() override = default;
 
 private:
         void setupUi();
+        void updateSorting();
 
+        NfUi::NfUiBrowserState *m_state;
         QToolButton* m_button{nullptr};
+        std::unordered_map<SortField, QAction*> m_fieldActions;
+        QAction* m_ascendingAction{nullptr};
+        QAction* m_descendingAction{nullptr};
 };
 
 } // namespace NfDesktop
