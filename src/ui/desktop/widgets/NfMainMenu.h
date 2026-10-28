@@ -47,9 +47,9 @@ signals:
         void libraryClicked();
 
 private:
-        QPushButton* shootsButton;
-        QPushButton* foldersButton;
-        QPushButton* libraryButton;
+        //QPushButton* m_shootsButton;
+        QPushButton* m_foldersButton;
+        QPushButton* m_libraryButton;
 };
 
  } // namespace NfDesktop

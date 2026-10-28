@@ -32,9 +32,9 @@ namespace NfDesktop {
 
 NfMainMenu::NfMainMenu(QWidget* parent)
         : NfStyledWidget(parent)
-        , shootsButton{nullptr}
-        , foldersButton{nullptr}
-        , libraryButton{nullptr}
+          //        , shootsButton{nullptr}
+        , m_foldersButton{nullptr}
+        , m_libraryButton{nullptr}
 
 {
         setObjectName("NfMainMenu");
@@ -45,7 +45,7 @@ NfMainMenu::NfMainMenu(QWidget* parent)
         menuLayout->setContentsMargins(6, 6, 6, 6);
         menuLayout->setSpacing(2);
 
-        shootsButton = new QPushButton(tr("Shoots"), this);
+        /*shootsButton = new QPushButton(tr("Shoots"), this);
         shootsButton->setIcon(QIcon(":/icons/nav-shoots.svg"));
         shootsButton->setIconSize(QSize(16, 16));
         shootsButton->setCheckable(true);
@@ -53,27 +53,27 @@ NfMainMenu::NfMainMenu(QWidget* parent)
         QObject::connect(shootsButton,
                          &QPushButton::clicked,
                          this, &NfMainMenu::shootsClicked);
-        menuLayout->addWidget(shootsButton);
+                         menuLayout->addWidget(shootsButton);*/
 
-        foldersButton = new QPushButton(tr("Folders"), this);
-        foldersButton->setIcon(QIcon(":/icons/nav-folders.svg"));
-        foldersButton->setIconSize(QSize(16, 16));
-        foldersButton->setCheckable(true);
-        foldersButton->setAutoExclusive(true);
-        QObject::connect(foldersButton,
+        m_foldersButton = new QPushButton(tr("Folders"), this);
+        m_foldersButton->setIcon(QIcon(":/icons/nav-folders.svg"));
+        m_foldersButton->setIconSize(QSize(16, 16));
+        m_foldersButton->setCheckable(true);
+        m_foldersButton->setAutoExclusive(true);
+        QObject::connect(m_foldersButton,
                          &QPushButton::clicked,
                          this, &NfMainMenu::foldersClicked);
-        menuLayout->addWidget(foldersButton);
+        menuLayout->addWidget(m_foldersButton);
 
-        libraryButton = new QPushButton(tr("Library"), this);
-        libraryButton->setIcon(QIcon(":/icons/nav-library.svg"));
-        libraryButton->setIconSize(QSize(16, 16));
-        libraryButton->setCheckable(true);
-        libraryButton->setAutoExclusive(true);
-        QObject::connect(libraryButton,
+        m_libraryButton = new QPushButton(tr("Library"), this);
+        m_libraryButton->setIcon(QIcon(":/icons/nav-library.svg"));
+        m_libraryButton->setIconSize(QSize(16, 16));
+        m_libraryButton->setCheckable(true);
+        m_libraryButton->setAutoExclusive(true);
+        QObject::connect(m_libraryButton,
                          &QPushButton::clicked,
                          this, &NfMainMenu::libraryClicked);
-        menuLayout->addWidget(libraryButton);
+        menuLayout->addWidget(m_libraryButton);
 
         menuLayout->addStretch();
 
@@ -82,23 +82,23 @@ NfMainMenu::NfMainMenu(QWidget* parent)
 
 void NfMainMenu::setShootsMode()
 {
-        shootsButton->setChecked(true);
-        foldersButton->setChecked(false);
-        libraryButton->setChecked(false);
+        /*shootsButton->setChecked(true);
+        m_foldersButton->setChecked(false);
+        m_libraryButton->setChecked(false);*/
 }
 
 void NfMainMenu::setFolderMode()
 {
-        shootsButton->setChecked(false);
-        foldersButton->setChecked(true);
-        libraryButton->setChecked(false);
+        //shootsButton->setChecked(false);
+        m_foldersButton->setChecked(true);
+        m_libraryButton->setChecked(false);
 }
 
 void NfMainMenu::setLibraryMode()
 {
-        shootsButton->setChecked(false);
-        foldersButton->setChecked(false);
-        libraryButton->setChecked(true);
+        //shootsButton->setChecked(false);
+        m_foldersButton->setChecked(false);
+        m_libraryButton->setChecked(true);
 }
 
 } // namespace NfDesktop
