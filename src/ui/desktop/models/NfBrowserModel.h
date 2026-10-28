@@ -81,6 +81,10 @@ signals:
         void previewReady(const QModelIndex& index);
         void photoIndexesUpdated();
 
+public slots:
+        void setSortFields(const NfUi::NfUiBrowserState::SortFields &fields);
+        void setSortOrder(const NfUi::NfUiBrowserState::SortOrder sortOrder);
+
 protected slots:
         void onPhotosLoaded(const std::vector<NfPhoto> &newPhotos);
         void onThumbnailsLoaded(const std::vector<NfPhotoId> &ids);
@@ -90,6 +94,7 @@ private:
         QPixmap getPreview(const QModelIndex& index) const;
         bool acceptsPhoto(const NfPhoto& photo) const;
         void rebuildVisiblePhotos();
+        void sortPhotos();
 
         NfContext* m_context;
         NfPhotoProvider *m_photoProvider;
@@ -110,6 +115,8 @@ private:
          */
         std::unordered_map<NfPhotoId, QPersistentModelIndex> m_itemsMap;
         const int m_previewRange;
+        NfUi::NfUiBrowserState::SortFields m_sortFields;
+        NfUi::NfUiBrowserState::SortOrder m_sortOrder{};
 };
 
 } // namespace NfDesktop

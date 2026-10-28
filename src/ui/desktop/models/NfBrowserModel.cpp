@@ -37,6 +37,7 @@ namespace NfDesktop {
 NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
         : QAbstractListModel(parent)
         , m_context{ctx}
+        , m_state{nullptr}
         , m_photoProvider{new NfPhotoProvider(m_context->core(), this)}
         , m_previewRange{10}
 {
@@ -82,6 +83,24 @@ void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& forma
         emit photoIndexesUpdated();
 }
 
+void NfBrowserModel::setSortFields(const NfUiBrowserState::SortFields &fields)
+{
+        if (m_sortFileds == fields)
+                return;
+
+        m_sortFileds = fields;
+        sortPhotos();
+}
+
+void NfBrowserModel::setSortOrder(const NfUiBrowserState::SortOrder sortOrder)
+{
+        if (m_sortOrder == sortOrder)
+                return;
+
+        m_sortOrder = sortOrder;
+        sortPhotos();
+}
+
 NfPhotoSource NfBrowserModel::getSource() const
 {
         return m_photoProvider->getSource();
@@ -99,6 +118,45 @@ void NfBrowserModel::rebuildVisiblePhotos()
                              [this](const auto& photo) {
                                      return acceptsPhoto(photo);
                              });
+}
+
+void NfBrowserModel::sortPhotos()
+{
+        if (m_sortFileds.empty())
+                return;
+
+        using SortFields = NfUi::NfUiBrowserState::SortFields;
+        using SortFields = NfUi::NfUiBrowserState::SortOrder;
+        bool byName = m_fileds.find(SortFields::Name) != m_fileds.end();
+        bool byDate = m_fileds.find(SortFields::DateTaken) != m_fileds.end();
+        bool bySize = m_fileds.find(SortFields::DateTaken) != m_fileds.end();
+
+        auto comparator = [](const auto& photoA, const auto& photoB) {
+                if (m_SordOrder == SortOrder::None)
+                        return false;
+
+                const auto& photoA = a.get();
+                const auto&  photoA = b.get();
+
+                bool order = m_SordOrder == SortOrder::Ascending;
+                if (byName && photoA.name() != photoB.name())
+                        return order ? hotoA.name() < photoB.name()
+                                       : hotoA.name() > photoB.name();
+                if (byDate && photoA.dateTaken().value() != photoB.dateTaken())
+                        return order ? photoA.dateTaken() < photoB.dateTaken()
+                                       : photoA.dateTaken() > photoB.dateTaken();
+                if (bySize && photoA.sizeOnDisk() != photoB.sizeOnDisk())
+                        return order ? photoA.sizeOnDisk() < photoB.sizeOnDisk()
+                                       : photoA.sizeOnDisk() > photoB.sizeOnDisk();
+
+                return fasle;
+        };
+
+        emit layoutAboutToBeChanged();
+        std::ranges::sort(m_visiblePhotos,
+                  comparator);
+
+        emit layoutChanged();
 }
 
 QModelIndex NfBrowserModel::indexForPhotoId(const NfPhotoId& photoId) const

@@ -23,14 +23,27 @@
 
 #include "NfPhoto.h"
 #include "utils/NfFileUtils.h"
+#include "NfPhotoMetadataExtractor.h"
 
 namespace NfCore {
 
-NfPhoto::NfPhoto(const std::filesystem::path &filePath)
+        NfPhoto::NfPhoto(const std::filesystem::path &filePath, bool loadInfo)
         : m_filePath{filePath}
         , m_photoId{filePath}
+        , m_name{NfFileUtils::pathToUtf8(m_filePath.filename())}
 {
-        m_format = determineFormat(filePath);
+        if (m_photoId.isValid() && loadInfo) {
+                m_fileEixsts = NfFileUtils::fileExists(m_filePath);
+                if (m_fileEixsts) {
+                        m_sizeOnDisk = NfFileUtils::fileSize(m_filePath);
+                        NfPhotoMetadataExtractor extrator(this);
+                        auto summary = extrator.summaryInfo();
+                        if (summary) {
+                                m_format = determineFormat(summary.format);
+                                m_dateTaken = summary.dateTaken;
+                        }
+                }
+        }
 }
 
 const NfPhotoId& NfPhoto::id() const
@@ -45,27 +58,28 @@ const std::filesystem::path& NfPhoto::path() const
 
 std::string NfPhoto::name() const
 {
-        return NfFileUtils::pathToUtf8(m_filePath.filename());
+        return m_name;
 }
 
-std::optional<std::uintmax_t> NfPhoto::sizeOnDisk() const
+std::uintmax_t NfPhoto::sizeOnDisk() const
 {
-        std::error_code ec;
-        const auto size = std::filesystem::file_size(m_filePath, ec);
-        if (ec)
-                return std::nullopt;
-
-        return size;
+        return m_sizeOnDisk;
 }
+
 
 bool NfPhoto::fileExists() const
 {
-        return NfFileUtils::fileExists(m_filePath);
+        return m_fileEixsts;
 }
 
 NfPhoto::PhotoFormat NfPhoto::format() const
 {
         return m_format;
+}
+
+std::optional<std::chrono::system_clock::time_point> dateTaken() const
+{
+        return m_dateTaken;
 }
 
 NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
