@@ -27,22 +27,24 @@
 
 namespace NfCore {
 
-        NfPhoto::NfPhoto(const std::filesystem::path &filePath, bool loadInfo)
+NfPhoto::NfPhoto()
+{
+}
+
+NfPhoto::NfPhoto(const std::filesystem::path &filePath)
         : m_filePath{filePath}
         , m_photoId{filePath}
         , m_name{NfFileUtils::pathToUtf8(m_filePath.filename())}
+        , m_sizeOnDisk{NfFileUtils::fileSize(m_filePath)}
+        , m_format{determineFormat(m_filePath)}
 {
-        if (m_photoId.isValid() && loadInfo) {
-                m_fileEixsts = NfFileUtils::fileExists(m_filePath);
-                if (m_fileEixsts) {
-                        m_sizeOnDisk = NfFileUtils::fileSize(m_filePath);
-                        NfPhotoMetadataExtractor extrator(this);
-                        auto summary = extrator.summaryInfo();
-                        if (summary) {
-                                m_format = determineFormat(summary.format);
-                                m_dateTaken = summary.dateTaken;
-                        }
-                }
+        if (!m_filePath.empty()
+            && m_photoId.isValid()
+            && NfFileUtils::fileExists(m_filePath)) {
+                NfPhotoMetadataExtractor extractor(*this);
+                const auto summary = extractor.summaryInfo();
+                if (summary)
+                        m_dateTaken = summary->dateTaken;
         }
 }
 
@@ -61,15 +63,9 @@ std::string NfPhoto::name() const
         return m_name;
 }
 
-std::uintmax_t NfPhoto::sizeOnDisk() const
+std::optional<std::uintmax_t> NfPhoto::sizeOnDisk() const
 {
         return m_sizeOnDisk;
-}
-
-
-bool NfPhoto::fileExists() const
-{
-        return m_fileEixsts;
 }
 
 NfPhoto::PhotoFormat NfPhoto::format() const
@@ -77,7 +73,7 @@ NfPhoto::PhotoFormat NfPhoto::format() const
         return m_format;
 }
 
-std::optional<std::chrono::system_clock::time_point> dateTaken() const
+std::optional<std::chrono::system_clock::time_point> NfPhoto::dateTaken() const
 {
         return m_dateTaken;
 }

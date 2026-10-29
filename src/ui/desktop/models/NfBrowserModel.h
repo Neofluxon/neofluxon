@@ -27,6 +27,7 @@
 #include "core/NfPhoto.h"
 #include "core/NfPhotoId.h"
 #include "core/NfPhotoSource.h"
+#include "NfUiBrowserState.h"
 
 #include <QAbstractListModel>
 #include <functional>
@@ -94,15 +95,18 @@ private:
         QPixmap getPreview(const QModelIndex& index) const;
         bool acceptsPhoto(const NfPhoto& photo) const;
         void rebuildVisiblePhotos();
-        void sortPhotos();
+        void rebuildPersistentIndexMap();
+        bool sortPhotos();
+        const NfPhoto& photoByIndex(size_t i) const;
 
         NfContext* m_context;
         NfPhotoProvider *m_photoProvider;
         // Owns all loaded photos, whether or not they pass the active filter.
+        // This vector is kept stable.
         std::vector<NfPhoto> m_allPhotos;
-        // References to filtered photos in m_allPhotos, indexed by model row.
-        // The model works only with this list.
-        std::vector<std::reference_wrapper<const NfPhoto>> m_visiblePhotos;
+        // Indexes to filtered photos in m_allPhotos, indexed by model row.
+        // The model works only with m_visibleIndexes.
+        std::vector<std::size_t> m_visibleIndexes;
         std::set<NfPhoto::PhotoFormat> m_formatFilter;
         /**
          * indexForPhotoId() finds a photo's row without searching m_visiblePhotos.

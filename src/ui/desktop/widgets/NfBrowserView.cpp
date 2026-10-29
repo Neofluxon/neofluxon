@@ -59,6 +59,16 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                          m_model,
                          &NfBrowserModel::setFormatFilter);
         QObject::connect(m_state,
+                         &NfUiBrowserState::sortingUpdated,
+                         [this]() {
+                                 m_model->setSortFields(m_state->sortingFields());
+                         });
+        QObject::connect(m_state,
+                         &NfUiBrowserState::sortingUpdated,
+                         [this]() {
+                                 m_model->setSortOrder(m_state->sortOrder());
+                         });
+        QObject::connect(m_state,
                          &NfUiBrowserState::formatFilterChanged,
                          this,
                          [this]() {

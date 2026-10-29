@@ -37,7 +37,6 @@ namespace NfDesktop {
 NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
         : QAbstractListModel(parent)
         , m_context{ctx}
-        , m_state{nullptr}
         , m_photoProvider{new NfPhotoProvider(m_context->core(), this)}
         , m_previewRange{10}
 {
@@ -58,7 +57,7 @@ NfBrowserModel::NfBrowserModel(NfContext *ctx, QObject* parent)
 void NfBrowserModel::setSource(NfPhotoSource source)
 {
         beginResetModel();
-        m_visiblePhotos.clear();
+        m_visibleIndexes.clear();
         m_allPhotos.clear();
         m_itemsMap.clear();
         endResetModel();
@@ -76,24 +75,24 @@ void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& forma
         rebuildVisiblePhotos();
         endResetModel();
 
-        m_itemsMap.clear();
-        for (int row = 0; row < static_cast<int>(m_visiblePhotos.size()); ++row)
-                m_itemsMap[m_visiblePhotos[row].get().id()] = QPersistentModelIndex(index(row));
+        rebuildPersistentIndexMap();
 
         emit photoIndexesUpdated();
 }
 
 void NfBrowserModel::setSortFields(const NfUiBrowserState::SortFields &fields)
 {
-        if (m_sortFileds == fields)
+        NF_LOG_DEBUG(" setSortFields(const NfUiBrowserState::SortFields &fields) ...BEGIN");
+        if (m_sortFields == fields)
                 return;
 
-        m_sortFileds = fields;
+        m_sortFields = fields;
         sortPhotos();
 }
 
 void NfBrowserModel::setSortOrder(const NfUiBrowserState::SortOrder sortOrder)
 {
+        NF_LOG_DEBUG(" setSortOrder(const NfUiBrowserState::SortFields &fields) ...BEGIN");
         if (m_sortOrder == sortOrder)
                 return;
 
@@ -113,50 +112,69 @@ bool NfBrowserModel::acceptsPhoto(const NfPhoto& photo) const
 
 void NfBrowserModel::rebuildVisiblePhotos()
 {
-        m_visiblePhotos.clear();
-        std::ranges::copy_if(m_allPhotos, std::back_inserter(m_visiblePhotos),
-                             [this](const auto& photo) {
-                                     return acceptsPhoto(photo);
-                             });
+        m_visibleIndexes.clear();
+
+        auto visiblePhotoIndexes = std::views::iota(std::size_t{0},
+                                                    m_allPhotos.size())
+                | std::views::filter([this](std::size_t index) {
+                        return acceptsPhoto(photoByIndex(index));
+                });
+
+        std::ranges::copy(visiblePhotoIndexes,
+                          std::back_inserter(m_visibleIndexes));
 }
 
-void NfBrowserModel::sortPhotos()
+bool NfBrowserModel::sortPhotos()
 {
-        if (m_sortFileds.empty())
-                return;
+        if (m_sortFields.empty()
+            || m_sortOrder == NfUiBrowserState::SortOrder::None)
+                return false;
 
-        using SortFields = NfUi::NfUiBrowserState::SortFields;
-        using SortFields = NfUi::NfUiBrowserState::SortOrder;
-        bool byName = m_fileds.find(SortFields::Name) != m_fileds.end();
-        bool byDate = m_fileds.find(SortFields::DateTaken) != m_fileds.end();
-        bool bySize = m_fileds.find(SortFields::DateTaken) != m_fileds.end();
+        using SortField = NfUiBrowserState::SortField;
+        const bool byName = m_sortFields.contains(SortField::Name);
+        const bool byDate = m_sortFields.contains(SortField::DateTaken);
+        const bool bySize = m_sortFields.contains(SortField::FileSize);
+        const bool ascending = m_sortOrder == NfUiBrowserState::SortOrder::Ascending;
 
-        auto comparator = [](const auto& photoA, const auto& photoB) {
-                if (m_SordOrder == SortOrder::None)
-                        return false;
-
-                const auto& photoA = a.get();
-                const auto&  photoA = b.get();
-
-                bool order = m_SordOrder == SortOrder::Ascending;
+        auto comparator = [this, byName, byDate, bySize, ascending](const auto indexA,
+                                                                    const auto indexB) {
+                const auto& photoA = m_allPhotos[indexA];
+                const auto& photoB = m_allPhotos[indexB];
                 if (byName && photoA.name() != photoB.name())
-                        return order ? hotoA.name() < photoB.name()
-                                       : hotoA.name() > photoB.name();
-                if (byDate && photoA.dateTaken().value() != photoB.dateTaken())
-                        return order ? photoA.dateTaken() < photoB.dateTaken()
-                                       : photoA.dateTaken() > photoB.dateTaken();
+                        return ascending ? photoA.name() < photoB.name()
+                                         : photoA.name() > photoB.name();
                 if (bySize && photoA.sizeOnDisk() != photoB.sizeOnDisk())
-                        return order ? photoA.sizeOnDisk() < photoB.sizeOnDisk()
-                                       : photoA.sizeOnDisk() > photoB.sizeOnDisk();
+                        return ascending ? photoA.sizeOnDisk() < photoB.sizeOnDisk()
+                                         : photoA.sizeOnDisk() > photoB.sizeOnDisk();
+                if (byDate && photoA.dateTaken() != photoB.dateTaken())
+                        return ascending ? photoA.dateTaken() < photoB.dateTaken()
+                                         : photoA.dateTaken() > photoB.dateTaken();
 
-                return fasle;
+                return false;
         };
 
         emit layoutAboutToBeChanged();
-        std::ranges::sort(m_visiblePhotos,
-                  comparator);
+        std::ranges::sort(m_visibleIndexes,
+                          comparator);
+        rebuildPersistentIndexMap();
 
         emit layoutChanged();
+
+        return true;
+}
+
+void NfBrowserModel::rebuildPersistentIndexMap()
+{
+        m_itemsMap.clear();
+        for (int row = 0; row < static_cast<int>(m_visibleIndexes.size()); ++row) {
+                const auto& id = photoByIndex(m_visibleIndexes[row]).id();
+                m_itemsMap[id] = QPersistentModelIndex(index(row));
+        }
+}
+
+const NfPhoto& NfBrowserModel::photoByIndex(size_t i) const
+{
+        return m_allPhotos[i];
 }
 
 QModelIndex NfBrowserModel::indexForPhotoId(const NfPhotoId& photoId) const
@@ -170,23 +188,24 @@ QModelIndex NfBrowserModel::indexForPhotoId(const NfPhotoId& photoId) const
 
 int NfBrowserModel::rowCount(const QModelIndex& parent) const
 {
-        return parent.isValid() ? 0 : static_cast<int>(m_visiblePhotos.size());
+        return parent.isValid() ? 0 : static_cast<int>(m_visibleIndexes.size());
 }
 
 QVariant NfBrowserModel::data(const QModelIndex& index, int role) const
 {
-        if (!index.isValid() || index.row() >= m_visiblePhotos.size())
+        if (!index.isValid() || index.row() >= m_visibleIndexes.size())
                 return QVariant();
 
+        const auto visiblePhotoIndex = m_visibleIndexes[index.row()];
         switch (role) {
         case ImageDataRole::ThumbnailRole:
-                return m_photoProvider->getThumbnail(m_visiblePhotos[index.row()].get());
+                return m_photoProvider->getThumbnail(photoByIndex(visiblePhotoIndex));
         case ImageDataRole::PreviewRole:
                 return getPreview(index);
         case Qt::DisplayRole:
                 return QString("Photo %1").arg(index.row() + 1);
         case ImageDataRole::PhotoRole:
-                return QVariant::fromValue(m_visiblePhotos[index.row()].get());
+                return QVariant::fromValue(photoByIndex(visiblePhotoIndex));
         default:
                 return QVariant();
         }
@@ -194,20 +213,21 @@ QVariant NfBrowserModel::data(const QModelIndex& index, int role) const
 
 QPixmap NfBrowserModel::getPreview(const QModelIndex& index) const
 {
-        if (!index.isValid() || index.row() >= m_visiblePhotos.size())
+        if (!index.isValid() || index.row() >= m_visibleIndexes.size())
                 return QPixmap();
 
         auto centerRow = index.row();
-        const auto& previewImage = m_photoProvider->getPreview(m_visiblePhotos[centerRow]);
+        const auto &photo = photoByIndex(m_visibleIndexes[centerRow]);
+        const auto& previewImage = m_photoProvider->getPreview(photo);
 
         int start = std::max(0, centerRow - m_previewRange);
-        int end   = std::min(static_cast<int>(m_visiblePhotos.size()) - 1,
+        int end   = std::min(static_cast<int>(m_visibleIndexes.size()) - 1,
                              centerRow + m_previewRange);
 
         for (int i = start; i <= end; ++i) {
                 if (i == centerRow)
                         continue;
-                m_photoProvider->prefetchPreview(m_visiblePhotos[i]);
+                m_photoProvider->prefetchPreview(photoByIndex(m_visibleIndexes[i]));
         }
 
         return previewImage;
@@ -216,50 +236,39 @@ QPixmap NfBrowserModel::getPreview(const QModelIndex& index) const
 void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 {
         // Keep the index of the first new photo to add.
-        const auto firstNewPhoto = m_allPhotos.size();
+        const auto firstNewIndex = m_allPhotos.size();
 
         m_allPhotos.reserve(m_allPhotos.size() + newPhotos.size());
         m_allPhotos.insert(m_allPhotos.end(),
                            newPhotos.begin(),
                            newPhotos.end());
 
-        // Filter the visible photos into a temporary vector of references.
-        auto newVisiblePhotos = std::vector<std::reference_wrapper<const NfPhoto>>{};
-        auto visiblePhotoRefs = m_allPhotos
-                | std::views::drop(firstNewPhoto)
-                | std::views::filter([this](const auto& photo) {
-                        return acceptsPhoto(photo);
-                  })
-                | std::views::transform([](const auto& photo) {
-                        return std::cref(photo);
-                  });
+        // Filter new photo indexes
+        auto newVisibleIndexes = std::views::iota(firstNewIndex,
+                                                  m_allPhotos.size())
+                | std::views::filter([this](std::size_t index) {
+                        return acceptsPhoto(photoByIndex(index));
+                });
 
-        // Copy the filtered view into a vector to allow random access.
-        std::ranges::copy(visiblePhotoRefs,
-                          std::back_inserter(newVisiblePhotos));
-
-        if (newVisiblePhotos.empty())
+        const auto newVisibleCount = std::ranges::distance(newVisibleIndexes);
+        if (newVisibleCount == 0)
                 return;
 
         // Calculate the new insertion index range.
-        const auto firstNewVisible = m_visiblePhotos.size();
-        const auto lastNewVisible = firstNewVisible + newVisiblePhotos.size() - 1;
+        const auto firstNewVisibleIndex = m_visibleIndexes.size();
+        const auto lastNewVisibleIndex  = firstNewVisibleIndex + newVisibleCount - 1;
 
         beginInsertRows(QModelIndex(),
-                        static_cast<int>(firstNewVisible),
-                        static_cast<int>(lastNewVisible));
+                        static_cast<int>(firstNewVisibleIndex),
+                        static_cast<int>(lastNewVisibleIndex));
 
-        // Move the new visible photo references into the visible references vector.
-        m_visiblePhotos.insert(m_visiblePhotos.end(),
-                               std::make_move_iterator(newVisiblePhotos.begin()),
-                               std::make_move_iterator(newVisiblePhotos.end()));
+        std::ranges::copy(newVisibleIndexes,
+                          std::back_inserter(m_visibleIndexes));
 
         endInsertRows();
 
-        for (auto i = firstNewVisible; i < m_visiblePhotos.size(); ++i) {
-                const auto& photo = m_visiblePhotos[i].get();
-                m_itemsMap[photo.id()] = QPersistentModelIndex(index(i));
-        }
+        if (!sortPhotos())
+                rebuildPersistentIndexMap();
 
         emit photoIndexesUpdated();
 }
@@ -295,11 +304,13 @@ void NfBrowserModel::prefetchPage(int firstVisible, int pageSize)
         int start = firstVisible + pageSize;
         int end = start + pageSize;
 
-        end = std::min(end, static_cast<int>(m_visiblePhotos.size()));
+        end = std::min(end, static_cast<int>(m_visibleIndexes.size()));
 
         NF_LOG_DEBUG("prefetch start: " << start << ", end: " << end);
 
-        for (int row = start; row < end; ++row)
-                m_photoProvider->prefetchThumbnail(m_visiblePhotos[row].get());
+        for (int row = start; row < end; ++row) {
+                const auto& photo = photoByIndex(m_visibleIndexes[row]);
+                m_photoProvider->prefetchThumbnail(photo);
+        }
 }
 } // namespace NfDesktop

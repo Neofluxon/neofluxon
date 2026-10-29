@@ -31,7 +31,7 @@ namespace NfCore {
 
 class NfPhotoId {
 public:
-        explicit NfPhotoId(const std::filesystem::path& filePath);
+        explicit NfPhotoId(const std::filesystem::path& filePath = {});
 
         bool operator==(const NfPhotoId& other) const;
         bool operator!=(const NfPhotoId& other) const;

@@ -42,12 +42,11 @@ class NfPhoto {
                 Png
         };
 
-        explicit NfPhoto(const std::filesystem::path &filePath = {},
-                         bool loadInfo = true);
+        NfPhoto();
+        explicit NfPhoto(const std::filesystem::path &filePath);
         const std::filesystem::path& path() const;
         const NfPhotoId& id() const;
         std::string name() const;
-        bool fileExists() const;
         std::optional<std::uintmax_t> sizeOnDisk() const;
         PhotoFormat format() const;
         std::optional<std::chrono::system_clock::time_point> dateTaken() const;
@@ -58,7 +57,6 @@ class NfPhoto {
         std::filesystem::path m_filePath;
         NfPhotoId m_photoId;
         std::string m_name;
-        bool m_fileExists{false};
         std::optional<std::uintmax_t> m_sizeOnDisk;
         PhotoFormat m_format{};
         std::optional<std::chrono::system_clock::time_point> m_dateTaken;
