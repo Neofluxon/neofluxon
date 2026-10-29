@@ -34,18 +34,7 @@ NfPhoto::NfPhoto()
 NfPhoto::NfPhoto(const std::filesystem::path &filePath)
         : m_filePath{filePath}
         , m_photoId{filePath}
-        , m_name{NfFileUtils::pathToUtf8(m_filePath.filename())}
 {
-        if (!m_filePath.empty()
-            && m_photoId.isValid()
-            && NfFileUtils::fileExists(m_filePath)) {
-                m_sizeOnDisk = NfFileUtils::fileSize(m_filePath);
-                m_format = determineFormat(m_filePath);
-                NfPhotoMetadataExtractor extractor(*this);
-                const auto summary = extractor.summaryInfo();
-                if (summary)
-                        m_dateTaken = summary->dateTaken;
-        }
 }
 
 const NfPhotoId& NfPhoto::id() const
@@ -58,44 +47,24 @@ const std::filesystem::path& NfPhoto::path() const
         return m_filePath;
 }
 
-std::string NfPhoto::name() const
+const std::optional<std::string>& NfPhoto::name() const
 {
         return m_name;
 }
 
-std::optional<std::uintmax_t> NfPhoto::sizeOnDisk() const
+const std::optional<std::uintmax_t>& NfPhoto::sizeOnDisk() const
 {
         return m_sizeOnDisk;
 }
 
-NfPhoto::PhotoFormat NfPhoto::format() const
+const std::optional<NfPhoto::PhotoFormat> NfPhoto::format() const
 {
         return m_format;
 }
 
-std::optional<std::chrono::system_clock::time_point> NfPhoto::dateTaken() const
+const std::optional<std::chrono::system_clock::time_point>& NfPhoto::dateTaken() const
 {
         return m_dateTaken;
-}
-
-NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
-{
-        auto ext = path.extension().string();
-        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-        if (ext == ".cr3"
-            || ext == ".cr2"
-            || ext == ".dng"
-            || ext == ".raf"
-            || ext == ".nef")
-                return PhotoFormat::Raw;
-
-        if (ext == ".jpg" || ext == ".jpeg")
-                return PhotoFormat::Jpeg;
-        if (ext == ".png")
-                return PhotoFormat::Png;
-
-        return PhotoFormat::Unknown;
 }
 
 } // namespace NfCore

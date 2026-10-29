@@ -42,23 +42,24 @@ class NfPhoto {
                 Png
         };
 
-        NfPhoto();
-        explicit NfPhoto(const std::filesystem::path &filePath);
+        explicit NfPhoto(const std::filesystem::path &filePath = {});
         const std::filesystem::path& path() const;
         const NfPhotoId& id() const;
-        std::string name() const;
+        std::string setName(std::string_view &name) const;
+        std::optional<std::uintmax_t> name() const;
+        void setSizeOnDisk(std::uintmax_t size);
         std::optional<std::uintmax_t> sizeOnDisk() const;
-        PhotoFormat format() const;
+        void setFormat(std::optional<PhotoFormat> f);
+        std::optional<PhotoFormat> format() const;
+        void setDateTaken(std::optional<std::chrono::system_clock::time_point>) const;
         std::optional<std::chrono::system_clock::time_point> dateTaken() const;
 
  private:
-        PhotoFormat determineFormat(const std::filesystem::path& path);
-
         std::filesystem::path m_filePath;
         NfPhotoId m_photoId;
         std::string m_name;
         std::optional<std::uintmax_t> m_sizeOnDisk;
-        PhotoFormat m_format{};
+        std::optional<PhotoFormat> m_format;
         std::optional<std::chrono::system_clock::time_point> m_dateTaken;
 };
 
