@@ -53,8 +53,11 @@ class NfPhoto {
         std::optional<PhotoFormat> format() const;
         void setDateTaken(std::optional<std::chrono::system_clock::time_point>) const;
         std::optional<std::chrono::system_clock::time_point> dateTaken() const;
+        bool loadSummary();
 
  private:
+        PhotoFormat determineFormat(const std::filesystem::path& path);
+
         std::filesystem::path m_filePath;
         NfPhotoId m_photoId;
         std::string m_name;

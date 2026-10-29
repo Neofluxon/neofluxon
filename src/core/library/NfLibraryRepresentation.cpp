@@ -122,12 +122,8 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t id) const
 {
         NF_LOG_DEBUG("called");
-        std::vector<NfPhoto> photos;
-        auto imagePaths = m_database->getImagePathsByFolderId(id, m_libraryId);
-        for (const auto &path : imagePaths)
-                photos.emplace_back(path);
-
-        return photos;
+        const auto imageRecords = m_database->getImagesByFolderId(id, m_libraryId);
+        return imageRecords.toPhotos();
 }
 
 std::vector<NfPhoto>
@@ -135,24 +131,16 @@ NfLibraryRepresentation::queryPhotosByDateRange(const NfDateRange &dateRange) co
 {
         NF_LOG_DEBUG("range: " << dateRange.start_ticks << ", " << dateRange.end_ticks);
 
-        std::vector<NfPhoto> photos;
-        auto imagePaths = m_database->getImagePathsByDate(dateRange, m_libraryId);
-        for (const auto &path : imagePaths)
-                photos.emplace_back(path);
-
-        return photos;
+        const auto imageRecords = m_database->getImagesByDate(dateRange, m_libraryId);
+        return imageRecords.toPhotos();
 }
 
 std::vector<NfPhoto>
 NfLibraryRepresentation::queryPhotosByEquipment(const NfEquipmentQuery& equipment) const
 {
-        std::vector<NfPhoto> photos;
-        const auto imagePaths = m_database->getImagePathsByEquipment(equipment,
-                                                                      m_libraryId);
-        for (const auto& path : imagePaths)
-                photos.emplace_back(path);
-
-        return photos;
+        const auto imageRecords = m_database->getImagesByEquipment(equipment,
+                                                                   m_libraryId);
+        return imageRecords.toPhotos();
 }
 
 void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)

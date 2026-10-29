@@ -99,6 +99,9 @@ void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& pa
                         return;
 
                 NfPhoto photo(path);
+                if (photo.loadSummary()) {
+                        NF_LOG_DEBUG("error on loading photo summary: " << photo.path());
+                }
 
                 NF_LOG_DEBUG("NEW PHOTO: " << photo.path());
                 m_photoFoundCb(std::move(photo), generationId());

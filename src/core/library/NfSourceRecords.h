@@ -52,6 +52,16 @@ struct NfRepresentationRecord {
         std::unique_ptr<NfSourceRecord> sourceData;
 };
 
+struct NfImageRecrod {
+        std::string path;
+        std::string name;
+        std::uintmax_t sizeOnDisk;
+        NfPhoto::PhotoFormat format;
+        std::chrono::system_clock::time_point datetimeTaken;
+};
+
+using NfImageRecrods = std::vector<NfImageRecrod>;
+
 // Represents the Year/Month/Day tree data
 struct NfDatetimeEntry {
         int64_t timestamp;

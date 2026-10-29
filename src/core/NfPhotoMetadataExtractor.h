@@ -41,7 +41,7 @@ public:
         std::optional<NfPhotoMetadata> metadata() const;
 
 private:
-        NfPhoto m_photo;
+        const NfPhoto& m_photo;
 };
 
 }; // namespace NfCore

@@ -99,7 +99,7 @@ public:
                          int64_t timestamp,
                          int64_t cameraId,
                          int64_t lensId);
-        std::vector<std::filesystem::path> getImagePathsByFolderId(int64_t folderId,
+        std::vector<std::filesystem::path> getImagesPathsByFolderId(int64_t folderId,
                                                                     int64_t libraryId) const;
         std::vector<std::filesystem::path> getImagePathsByDate(const NfDateRange& dateRange,
                                                                int64_t libraryId) const;

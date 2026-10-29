@@ -120,6 +120,12 @@ NfLibraryFolderImportTask::importPhotosFromDirectory(const std::filesystem::path
                 if (isCancelled())
                         return TaskStatus::Cancelled;
 
+                if (!nextPhoto->loadSummary()) {
+                        NF_LOG_ERROR("failed to load photo summary: "
+                                     << nextPhoto.path());
+                        return TaskStatus::Failed;
+                }
+
                 m_library->addPhoto(*nextPhoto.value());
         }
 
