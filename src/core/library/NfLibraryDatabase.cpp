@@ -141,18 +141,29 @@ bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
         );
 
         CREATE TABLE IF NOT EXISTS images (
-            id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            folder_id       INTEGER NOT NULL,
-            file_name       TEXT NOT NULL,
-            lens_id         INTEGER,
-            camera_id       INTEGER,
-            datetime_taken  INTEGER,
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            folder_id           INTEGER NOT NULL,
+            file_name           TEXT NOT NULL,
+            file_size           INTEGER NOT NULL DEFAULT 0,
+            format              INTEGER NOT NULL,
+            orientation         INTEGER,
+            rating              INTEGER NOT NULL DEFAULT 0
+                                CHECK (rating BETWEEN 0 AND 5),
+            lens_id             INTEGER,
+            camera_id           INTEGER,
+            datetime_taken      INTEGER,
+            datetime_modified   INTEGER,
+            datetime_imported   INTEGER NOT NULL,
 
-            FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
-            FOREIGN KEY (camera_id) REFERENCES cameras(id) ON DELETE SET NULL,
-            FOREIGN KEY (lens_id)   REFERENCES lenses(id)  ON DELETE SET NULL,
-            UNIQUE (folder_id, file_name)
-        );
+            FOREIGN KEY (folder_id) REFERENCES folders(id)
+                ON DELETE CASCADE,
+            FOREIGN KEY (camera_id) REFERENCES cameras(id)
+                ON DELETE SET NULL,
+            FOREIGN KEY (lens_id) REFERENCES lenses(id)
+                ON DELETE SET NULL,
+
+           UNIQUE (folder_id, file_name)
+       );
 
        CREATE INDEX IF NOT EXISTS idx_images_camera_id
           ON images(camera_id);

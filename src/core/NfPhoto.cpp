@@ -35,12 +35,12 @@ NfPhoto::NfPhoto(const std::filesystem::path &filePath)
         : m_filePath{filePath}
         , m_photoId{filePath}
         , m_name{NfFileUtils::pathToUtf8(m_filePath.filename())}
-        , m_sizeOnDisk{NfFileUtils::fileSize(m_filePath)}
-        , m_format{determineFormat(m_filePath)}
 {
         if (!m_filePath.empty()
             && m_photoId.isValid()
             && NfFileUtils::fileExists(m_filePath)) {
+                m_sizeOnDisk = NfFileUtils::fileSize(m_filePath);
+                m_format = determineFormat(m_filePath);
                 NfPhotoMetadataExtractor extractor(*this);
                 const auto summary = extractor.summaryInfo();
                 if (summary)
