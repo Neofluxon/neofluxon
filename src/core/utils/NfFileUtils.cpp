@@ -78,4 +78,19 @@ std::optional<std::uintmax_t> NfFileUtils::fileSize(const std::filesystem::path&
         return size;
 }
 
+std::optional<std::chrono::system_clock::time_point>
+NfFileUtils::modificationTime(const std::filesystem::path& path)
+{
+        namespace fs = std::filesystem;
+        std::error_code err;
+        auto modTime = fs::last_write_time(path, err);
+        if (err)
+                return std::nullopt;
+
+        return std::chrono::time_point_cast<
+                std::chrono::system_clock::duration>(
+                modTime - fs::file_time_type::clock::now()
+                + std::chrono::system_clock::now());
+}
+
 } // namespace NfCore

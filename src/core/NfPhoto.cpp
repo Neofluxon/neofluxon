@@ -24,6 +24,7 @@
 #include "NfPhoto.h"
 #include "utils/NfFileUtils.h"
 #include "NfPhotoMetadataExtractor.h"
+#include "NfScopedTimer.h"
 
 namespace NfCore {
 
@@ -43,22 +44,42 @@ const std::filesystem::path& NfPhoto::path() const
         return m_filePath;
 }
 
-const std::optional<std::string>& NfPhoto::name() const
+void NfPhoto::setName(std::string_view name)
+{
+        m_name = name;
+}
+
+const std::string& NfPhoto::name() const
 {
         return m_name;
 }
 
-const std::optional<std::uintmax_t>& NfPhoto::sizeOnDisk() const
+void NfPhoto::setSizeOnDisk(std::uintmax_t size)
+{
+        m_sizeOnDisk = size;
+}
+
+std::uintmax_t NfPhoto::sizeOnDisk() const
 {
         return m_sizeOnDisk;
 }
 
-const std::optional<NfPhoto::PhotoFormat> NfPhoto::format() const
+void NfPhoto::setFormat(PhotoFormat format)
+{
+        m_format = format;
+}
+
+NfPhoto::PhotoFormat NfPhoto::format() const
 {
         return m_format;
 }
 
-const std::optional<std::chrono::system_clock::time_point>& NfPhoto::dateTaken() const
+void NfPhoto::setDateTaken(const std::chrono::system_clock::time_point &date)
+{
+        m_dateTaken = date;
+}
+
+const std::chrono::system_clock::time_point& NfPhoto::dateTaken() const
 {
         return m_dateTaken;
 }
@@ -83,26 +104,80 @@ NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
         return PhotoFormat::Unknown;
 }
 
-bool NfPhoto::loadSummary()
+void NfPhoto::setCameraMaker(std::string_view maker)
 {
+        m_cameraMaker = maker;
+}
+
+const std::string& NfPhoto::cameraMaker() const
+{
+        return m_cameraMaker;
+}
+
+void NfPhoto::setCameraModel(std::string_view model)
+{
+        m_cameraModel = model;
+}
+
+const std::string& NfPhoto::cameraModel() const
+{
+        return m_cameraModel;
+}
+
+void NfPhoto::setLens(std::string_view lens)
+{
+        m_lens = lens;
+}
+
+const std::string& NfPhoto::lens() const
+{
+        return m_lens;
+}
+
+bool NfPhoto::loadSummary(bool fileSystemOnly)
+{
+        NfScopedTimer timer{"NfPhoto::loadSummary: ", name()};
         if (m_filePath.empty()
             || !m_photoId.isValid()
-            || !FileUtils::fileExists(m_filePath))
+            || !NfFileUtils::fileExists(m_filePath))
                 return false;
 
         m_name = NfFileUtils::pathToUtf8(m_filePath.filename());
         if (m_name.empty())
                 return false;
 
-        m_sizeOnDisk = NfFileUtils::fileSize(m_filePath);
-        m_format = determineFormat(m_filePath);
+        m_sizeOnDisk = NfFileUtils::fileSize(m_filePath).value_or(0);
+        if (m_sizeOnDisk == 0)
+                return false;
 
-        NfExifMetadataExtractor extractor(*this);
-        auto summary = extractor.summaryInfo();
-        if (summary)
-                m_dateTaken = summary.dateTaken;
+        m_format = determineFormat(m_filePath);
+        if (m_format == PhotoFormat::Unknown)
+                return false;
+
+        if (fileSystemOnly) {
+                m_dateTaken = NfFileUtils::modificationTime(m_filePath).value_or(
+                                         std::chrono::system_clock::time_point{}
+                              );
+         } else {
+                NfPhotoMetadataExtractor extractor(*this);
+                auto summary = extractor.summaryInfo();
+                if (summary) {
+                        m_dateTaken = summary->dateTaken;
+                        m_cameraMaker = summary->cameraMaker;
+                        m_cameraModel = summary->cameraModel;
+                        m_lens = summary->lens;
+                }
+        }
 
         return true;
+}
+
+bool NfPhoto::isValid() const
+{
+        return id().isValid()
+                && !m_name.empty()
+                && m_sizeOnDisk != 0
+                && m_format != PhotoFormat::Unknown;
 }
 
 } // namespace NfCore

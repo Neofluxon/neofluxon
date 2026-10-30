@@ -72,18 +72,13 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
         NfScopedTimer timer{"JPEG decodeScaled", path};
 
         const auto size = photo.sizeOnDisk();
-        if (!size) {
-                NF_LOG_ERROR("can't get image file size: " << path);
-                return nullptr;
-        }
-
-        if (*size == 0) {
+        if (size == 0) {
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::maxCompressedImageSize) {
+        if (size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::maxCompressedImageSize
+                             << size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -94,9 +89,9 @@ NfJpegImageDecoder::decodeScaled(int targetRes) const
                 return nullptr;
         }
 
-        std::vector<unsigned char> jpegBuf(static_cast<std::size_t>(*size));
+        std::vector<unsigned char> jpegBuf(static_cast<std::size_t>(size));
         if (!file.read(reinterpret_cast<char*>(jpegBuf.data()),
-                       static_cast<std::streamsize>(*size))) {
+                       static_cast<std::streamsize>(size))) {
                 NF_LOG_ERROR("can't read image file: " << path);
                 return nullptr;
         }

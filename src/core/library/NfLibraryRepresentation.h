@@ -27,6 +27,7 @@
 #include "NfLibraryTreeNode.h"
 #include "NfEquipmentQuery.h"
 #include "NfPhoto.h"
+#include "NfSourceRecords.h"
 
 #include <memory>
 #include <string>
@@ -76,6 +77,7 @@ protected:
         std::vector<NfPhoto> queryPhotosByEquipment(const NfEquipmentQuery& equipment) const;
 
 private:
+        static std::vector<NfPhoto> imageRecordsToPhotos(const NfImageRecords& records);
 
         NfLibraryDatabase* m_database;
         int64_t m_libraryId;

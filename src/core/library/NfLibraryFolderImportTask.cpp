@@ -107,6 +107,9 @@ NfLibraryFolderImportTask::importPhotosFromDirectory(const std::filesystem::path
         }
 
         while (true) {
+                if (isCancelled())
+                        return TaskStatus::Cancelled;
+
                 auto nextPhoto = photoIterator.next();
                 if (!nextPhoto) {
                         NF_LOG_ERROR("failed to scan photos in folder " << path << ": "
@@ -114,19 +117,19 @@ NfLibraryFolderImportTask::importPhotosFromDirectory(const std::filesystem::path
                         return TaskStatus::Failed;
                 }
 
-                if (!nextPhoto.value())
-                        break;
-
-                if (isCancelled())
-                        return TaskStatus::Cancelled;
-
-                if (!nextPhoto->loadSummary()) {
-                        NF_LOG_ERROR("failed to load photo summary: "
-                                     << nextPhoto.path());
-                        return TaskStatus::Failed;
+                if (!nextPhoto.value()) {
+                        // No photo were found
+                        return TaskStatus::Success;
                 }
 
-                m_library->addPhoto(*nextPhoto.value());
+                auto& photo = *nextPhoto.value();
+                if (!photo.loadSummary()) {
+                        NF_LOG_ERROR("failed to load photo summary: "
+                                     << photo.path());
+                        continue;
+                }
+
+                m_library->addPhoto(photo);
         }
 
         return TaskStatus::Success;

@@ -161,8 +161,10 @@ void NfPhotoProvider::processThumbnails()
 void NfPhotoProvider::processPreviews()
 {
         auto previews = m_photoLoader->takePreviews();
-        if (!previews.empty())
+        if (!previews.empty()) {
+                NF_LOG_DEBUG("emit previewsLoaded: " << previews.size());
                 emit previewsLoaded(previews);
+        }
 }
 
 } // namespace NfUi

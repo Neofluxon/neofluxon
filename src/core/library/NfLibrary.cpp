@@ -89,10 +89,8 @@ void NfLibrary::addFolder(const std::filesystem::path& folder)
 void NfLibrary::addPhoto(const NfPhoto& photo)
 {
         NF_LOG_DEBUG("add photo: " << photo.path());
-
-        auto info = NfPhotoMetadataExtractor(photo).summaryInfo();
-        if (!info) {
-                NF_LOG_ERROR("Failed extract photo info: " << photo.path());
+        if (!photo.isValid()) {
+                NF_LOG_ERROR("invalid photo: " << photo.path());
                 return;
         }
 
@@ -105,23 +103,25 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
 
         NF_LOG_DEBUG("folder id: " << folderId);
 
-        int cameraId = storeCamera(info->cameraMaker, info->cameraModel);
-        int lensId   = storeLens(info->lens);
-
-        if (cameraId == -2 || lensId == -2)
-                return;
-
+        int cameraId = storeCamera(photo.cameraMaker(),
+                                   photo.cameraModel());
+        int lensId   = storeLens(photo.lens());
         auto id = m_db->addImage(folderId,
                                  photo.name(),
-                                 info->dateTaken.time_since_epoch().count(),
+                                 photo.format(),
+                                 photo.sizeOnDisk(),
+                                 photo.dateTaken().time_since_epoch().count(),
                                  cameraId,
                                  lensId);
+
         if (id < 0) {
-                NF_LOG_ERROR("Failed to add image entry: " << photo.name());
+                NF_LOG_ERROR("Failed to add photo entry: " << photo.path());
                 return;
         }
 
         tx.commit();
+
+        NF_LOG_DEBUG("photo added: " << photo.path());
 }
 
 std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const

@@ -23,6 +23,7 @@
 
 #include "NfFilesystemPhotoScanTask.h"
 #include "NfLogger.h"
+#include "NfFileUtils.h"
 
 #include <filesystem>
 
@@ -78,7 +79,8 @@ NfTask::TaskStatus NfFilesystemPhotoScanTask::execute()
                         scan(it, end);
                 }
         }
-        catch (const fs::filesystem_error&) {
+        catch (const fs::filesystem_error& error) {
+                NF_LOG_ERROR("scan failed: " << error.what());
                 return TaskStatus::Failed;
         }
 
@@ -87,26 +89,30 @@ NfTask::TaskStatus NfFilesystemPhotoScanTask::execute()
 
 void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& path)
 {
+        NF_LOG_DEBUG("process: " << path);
+
         try {
                 if (!fs::is_regular_file(path))
                         return;
 
-                std::string ext = path.extension().string();
-                std::transform(ext.begin(), ext.end(), ext.begin(),
-                               [](unsigned char c) { return std::tolower(c); });
+                auto ext = "." + NfFileUtils::extension(path,
+                                                        NfFileUtils::Case::Lower);
+                NF_LOG_DEBUG("extension: " << ext);
 
-                if (!m_photoExtentions.contains(ext))
+                if (ext.empty() || !m_photoExtentions.contains(ext))
                         return;
 
                 NfPhoto photo(path);
-                if (photo.loadSummary()) {
+                if (!photo.loadSummary(true)) {
                         NF_LOG_DEBUG("error on loading photo summary: " << photo.path());
+                        return;
                 }
 
                 NF_LOG_DEBUG("NEW PHOTO: " << photo.path());
+
                 m_photoFoundCb(std::move(photo), generationId());
-        }
-        catch (const fs::filesystem_error&) {
+        } catch (const fs::filesystem_error&) {
+                NF_LOG_DEBUG("error processing path: " << path);
         }
 }
 

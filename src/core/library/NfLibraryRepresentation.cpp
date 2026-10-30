@@ -89,6 +89,7 @@ NfLibraryTreeNode* NfLibraryRepresentation::getTree()
 
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &query) const
 {
+        NF_LOG_DEBUG("Representation; queryPhotos");
         switch (query.representationType) {
         case RepresentationType::Canonical:
                 NF_LOG_DEBUG("Representation: Canonical");
@@ -122,8 +123,8 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 std::vector<NfPhoto> NfLibraryRepresentation::queryPhotosByPathId(uint64_t id) const
 {
         NF_LOG_DEBUG("called");
-        const auto imageRecords = m_database->getImagesByFolderId(id, m_libraryId);
-        return imageRecords.toPhotos();
+        const NfImageRecords imageRecords = m_database->getImagesByFolderId(id, m_libraryId);
+        return imageRecordsToPhotos(imageRecords);
 }
 
 std::vector<NfPhoto>
@@ -131,16 +132,16 @@ NfLibraryRepresentation::queryPhotosByDateRange(const NfDateRange &dateRange) co
 {
         NF_LOG_DEBUG("range: " << dateRange.start_ticks << ", " << dateRange.end_ticks);
 
-        const auto imageRecords = m_database->getImagesByDate(dateRange, m_libraryId);
-        return imageRecords.toPhotos();
+        const NfImageRecords imageRecords = m_database->getImagesByDate(dateRange, m_libraryId);
+        return imageRecordsToPhotos(imageRecords);
 }
 
 std::vector<NfPhoto>
 NfLibraryRepresentation::queryPhotosByEquipment(const NfEquipmentQuery& equipment) const
 {
-        const auto imageRecords = m_database->getImagesByEquipment(equipment,
+        const NfImageRecords imageRecords = m_database->getImagesByEquipment(equipment,
                                                                    m_libraryId);
-        return imageRecords.toPhotos();
+        return imageRecordsToPhotos(imageRecords);
 }
 
 void NfLibraryRepresentation::populateTree(const NfRepresentationRecord *rep)
@@ -354,6 +355,27 @@ void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord
 
                 nodeMap.emplace(folder.path, node);
         }
+}
+
+std::vector<NfPhoto>
+NfLibraryRepresentation::imageRecordsToPhotos(const NfImageRecords& records)
+{
+        std::vector<NfPhoto> photos;
+        for (const auto& record: records) {
+                NfPhoto photo(record.path);
+                if (!photo.id().isValid()) {
+                        NF_LOG_DEBUG("photo invalid: " << photo.path());
+                        continue;
+                }
+
+                photo.setName(record.name);
+                photo.setSizeOnDisk(record.sizeOnDisk);
+                photo.setFormat(record.format);
+                photo.setDateTaken(record.dateTaken);
+                photos.emplace_back(std::move(photo));
+        }
+
+        return photos;
 }
 
 } // namespace NfCore

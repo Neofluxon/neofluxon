@@ -77,17 +77,13 @@ std::unique_ptr<NfImageData> NfPngImageDecoder::fullImageData(bool) const
         NfScopedTimer timer{"PNG fullImageData", path};
 
         const auto size = photo.sizeOnDisk();
-        if (!size) {
-                NF_LOG_ERROR("can't get image file size: " << path);
-                return nullptr;
-        }
-        if (*size == 0) {
+        if (size == 0) {
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::maxCompressedImageSize) {
+        if (size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::maxCompressedImageSize
+                             << size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }

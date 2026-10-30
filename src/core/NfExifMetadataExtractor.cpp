@@ -48,7 +48,7 @@ const char* formatName(NfPhoto::PhotoFormat format)
         case NfPhoto::PhotoFormat::Png:
                 return "PNG";
         default:
-                return "unknown";
+                return "Unknown";
         }
 }
 
@@ -148,8 +148,8 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
 {
         const auto& path = m_photo.path();
 
-        const auto format = formatName(m_photo.format());
-        NF_LOG_DEBUG("read " << format << " metadata: " << path);
+        const auto formatText = formatName(m_photo.format());
+        NF_LOG_DEBUG("read " << formatText << " metadata: " << path);
 
         try {
                 auto image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
@@ -166,10 +166,10 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
                 NfPhotoMetadata metadata;
                 metadata.width = static_cast<int>(image->pixelWidth());
                 metadata.height = static_cast<int>(image->pixelHeight());
-                metadata.format = format;
+                metadata.format = formatText;
 
                 if (const auto fileSize = m_photo.sizeOnDisk())
-                        metadata.fileSize = static_cast<std::int64_t>(*fileSize);
+                        metadata.fileSize = static_cast<std::int64_t>(fileSize);
 
                 metadata.cameraMaker = exifString(exif, "Exif.Image.Make");
                 metadata.cameraModel = exifString(exif, "Exif.Image.Model");
@@ -245,12 +245,12 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
                 return metadata;
         }
         catch (const Exiv2::Error& error) {
-                NF_LOG_ERROR("can't read " << format << " metadata from " << path
+                NF_LOG_ERROR("can't read " << formatText << " metadata from " << path
                              << ": " << error.what());
                 return std::nullopt;
         }
         catch (const std::exception& error) {
-                NF_LOG_ERROR("can't parse " << format << " metadata from " << path
+                NF_LOG_ERROR("can't parse " << formatText << " metadata from " << path
                              << ": " << error.what());
                 return std::nullopt;
         }

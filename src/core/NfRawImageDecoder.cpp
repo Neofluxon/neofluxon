@@ -63,7 +63,7 @@ std::optional<NfPhotoMetadata> NfRawImageDecoder::metadata() const
                 metadata.cameraAspectRatio = sizes.raw_aspect / 1000.0;
         metadata.format = NfFileUtils::extension(photoPath, NfFileUtils::Case::Upper);
         if (const auto size = photo.sizeOnDisk())
-                metadata.fileSize = static_cast<std::int64_t>(*size);
+                metadata.fileSize = static_cast<std::int64_t>(size);
         metadata.cameraMaker = idata.make;
         metadata.cameraModel = idata.model;
         metadata.lens = lens.makernotes.Lens;
@@ -114,19 +114,14 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
         NfScopedTimer timer{"RAW thumbnailImageData", path};
 
         const auto size = photo.sizeOnDisk();
-        if (!size) {
-                NF_LOG_ERROR("can't get image file size: " << path);
-                return nullptr;
-        }
-
-        if (*size == 0) {
+        if (size == 0) {
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
 
-        if (*size > NfLimits::maxCompressedImageSize) {
+        if (size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::maxCompressedImageSize
+                             << size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -190,17 +185,13 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
         NfScopedTimer timer{"RAW previewImageData", path};
 
         const auto size = photo.sizeOnDisk();
-        if (!size) {
-                NF_LOG_ERROR("can't get image file size: " << path);
-                return nullptr;
-        }
-        if (*size == 0) {
+        if (size == 0) {
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::maxCompressedImageSize) {
+        if (size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::maxCompressedImageSize
+                             << size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }
@@ -263,17 +254,13 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::fullImageData(bool reducedResolu
 
         const auto size = photo.sizeOnDisk();
         const auto& path = photo.path();
-        if (!size) {
-                NF_LOG_ERROR("can't get image file size: " << path);
-                return nullptr;
-        }
-        if (*size == 0) {
+        if (size == 0) {
                 NF_LOG_ERROR("image file is empty: " << path);
                 return nullptr;
         }
-        if (*size > NfLimits::maxCompressedImageSize) {
+        if (size > NfLimits::maxCompressedImageSize) {
                 NF_LOG_ERROR("maximum compressed image size exceeded ("
-                             << *size << " > " << NfLimits::maxCompressedImageSize
+                             << size << " > " << NfLimits::maxCompressedImageSize
                              << " bytes): " << path);
                 return nullptr;
         }

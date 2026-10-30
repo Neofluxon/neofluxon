@@ -30,6 +30,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 
 namespace NfCore {
 
@@ -45,15 +46,22 @@ class NfPhoto {
         explicit NfPhoto(const std::filesystem::path &filePath = {});
         const std::filesystem::path& path() const;
         const NfPhotoId& id() const;
-        std::string setName(std::string_view &name) const;
-        std::optional<std::uintmax_t> name() const;
+        void setName(std::string_view name);
+        const std::string& name() const;
         void setSizeOnDisk(std::uintmax_t size);
-        std::optional<std::uintmax_t> sizeOnDisk() const;
-        void setFormat(std::optional<PhotoFormat> f);
-        std::optional<PhotoFormat> format() const;
-        void setDateTaken(std::optional<std::chrono::system_clock::time_point>) const;
-        std::optional<std::chrono::system_clock::time_point> dateTaken() const;
-        bool loadSummary();
+        std::uintmax_t sizeOnDisk() const;
+        void setFormat(PhotoFormat format);
+        NfPhoto::PhotoFormat format() const;
+        void setDateTaken(const std::chrono::system_clock::time_point &date);
+        const std::chrono::system_clock::time_point& dateTaken() const;
+        void setCameraMaker(std::string_view maker);
+        const std::string& cameraMaker() const;
+        void setCameraModel(std::string_view model);
+        const std::string& cameraModel() const;
+        void setLens(std::string_view lens);
+        const std::string& lens() const;
+        bool isValid() const;
+        bool loadSummary(bool fileSystemOnly = false);
 
  private:
         PhotoFormat determineFormat(const std::filesystem::path& path);
@@ -61,9 +69,12 @@ class NfPhoto {
         std::filesystem::path m_filePath;
         NfPhotoId m_photoId;
         std::string m_name;
-        std::optional<std::uintmax_t> m_sizeOnDisk;
-        std::optional<PhotoFormat> m_format;
-        std::optional<std::chrono::system_clock::time_point> m_dateTaken;
+        std::uintmax_t m_sizeOnDisk{0};
+        PhotoFormat m_format{};
+        std::chrono::system_clock::time_point m_dateTaken{};
+        std::string m_cameraMaker;
+        std::string m_cameraModel;
+        std::string m_lens;
 };
 
 } // namespace NfCore

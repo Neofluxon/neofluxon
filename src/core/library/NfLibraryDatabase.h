@@ -26,7 +26,9 @@
 
 #include "NfLibraryRepresentation.h"
 #include "NfEquipmentQuery.h"
+#include "NfSourceRecords.h"
 
+#include <cstdint>
 #include <sqlite3.h>
 #include <filesystem>
 #include <string>
@@ -96,20 +98,19 @@ public:
         int64_t addFolder(const std::filesystem::path& path, int64_t libraryId);
         int64_t addImage(int64_t folderId,
                          const std::string& fileName,
+                         NfPhoto::PhotoFormat format,
+                         std::uintmax_t sizeOnDisk,
                          int64_t timestamp,
                          int64_t cameraId,
                          int64_t lensId);
-        std::vector<std::filesystem::path> getImagesPathsByFolderId(int64_t folderId,
-                                                                    int64_t libraryId) const;
-        std::vector<std::filesystem::path> getImagePathsByDate(const NfDateRange& dateRange,
-                                                               int64_t libraryId) const;
-        std::vector<std::filesystem::path> getImagePathsByEquipment(
-                const NfEquipmentQuery& equipment,
-                int64_t libraryId) const;
-
+        NfImageRecords getImagesByFolderId(int64_t folderId,
+                                           int64_t libraryId) const;
+        NfImageRecords getImagesByDate(const NfDateRange& dateRange,
+                                       int64_t libraryId) const;
+        NfImageRecords getImagesByEquipment(const NfEquipmentQuery& equipment,
+                                            int64_t libraryId) const;
         int64_t getFolderIdByPath(const std::filesystem::path& folder,
                                   int64_t libraryId) const;
-
         int64_t addCamera(std::string_view maker,
                           std::string_view model);
         int64_t addLens(std::string_view lens);

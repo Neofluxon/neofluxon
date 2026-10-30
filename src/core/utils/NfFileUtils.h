@@ -45,6 +45,7 @@ public:
                                      Case casing = Case::Preserve);
         static bool fileExists(const std::filesystem::path& path);
         static std::optional<std::uintmax_t> fileSize(const std::filesystem::path& path);
+        static std::optional<std::chrono::system_clock::time_point> modificationTime(const std::filesystem::path& path);
 };
 
 } // namespace NfCore

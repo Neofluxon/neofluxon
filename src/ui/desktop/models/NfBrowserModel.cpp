@@ -67,7 +67,7 @@ void NfBrowserModel::setSource(NfPhotoSource source)
 
 void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& formats)
 {
-        if (m_formatFilter == formats)
+        /*if (m_formatFilter == formats)
                 return;
 
         m_formatFilter = formats;
@@ -77,27 +77,27 @@ void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& forma
 
         rebuildPersistentIndexMap();
 
-        emit photoIndexesUpdated();
+        emit photoIndexesUpdated();*/
 }
 
 void NfBrowserModel::setSortFields(const NfUiBrowserState::SortFields &fields)
 {
-        NF_LOG_DEBUG(" setSortFields(const NfUiBrowserState::SortFields &fields) ...BEGIN");
+        /*NF_LOG_DEBUG(" setSortFields(const NfUiBrowserState::SortFields &fields) ...BEGIN");
         if (m_sortFields == fields)
                 return;
 
         m_sortFields = fields;
-        sortPhotos();
+        sortPhotos();*/
 }
 
 void NfBrowserModel::setSortOrder(const NfUiBrowserState::SortOrder sortOrder)
 {
-        NF_LOG_DEBUG(" setSortOrder(const NfUiBrowserState::SortFields &fields) ...BEGIN");
+        /*NF_LOG_DEBUG(" setSortOrder(const NfUiBrowserState::SortFields &fields) ...BEGIN");
         if (m_sortOrder == sortOrder)
                 return;
 
         m_sortOrder = sortOrder;
-        sortPhotos();
+        sortPhotos();*/
 }
 
 NfPhotoSource NfBrowserModel::getSource() const
@@ -247,7 +247,7 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
         auto newVisibleIndexes = std::views::iota(firstNewIndex,
                                                   m_allPhotos.size())
                 | std::views::filter([this](std::size_t index) {
-                        return acceptsPhoto(photoByIndex(index));
+                        return acceptsPhoto(m_allPhotos[index]);
                 });
 
         const auto newVisibleCount = std::ranges::distance(newVisibleIndexes);
@@ -267,8 +267,8 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 
         endInsertRows();
 
-        if (!sortPhotos())
-                rebuildPersistentIndexMap();
+        //if (!sortPhotos())
+        rebuildPersistentIndexMap();
 
         emit photoIndexesUpdated();
 }
@@ -279,14 +279,22 @@ void NfBrowserModel::onThumbnailsLoaded(const std::vector<NfPhotoId> &ids)
         std::ranges::for_each(ids, [this](auto& id) {
                 if (auto it = m_itemsMap.find(id); it != m_itemsMap.end()) {
                         const auto& idx = it->second;
-                        if (idx.isValid())
+                        NF_LOG_DEBUG("IN THE MAP: " << id.value());
+                        if (idx.isValid()) {
+                                NF_LOG_DEBUG("IN THE MAP EMIT: " << id.value());
                                 emit dataChanged(idx, idx, {ImageDataRole::ThumbnailRole});
+                        } else {
+                                NF_LOG_DEBUG("INDEX NOT VALID : " << id.value());
+                        }
+                } else {
+                        NF_LOG_DEBUG("NOT IN THE MAP!: " << id.value());
                 }
         });
 }
 
 void NfBrowserModel::onPreviewsLoaded(const std::vector<NfPhotoId> &ids)
 {
+        NF_LOG_DEBUG("PREVIEWS LOADED: " << ids.size());
         std::ranges::for_each(ids, [this](auto& id) {
                 if (auto it = m_itemsMap.find(id); it != m_itemsMap.end()) {
                         const auto& idx = it->second;

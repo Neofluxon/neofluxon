@@ -26,6 +26,7 @@
 #include "NfJpegImageDecoder.h"
 #include "NfPngImageDecoder.h"
 #include "NfRawImageDecoder.h"
+#include "NfLogger.h"
 
 namespace NfCore {
 
@@ -40,6 +41,7 @@ std::unique_ptr<NfImageDecoder> NfImageDecoderFactory::createDecoder(const NfPho
                 return std::make_unique<NfPngImageDecoder>(photo);
                 break;
         case NfPhoto::PhotoFormat::Unknown:
+                NF_LOG_ERROR("unknown file format");
         default:
                 return nullptr;
         }
