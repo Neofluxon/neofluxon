@@ -22,6 +22,7 @@
  */
 
 #include "NfImageData.h"
+#include "NfLimits.h"
 
 #include <turbojpeg.h>
 #include <cstring>
@@ -146,8 +147,20 @@ NfImageData::ImageFormat NfImageData::format() const
 
 bool NfImageData::convertToARGB32Premultiplied()
 {
+        if (m_width <= 0 || m_height <= 0)
+                return false;
+
+        const auto width = static_cast<size_t>(m_width);
+        const auto height = static_cast<size_t>(m_height);
+        if (width > NfLimits::maxImageDimension
+            || height > NfLimits::maxImageDimension
+            || width > NfLimits::maxDecodedImagePixels / height)
+                return false;
+
+        const auto pixelCount = width * height;
         if (m_format == ImageFormat::Format_ARGB32_Premultiplied)
-                return true;
+                return m_channels == 4 && pixelCount <= m_data.size() / 4
+                        && m_data.size() == pixelCount * 4;
 
         // JPEG -> ARGB Premultiplied
         if (m_format == ImageFormat::Format_JPEG)
@@ -155,13 +168,17 @@ bool NfImageData::convertToARGB32Premultiplied()
 
         // RGB888 (3 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
         if (m_format == ImageFormat::Format_RGB888) {
+                if (m_channels != 3 || pixelCount > m_data.size() / 3
+                    || m_data.size() != pixelCount * 3)
+                        return false;
+
                 std::vector<unsigned char> out;
-                out.resize((size_t)m_width * m_height * 4);
+                out.resize(pixelCount * 4);
 
                 const unsigned char* src = m_data.data();
                 unsigned char* dst = out.data();
 
-                for (int i = 0; i < m_width * m_height; i++) {
+                for (size_t i = 0; i < pixelCount; i++) {
                         // Swap R and B for the ARGB32 integer format (BGRA in memory)
                         dst[i * 4 + 0] = src[i * 3 + 2]; // Blue
                         dst[i * 4 + 1] = src[i * 3 + 1]; // Green
@@ -177,7 +194,8 @@ bool NfImageData::convertToARGB32Premultiplied()
 
         // RGBA8888 (4 bytes) -> ARGB Premultiplied (4 bytes, BGRA layout)
         if (m_format == ImageFormat::Format_RGBA8888) {
-                const size_t pixelCount = (size_t)m_width * (size_t)m_height;
+                if (m_channels != 4 || m_data.size() != pixelCount * 4)
+                        return false;
 
                 std::vector<unsigned char> out(pixelCount * 4);
 
@@ -205,6 +223,7 @@ bool NfImageData::convertToARGB32Premultiplied()
                 }
 
                 m_data = std::move(out);
+                m_channels = 4;
                 m_format = ImageFormat::Format_ARGB32_Premultiplied;
 
                 return true;
@@ -235,8 +254,22 @@ bool NfImageData::jpegToARGBPremultiplied()
                 return false;
         }
 
+        if (w <= 0 || h <= 0) {
+                tjDestroy(tj);
+                return false;
+        }
+
+        const auto width = static_cast<size_t>(w);
+        const auto height = static_cast<size_t>(h);
+        if (width > NfLimits::maxImageDimension
+            || height > NfLimits::maxImageDimension
+            || width > NfLimits::maxDecodedImagePixels / height) {
+                tjDestroy(tj);
+                return false;
+        }
+
         std::vector<unsigned char> bgra;
-        bgra.resize((size_t)w * h * 4);
+        bgra.resize(width * height * 4);
 
         res = tjDecompress2(tj,
                             m_data.data(),

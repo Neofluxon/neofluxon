@@ -153,23 +153,9 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::thumbnailImageData(int targetRes
 
         NF_LOG_DEBUG("thumbnail unpack: OK");
 
-        auto& t = rawProcessor.imgdata.thumbnail;
-
-        NF_LOG_DEBUG("thumbnail format: " << t.tformat);
-
-        if (!isSupportedFormat(t.tformat)) {
-                NF_LOG_ERROR("format " << t.tformat << " not supported");
+        auto imageData = decodeThumbnail(rawProcessor);
+        if (!imageData)
                 return nullptr;
-        }
-
-        auto imageData = std::make_unique<NfImageData>();
-        imageData->setData(reinterpret_cast<const unsigned char*>(t.thumb), t.tlength);
-        imageData->setFormat(libRawToNfImageFormat(t.tformat));
-        imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
-        imageData->setWidth(t.twidth);
-        imageData->setHeight(t.theight);
-
-        imageData->convertToARGB32Premultiplied();
 
         NF_LOG_DEBUG("thumbnail loaded:  " << path);
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
@@ -222,27 +208,58 @@ std::unique_ptr<NfImageData> NfRawImageDecoder::previewImageData(int targetRes) 
 
         NF_LOG_DEBUG("preview unpack: OK");
 
-        auto& t = rawProcessor.imgdata.thumbnail;
-
-        NF_LOG_DEBUG("format: " << t.tformat);
-
-        if (!isSupportedFormat(t.tformat)) {
-                NF_LOG_ERROR("format " << t.tformat << " not supported");
+        auto imageData = decodeThumbnail(rawProcessor);
+        if (!imageData)
                 return nullptr;
-        }
-
-        auto imageData = std::make_unique<NfImageData>();
-        imageData->setData(reinterpret_cast<const unsigned char*>(t.thumb), t.tlength);
-        imageData->setFormat(libRawToNfImageFormat(t.tformat));
-        imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
-        imageData->setWidth(t.twidth);
-        imageData->setHeight(t.theight);
-
-        imageData->convertToARGB32Premultiplied();
 
         NF_LOG_DEBUG("preview loaded:  " << path);
         NF_LOG_DEBUG("format: " << static_cast<int>(imageData->format()));
         NF_LOG_DEBUG("dimentions: " << imageData->width() << "x" << imageData->height());
+
+        return imageData;
+}
+
+std::unique_ptr<NfImageData>
+NfRawImageDecoder::decodeThumbnail(LibRaw& rawProcessor) const
+{
+        const auto& thumbnail = rawProcessor.imgdata.thumbnail;
+        const auto width = static_cast<std::size_t>(thumbnail.twidth);
+        const auto height = static_cast<std::size_t>(thumbnail.theight);
+
+        if (!isSupportedFormat(thumbnail.tformat)) {
+                NF_LOG_ERROR("thumbnail format " << thumbnail.tformat
+                             << " not supported");
+                return nullptr;
+        }
+
+        if (!thumbnail.thumb || thumbnail.tlength == 0
+            || thumbnail.twidth <= 0 || thumbnail.theight <= 0
+            || width > NfLimits::maxImageDimension
+            || height > NfLimits::maxImageDimension
+            || width > NfLimits::maxDecodedImagePixels / height) {
+                NF_LOG_ERROR("invalid RAW thumbnail buffer or dimensions");
+                return nullptr;
+        }
+
+        if (thumbnail.tformat == LIBRAW_THUMBNAIL_BITMAP
+            && width * height > thumbnail.tlength / 3) {
+                NF_LOG_ERROR("truncated RAW bitmap thumbnail");
+                return nullptr;
+        }
+
+        auto imageData = std::make_unique<NfImageData>();
+        imageData->setData(reinterpret_cast<const unsigned char*>(thumbnail.thumb),
+                           thumbnail.tlength);
+        const auto format = libRawToNfImageFormat(thumbnail.tformat);
+        imageData->setFormat(format);
+        imageData->setOrientation(rawProcessor.imgdata.sizes.flip);
+        imageData->setWidth(thumbnail.twidth);
+        imageData->setHeight(thumbnail.theight);
+
+        if (!imageData->convertToARGB32Premultiplied()) {
+                NF_LOG_ERROR("can't convert RAW thumbnail to ARGB");
+                return nullptr;
+        }
 
         return imageData;
 }

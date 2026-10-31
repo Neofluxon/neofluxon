@@ -22,6 +22,7 @@
  */
 
 #include "NfImage.h"
+#include "NfLimits.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize2.h"
@@ -29,7 +30,7 @@
 namespace NfCore {
 
 NfImage::NfImage()
-        : m_data(std::make_unique<NfImageData>())
+        : m_data{std::make_unique<NfImageData>()}
 {
 }
 
@@ -41,19 +42,20 @@ NfImage::NfImage(std::unique_ptr<NfImageData> data)
 NfImage::~NfImage() = default;
 
 NfImage::NfImage(const NfImage& other)
+            : m_data{other.m_data
+                     ? std::make_unique<NfImageData>(*other.m_data)
+                     : nullptr}
 {
-        if (other.m_data)
-                m_data = std::make_unique<NfImageData>(*other.m_data);
 }
 
-// Copy Assignment
 NfImage& NfImage::operator=(const NfImage& other)
 {
         if (this != &other) {
-                if (other.m_data)
-                        m_data = std::make_unique<NfImageData>(*other.m_data);
-                else
-                        m_data.reset();
+                auto data = other.m_data
+                        ? std::make_unique<NfImageData>(*other.m_data)
+                        : nullptr;
+
+                m_data = std::move(data);
         }
 
         return *this;
@@ -66,7 +68,7 @@ void NfImage::setData(std::unique_ptr<NfImageData> data)
 
 NfImageData* NfImage::getData()
 {
-    return m_data.get();
+        return m_data.get();
 }
 
 const NfImageData* NfImage::getData() const
@@ -91,22 +93,23 @@ int NfImage::channels() const
 
 NfImage::ImageFormat NfImage::format() const
 {
-        return m_data->format();
+        return m_data ? m_data->format() : ImageFormat::Format_Unknown;
 }
 
 bool NfImage::isValid() const
 {
-        return !m_data->empty();
+        return m_data && !m_data->empty();
 }
 
 size_t NfImage::size() const
 {
-        return m_data->size();
+        return m_data ? m_data->size() : 0;
 }
 
 NfImage::Orientation NfImage::orientation() const
 {
-        return static_cast<Orientation>(m_data->orientation());
+        return m_data ? static_cast<Orientation>(m_data->orientation())
+                      : Orientation::Normal;
 }
 
 NfImage::Orientation NfImage::orientationFromExif(int orientation)
@@ -142,6 +145,16 @@ void NfImage::applyOrientation()
 
         int w = m_data->width();
         int h = m_data->height();
+        if (w <= 0 || h <= 0 || m_data->channels() != 4
+            || m_data->format() != ImageFormat::Format_ARGB32_Premultiplied)
+                return;
+
+        const auto width = static_cast<std::size_t>(w);
+        const auto height = static_cast<std::size_t>(h);
+        if (width > NfLimits::maxDecodedImagePixels / height
+            || width > m_data->size() / 4 / height
+            || m_data->size() != width * height * 4)
+                return;
 
         const uint32_t* src = reinterpret_cast<const uint32_t*>(m_data->data());
 
@@ -194,7 +207,8 @@ void NfImage::applyOrientation()
                                 break;
                         }
 
-                        dst[newY * newW + newX] = src[y * w + x];
+                        dst[static_cast<std::size_t>(newY) * newW + newX]
+                                = src[static_cast<std::size_t>(y) * w + x];
                 }
         }
 

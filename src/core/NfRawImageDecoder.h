@@ -48,6 +48,7 @@ public:
 private:
         std::unique_ptr<NfImageData> rawImageData(LibRaw& rawProcessor,
                                                  bool halfSize) const;
+        std::unique_ptr<NfImageData> decodeThumbnail(LibRaw& rawProcessor) const;
         static NfImageData::ImageFormat libRawToNfImageFormat(int format);
         static bool isSupportedFormat(int format);
         static int selectBestForTarget(const libraw_thumbnail_list_t& list,
