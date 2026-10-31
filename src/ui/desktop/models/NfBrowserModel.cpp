@@ -107,7 +107,7 @@ NfPhotoSource NfBrowserModel::getSource() const
 
 bool NfBrowserModel::acceptsPhoto(const NfPhoto& photo) const
 {
-        return m_formatFilter.empty() || m_formatFilter.contains(photo.format());
+        return true;//m_formatFilter.empty() || m_formatFilter.contains(photo.format());
 }
 
 void NfBrowserModel::rebuildVisiblePhotos()
@@ -235,42 +235,53 @@ QPixmap NfBrowserModel::getPreview(const QModelIndex& index) const
 
 void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 {
-        // Keep the index of the first new photo to add.
-        const auto firstNewIndex = m_allPhotos.size();
-
-        m_allPhotos.reserve(m_allPhotos.size() + newPhotos.size());
-        m_allPhotos.insert(m_allPhotos.end(),
-                           newPhotos.begin(),
-                           newPhotos.end());
+        NF_LOG_DEBUG("NEW PHOTOS: " << newPhotos.size());
 
         // Filter new photo indexes
-        auto newVisibleIndexes = std::views::iota(firstNewIndex,
-                                                  m_allPhotos.size())
-                | std::views::filter([this](std::size_t index) {
-                        return acceptsPhoto(m_allPhotos[index]);
+        auto newVisiblePhotoIndexesView = std::views::iota(std::size_t{0}, newPhotos.size())
+                | std::views::filter([this, &newPhotos](std::size_t index) {
+                        return acceptsPhoto(newPhotos[index]);
                 });
 
-        const auto newVisibleCount = std::ranges::distance(newVisibleIndexes);
-        if (newVisibleCount == 0)
+        // Copy the filtered indexes.
+        std::vector<std::size_t> filteredPhotoIndexes;
+        const auto firstNewPhotoIndex = m_allPhotos.size();
+        std::ranges::copy(newVisiblePhotoIndexesView
+                          | std::views::transform([firstNewPhotoIndex](std::size_t index) {
+                                  return firstNewPhotoIndex + index;
+                          }), std::back_inserter(filteredPhotoIndexes));
+        if (filteredPhotoIndexes.empty())
                 return;
 
         // Calculate the new insertion index range.
         const auto firstNewVisibleIndex = m_visibleIndexes.size();
-        const auto lastNewVisibleIndex  = firstNewVisibleIndex + newVisibleCount - 1;
+        const auto lastNewVisibleIndex  = firstNewVisibleIndex
+                                          + filteredPhotoIndexes.size() - 1;
 
         beginInsertRows(QModelIndex(),
                         static_cast<int>(firstNewVisibleIndex),
                         static_cast<int>(lastNewVisibleIndex));
 
-        std::ranges::copy(newVisibleIndexes,
+        // Copy all new photos
+        m_allPhotos.reserve(m_allPhotos.size() + newPhotos.size());
+        m_allPhotos.insert(m_allPhotos.end(),
+                           newPhotos.begin(),
+                           newPhotos.end());
+
+        std::ranges::copy(filteredPhotoIndexes,
                           std::back_inserter(m_visibleIndexes));
+        rebuildPersistentIndexMap();
 
         endInsertRows();
 
         //if (!sortPhotos())
-        rebuildPersistentIndexMap();
 
         emit photoIndexesUpdated();
+
+        //std::string txt;
+        //for (auto i: m_visibleIndexes)
+        //        txt += std::to_string(i) + ", ";
+        //NF_LOG_DEBUG("TXT>>>>>>>>>>>>>>>>: " << txt);
 }
 
 void NfBrowserModel::onThumbnailsLoaded(const std::vector<NfPhotoId> &ids)
@@ -294,19 +305,19 @@ void NfBrowserModel::onThumbnailsLoaded(const std::vector<NfPhotoId> &ids)
 
 void NfBrowserModel::onPreviewsLoaded(const std::vector<NfPhotoId> &ids)
 {
-        NF_LOG_DEBUG("PREVIEWS LOADED: " << ids.size());
+        /*NF_LOG_DEBUG("PREVIEWS LOADED: " << ids.size());
         std::ranges::for_each(ids, [this](auto& id) {
                 if (auto it = m_itemsMap.find(id); it != m_itemsMap.end()) {
                         const auto& idx = it->second;
                         if (idx.isValid())
                                 emit dataChanged(idx, idx, {ImageDataRole::PreviewRole});
                 }
-        });
+                });*/
 }
 
 void NfBrowserModel::prefetchPage(int firstVisible, int pageSize)
 {
-        NF_LOG_DEBUG("firstVisible: " << firstVisible << ", pageSize: " << pageSize);
+        /*NF_LOG_DEBUG("firstVisible: " << firstVisible << ", pageSize: " << pageSize);
 
         pageSize *= 2;
         int start = firstVisible + pageSize;
@@ -319,6 +330,6 @@ void NfBrowserModel::prefetchPage(int firstVisible, int pageSize)
         for (int row = start; row < end; ++row) {
                 const auto& photo = photoByIndex(m_visibleIndexes[row]);
                 m_photoProvider->prefetchThumbnail(photo);
-        }
+                }*/
 }
 } // namespace NfDesktop

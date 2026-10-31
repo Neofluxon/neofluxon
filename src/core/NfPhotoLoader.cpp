@@ -76,11 +76,11 @@ void NfPhotoLoader::requestThumbnail(const NfPhoto &photo, NfRequestType request
         std::scoped_lock lock(m_mutex);
         auto priority = NfRequestUtils::getTaskPriority(request);
 
-        /*auto it = m_pendingThumbnailTasks.find(photo.id());
+        auto it = m_pendingThumbnailTasks.find(photo.id());
         if (it != m_pendingThumbnailTasks.end()) {
                 m_scheduler->updateTaskPriority(it->second, priority);
                 return;
-                }*/
+        }
 
         auto task = std::make_unique<NfThumbnailTask>(photo, m_diskCache);
         task->setGenerationId(m_generationId);
@@ -164,8 +164,8 @@ std::vector<NfPhotoId> NfPhotoLoader::takeThumbnails()
 {
         std::scoped_lock lock(m_mutex);
         auto thumbnails = std::move(m_thumbnailsQueue);
-        //for (const auto& photoId : thumbnails)
-        //        m_pendingThumbnailTasks.erase(photoId);
+        for (const auto& photoId : thumbnails)
+                m_pendingThumbnailTasks.erase(photoId);
         return thumbnails;
 }
 
