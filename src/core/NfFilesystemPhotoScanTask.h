@@ -50,7 +50,7 @@ public:
         TaskStatus execute() override;
 
  private:
-        void processPathEntry(const std::filesystem::path& path);
+        void processPathEntry(const auto& it);
 
         NfFilesystemPhotoSource m_source;
         std::unordered_set<std::string> m_photoExtentions;

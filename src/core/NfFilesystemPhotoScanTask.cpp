@@ -33,7 +33,7 @@ namespace NfCore {
 
 NfFilesystemPhotoScanTask::NfFilesystemPhotoScanTask(const NfFilesystemPhotoSource& source)
         : m_source{source}
-        , m_photoExtentions{".cr3", ".cr2", ".dng", ".raf", ".nef", ".jpg", ".jpeg", ".png"}
+        , m_photoExtentions{"cr3", "cr2", "dng", "raf", "nef", "jpg", "jpeg", "png"}
 {
 }
 
@@ -56,14 +56,17 @@ void NfFilesystemPhotoScanTask::setPhotoFoundCallback(PhotoFoundHandler handler)
 
 NfTask::TaskStatus NfFilesystemPhotoScanTask::execute()
 {
+        auto status = TaskStatus::Success;
         try {
-                auto scan = [&](auto it, auto end) {
+                auto scan = [&](auto it, auto end) -> TaskStatus {
                         for (; it != end; ++it) {
                                 if (isCancelled())
-                                        return;
+                                        return TaskStatus::Cancelled;
 
-                                processPathEntry(it->path());
+                                processPathEntry(it);
                         }
+
+                        return TaskStatus::Success;
                 };
 
                 auto directory = m_source.path();
@@ -71,32 +74,34 @@ NfTask::TaskStatus NfFilesystemPhotoScanTask::execute()
                         NF_LOG_DEBUG("iterate dir (recursive): " << directory);
 
                         fs::recursive_directory_iterator it(directory), end;
-                        scan(it, end);
+                        status = scan(it, end);
                 } else {
                         NF_LOG_DEBUG("iterate dir: " << directory);
 
                         fs::directory_iterator it(directory), end;
-                        scan(it, end);
+                        status = scan(it, end);
                 }
         }
         catch (const fs::filesystem_error& error) {
                 NF_LOG_ERROR("scan failed: " << error.what());
-                return TaskStatus::Failed;
+                status = TaskStatus::Failed;
         }
 
-        return TaskStatus::Success;
+        return status;
 }
 
-void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& path)
+void NfFilesystemPhotoScanTask::processPathEntry(const auto& it)
 {
-        NF_LOG_DEBUG("process: " << path);
+        const auto &path = it->path();
 
         try {
-                if (!fs::is_regular_file(path))
+                NF_LOG_DEBUG("process: " << it->path());
+
+                if (!it->is_regular_file())
                         return;
 
-                auto ext = "." + NfFileUtils::extension(path,
-                                                        NfFileUtils::Case::Lower);
+                auto ext = NfFileUtils::extension(path,
+                                                  NfFileUtils::Case::Lower);
                 NF_LOG_DEBUG("extension: " << ext);
 
                 if (ext.empty() || !m_photoExtentions.contains(ext))
@@ -104,15 +109,17 @@ void NfFilesystemPhotoScanTask::processPathEntry(const std::filesystem::path& pa
 
                 NfPhoto photo(path);
                 if (!photo.loadSummary(true)) {
-                        NF_LOG_DEBUG("error on loading photo summary: " << photo.path());
+                        NF_LOG_ERROR("error on loading photo summary: " << photo.path());
                         return;
                 }
 
                 NF_LOG_DEBUG("NEW PHOTO: " << photo.path());
 
-                m_photoFoundCb(std::move(photo), generationId());
-        } catch (const fs::filesystem_error&) {
-                NF_LOG_DEBUG("error processing path: " << path);
+                if (m_photoFoundCb)
+                        m_photoFoundCb(std::move(photo), generationId());
+        } catch (const fs::filesystem_error& error) {
+                NF_LOG_ERROR("error processing path: " << path
+                             << ", " << error.what());
         }
 }
 
