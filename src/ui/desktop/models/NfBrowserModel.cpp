@@ -271,6 +271,8 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
                            newPhotos.begin(),
                            newPhotos.end());
 
+        m_visibleIndexes.reserve(m_visibleIndexes.size()
+                                 + filteredPhotoIndexes.size());
         std::ranges::copy(filteredPhotoIndexes,
                           std::back_inserter(m_visibleIndexes));
         sortPhotos();

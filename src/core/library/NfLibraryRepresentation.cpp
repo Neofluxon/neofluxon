@@ -361,6 +361,7 @@ std::vector<NfPhoto>
 NfLibraryRepresentation::imageRecordsToPhotos(const NfImageRecords& records)
 {
         std::vector<NfPhoto> photos;
+        photos.reserve(records.size());
         for (const auto& record: records) {
                 NfPhoto photo(record.path);
                 if (!photo.id().isValid()) {
