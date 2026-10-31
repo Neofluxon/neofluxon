@@ -96,7 +96,7 @@ private:
         bool acceptsPhoto(const NfPhoto& photo) const;
         void rebuildVisiblePhotos();
         void rebuildPersistentIndexMap();
-        bool sortPhotos();
+        void sortPhotos();
         const NfPhoto& photoByIndex(size_t i) const;
 
         NfContext* m_context;

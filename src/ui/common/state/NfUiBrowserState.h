@@ -51,7 +51,6 @@ public:
         using SortFields = std::unordered_set<SortField>;
 
         enum class SortOrder {
-                None,
                 Ascending,
                 Descending
         };

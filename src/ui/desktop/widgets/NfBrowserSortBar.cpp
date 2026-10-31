@@ -135,7 +135,7 @@ void NfBrowserSortBar::updateSorting()
 
         auto orderText = sortOrder ==  SortOrder::Ascending ? tr("Asc") : tr("Des");
         auto text = QString("Sort (%1) %2").arg(nFields)
-                .arg(nFields > 0 && sortOrder != SortOrder::None ? orderText : "" );
+                .arg(nFields > 0 ? orderText : "" );
         m_button->setText(text);
 }
 
