@@ -166,6 +166,7 @@ void NfBrowserModel::sortPhotos()
 void NfBrowserModel::rebuildPersistentIndexMap()
 {
         m_itemsMap.clear();
+        m_itemsMap.reserve(m_visibleIndexes.size());
         for (int row = 0; row < static_cast<int>(m_visibleIndexes.size()); ++row) {
                 const auto& id = photoByIndex(m_visibleIndexes[row]).id();
                 m_itemsMap[id] = QPersistentModelIndex(index(row));
@@ -245,11 +246,13 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 
         // Copy the filtered indexes.
         std::vector<std::size_t> filteredPhotoIndexes;
+        filteredPhotoIndexes.reserve(newPhotos.size());
         const auto firstNewPhotoIndex = m_allPhotos.size();
         std::ranges::copy(newVisiblePhotoIndexesView
                           | std::views::transform([firstNewPhotoIndex](std::size_t index) {
                                   return firstNewPhotoIndex + index;
                           }), std::back_inserter(filteredPhotoIndexes));
+
         if (filteredPhotoIndexes.empty())
                 return;
 
