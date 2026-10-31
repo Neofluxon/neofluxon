@@ -24,6 +24,7 @@
 #include "NfThumbnailsView.h"
 #include "NfBrowserModel.h"
 #include "NfThumbnailDelegate.h"
+#include "core/NfLogger.h"
 
 #include <QWheelEvent>
 #include <QResizeEvent>
@@ -44,6 +45,10 @@ NfThumbnailsView::NfThumbnailsView(QWidget* parent)
         setItemDelegate(new NfThumbnailDelegate(this));
 
         QObject::connect(verticalScrollBar(),
+                         &QScrollBar::valueChanged,
+                         this,
+                         &NfThumbnailsView::onScrollChanged);
+        QObject::connect(horizontalScrollBar(),
                          &QScrollBar::valueChanged,
                          this,
                          &NfThumbnailsView::onScrollChanged);
@@ -169,21 +174,26 @@ void NfThumbnailsView::onScrollChanged()
         if (!browserModel)
                 return;
 
-        // Top visible item
-        QModelIndex top = indexAt(QPoint(0, 0));
-        int firstVisibleRow = top.isValid() ? top.row() : 0;
+        int firstVisibleRow = -1;
+        int lastVisibleRow  = -1;
+        const QRect viewportRect = viewport()->rect();
 
-        // Bottom visible item (more reliable than grid math)
-        QModelIndex bottom = indexAt(QPoint(0, viewport()->height() - 1));
-        int lastVisibleRow = bottom.isValid()
-                ? bottom.row()
-                : model()->rowCount() - 1;
+        // TODO: Find a way not to loop over model rows.
+        for (int row = 0; row < model()->rowCount(); ++row) {
+                const auto itemRect = visualRect(model()->index(row, 0));
+                if (itemRect.intersects(viewportRect)) {
+                        if (firstVisibleRow < 0)
+                                firstVisibleRow = row;
 
-        int visibleCount = lastVisibleRow - firstVisibleRow + 1;
-        if (visibleCount <= 0)
-                visibleCount = 1;
+                        lastVisibleRow = row;
+                }
+        }
 
-        browserModel->prefetchPage(firstVisibleRow, visibleCount);
+        if (firstVisibleRow >= 0) {
+                const int visibleCount = std::max(0, lastVisibleRow - firstVisibleRow + 1);
+                browserModel->prefetchPage(firstVisibleRow,
+                                           visibleCount,
+                                           m_layoutMode == LayoutMode::GridView ? 1 : 4);
+        }
 }
-
 } // namespace NfDesktop

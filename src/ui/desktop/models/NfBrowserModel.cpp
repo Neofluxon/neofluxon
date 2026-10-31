@@ -303,21 +303,33 @@ void NfBrowserModel::onPreviewsLoaded(const std::vector<NfPhotoId> &ids)
         });
 }
 
-void NfBrowserModel::prefetchPage(int firstVisible, int pageSize)
+void NfBrowserModel::prefetchPage(int firstVisible,
+                                  size_t pageSize,
+                                  size_t prefetchPageCount)
 {
-        /*NF_LOG_DEBUG("firstVisible: " << firstVisible << ", pageSize: " << pageSize);
+        if (pageSize == 0 || m_visibleIndexes.empty())
+                return;
 
-        pageSize *= 2;
-        int start = firstVisible + pageSize;
-        int end = start + pageSize;
+        const auto count = m_visibleIndexes.size();
+        const auto first = static_cast<std::size_t>(
+              std::clamp(firstVisible, 0, static_cast<int>(count)));
 
-        end = std::min(end, static_cast<int>(m_visibleIndexes.size()));
+        const auto start = first - std::min(first, prefetchPageCount * pageSize);
 
-        NF_LOG_DEBUG("prefetch start: " << start << ", end: " << end);
+        const auto nextPage = std::min(count, first + pageSize);
+        const auto end = nextPage + std::min(count - nextPage,
+                                             prefetchPageCount * pageSize);
 
-        for (int row = start; row < end; ++row) {
+        NF_LOG_DEBUG("prefetch range: [" << start << ", " << end
+                     << "), current page: [" << first << ", " << nextPage << ")");
+
+        for (auto row = start; row < end; ++row) {
+                // Exlude the current page
+                if (row >= first && row < nextPage)
+                        continue;
+
                 const auto& photo = photoByIndex(m_visibleIndexes[row]);
                 m_photoProvider->prefetchThumbnail(photo);
-                }*/
+        }
 }
 } // namespace NfDesktop
