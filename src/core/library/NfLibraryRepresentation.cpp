@@ -365,7 +365,7 @@ NfLibraryRepresentation::imageRecordsToPhotos(const NfImageRecords& records)
         for (const auto& record: records) {
                 NfPhoto photo(record.path);
                 if (!photo.id().isValid()) {
-                        NF_LOG_DEBUG("photo invalid: " << photo.path());
+                        NF_LOG_DEBUG("invalid photo: " << photo.path());
                         continue;
                 }
 

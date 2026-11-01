@@ -53,7 +53,7 @@ struct NfRepresentationRecord {
 };
 
 struct NfImageRecord {
-        std::string path;
+        std::filesystem::path path;
         std::string name;
         std::uintmax_t sizeOnDisk;
         NfPhoto::PhotoFormat format;
