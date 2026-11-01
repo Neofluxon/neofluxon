@@ -119,7 +119,7 @@ private:
          * moved. The map is cleared and rebuilt when the model resets or the
          * filter changes.
          */
-        std::unordered_map<NfPhotoId, QPersistentModelIndex> m_itemsMap;
+        std::unordered_map<NfPhotoId, size_t> m_itemsMap;
         const int m_previewRange;
         NfUi::NfUiBrowserState::SortFields m_sortFields;
         NfUi::NfUiBrowserState::SortOrder m_sortOrder{};

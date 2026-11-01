@@ -169,7 +169,7 @@ void NfBrowserModel::rebuildPersistentIndexMap()
         m_itemsMap.reserve(m_visibleIndexes.size());
         for (int row = 0; row < static_cast<int>(m_visibleIndexes.size()); ++row) {
                 const auto& id = photoByIndex(m_visibleIndexes[row]).id();
-                m_itemsMap[id] = QPersistentModelIndex(index(row));
+                m_itemsMap[id] = row;
         }
 }
 
@@ -184,7 +184,7 @@ QModelIndex NfBrowserModel::indexForPhotoId(const NfPhotoId& photoId) const
         if (it == m_itemsMap.end())
                 return {};
 
-        return it->second;
+        return index(it->second);
 }
 
 int NfBrowserModel::rowCount(const QModelIndex& parent) const
@@ -280,7 +280,6 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
         endInsertRows();
 
         rebuildPersistentIndexMap();
-
         emit photoIndexesUpdated();
 }
 
@@ -289,7 +288,7 @@ void NfBrowserModel::onThumbnailsLoaded(const std::vector<NfPhotoId> &ids)
         NF_LOG_DEBUG("THUB LOADED: " << ids.size());
         std::ranges::for_each(ids, [this](auto& id) {
                 if (auto it = m_itemsMap.find(id); it != m_itemsMap.end()) {
-                        const auto& idx = it->second;
+                        const auto& idx = index(it->second);
                         if (idx.isValid())
                                 emit dataChanged(idx, idx, {ImageDataRole::ThumbnailRole});
                 }
@@ -301,7 +300,7 @@ void NfBrowserModel::onPreviewsLoaded(const std::vector<NfPhotoId> &ids)
         NF_LOG_DEBUG("PREVIEWS LOADED: " << ids.size());
         std::ranges::for_each(ids, [this](auto& id) {
                 if (auto it = m_itemsMap.find(id); it != m_itemsMap.end()) {
-                        const auto& idx = it->second;
+                        const auto& idx = index(it->second);
                         if (idx.isValid())
                                 emit dataChanged(idx, idx, {ImageDataRole::PreviewRole});
                 }
@@ -325,8 +324,10 @@ void NfBrowserModel::prefetchPage(int firstVisible,
         const auto end = nextPage + std::min(count - nextPage,
                                              prefetchPageCount * pageSize);
 
-        NF_LOG_DEBUG("prefetch range: [" << start << ", " << end
-                     << "), current page: [" << first << ", " << nextPage << ")");
+        NF_LOG_DEBUG("prefetch range: ["
+                     << start << ", " << end
+                     << "), current page: ["
+                     << first << ", " << nextPage << ")");
 
         for (auto row = start; row < end; ++row) {
                 // Exlude the current page
