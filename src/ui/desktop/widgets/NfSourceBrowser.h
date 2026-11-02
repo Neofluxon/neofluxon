@@ -1,5 +1,5 @@
 /**
- * File name: NfPathBrowser.h
+ * File name: NfSourceBrowser.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,34 +21,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_PATH_BROWSER_H
-#define NF_PATH_BROWSER_H
+#ifndef NF_SOURCE_BROWSER_H
+#define NF_SOURCE_BROWSER_H
 
 #include <QWidget>
 
 #include <filesystem>
 
+class NfScrollStack;
+class NfCollapsibleSection;
 class QTreeView;
 class QFileSystemModel;
 
 namespace NfDesktop {
 
-class NfPathBrowser : public QWidget
+class NfSourceBrowser : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit NfPathBrowser(QWidget* parent = nullptr);
+        explicit NfSourceBrowser(QWidget* parent = nullptr);
 
 signals:
-    void folderSelected(const std::filesystem::path& path);
-    void importRequested(const std::filesystem::path& path);
+        void folderSelected(const std::filesystem::path& path);
+        void importRequested(const std::filesystem::path& path);
 
 private:
-    QFileSystemModel* m_model;
-    QTreeView* m_treeView;
+        NfScrollStack* m_scrollStack{nullptr};
+        NfCollapsibleSection* m_imageSection{nullptr};
+        NfCollapsibleSection* m_histogramSection{nullptr};
+        NfCollapsibleSection* m_captureSection{nullptr};
+        NfCollapsibleSection* m_technicalSection{nullptr};
 };
 
 } // namespace NfDesktop
 
-#endif // NF_PATH_BROWSER_H
+#endif // NF_SOURCE_BROWSER_H

@@ -1,5 +1,5 @@
 /**
- * File name: NfPathBrowser.h
+ * File name: NfSourceBrowser.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfPathBrowser.h"
+#include "NfSourceBrowser.h"
 #include "NfFolderActionDelegate.h"
 #include "NfLibraryAdapter.h"
 #include "core/NfLogger.h"
@@ -58,7 +58,7 @@ public:
 
 } // namespace
 
-NfPathBrowser::NfPathBrowser(QWidget* parent)
+NfSourceBrowser::NfSourceBrowser(QWidget* parent)
         : QWidget(parent)
 {
         auto layout = new QVBoxLayout(this);
