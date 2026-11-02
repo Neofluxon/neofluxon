@@ -68,8 +68,8 @@ std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations(
                                                                  RepT::Canonical));
         reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id,
                                                                  RepT::Equipment));
-        reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id,
-                                                                 RepT::Collections));
+        //reps.push_back(std::make_unique<NfLibraryRepresentation>(m_db, m_id,
+        //                                                         RepT::Collections));
 
         return reps;
 }
