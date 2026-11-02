@@ -42,7 +42,7 @@ NfImageMetadataPanel::NfImageMetadataPanel(NfContext *ctx,
         : QWidget(parent)
         , m_context{ctx}
         , m_model{new NfPhotoMetadataModel(m_context, this)}
-        , m_scrollStack{new NfScrollStack(parent)}
+        , m_scrollStack{new NfScrollStack(this)}
 {
         setupUi();
 }

@@ -22,112 +22,32 @@
  */
 
 #include "NfSourceBrowser.h"
-#include "NfFolderActionDelegate.h"
-#include "NfLibraryAdapter.h"
-#include "core/NfLogger.h"
-#include "core/utils/NfFileUtils.h"
-
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QTreeView>
-#include <QFileSystemModel>
-#include <QFileIconProvider>
-#include <QPainter>
-#include <QStyle>
-#include <QStyleOption>
-#include <QDir>
-
-using namespace NfUi;
-using namespace NfCore;
+#include "NfScrollStack.h"
+#include "NfCollapsibleSection.h"
+#include "NfPathTreeView.h"
+#include "NfPlacesListView.h"
+#include "NfStorageListView.h"
 
 namespace NfDesktop {
 
-namespace {
-
-class NfFolderIconProvider : public QFileIconProvider
-{
-public:
-        QIcon icon(const QFileInfo& info) const override
-        {
-                if (info.isDir())
-                        return QIcon(":/icons/folder.svg");
-
-                return QFileIconProvider::icon(info);
-        }
-};
-
-} // namespace
-
 NfSourceBrowser::NfSourceBrowser(QWidget* parent)
         : QWidget(parent)
+        , m_scrollStack{new NfScrollStack(this)}
 {
-        auto layout = new QVBoxLayout(this);
+        // Folders section
+        auto* section = new NfCollapsibleSection(title);
+        section->setContent(new NfPathTreeView());
+        m_scrollStack->addWidget(section);
 
-        // Title
-        auto title = new QLabel(tr("Folders"), this);
-        title->setObjectName("FolderBrowserTitle");
-        QFont f = title->font();
-        f.setBold(true);
-        title->setFont(f);
+        // Places section
+        auto* section = new NfCollapsibleSection(title);
+        section->setContent(new NfPlacesListView());
+        m_scrollStack->addWidget(section);
 
-        layout->addWidget(title);
-
-        // File system model
-        m_model = new QFileSystemModel(this);
-        m_model->setIconProvider(new NfFolderIconProvider);
-        m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
-        m_model->setRootPath(QDir::homePath()); // or "/" for full system
-
-        // Tree view
-        m_treeView = new QTreeView(this);
-        m_treeView->setObjectName("FolderTreeView");
-        // Supplies the QSS-defined hover color to the custom-painted action button.
-        auto* actionHoverColor = new QWidget(m_treeView);
-        actionHoverColor->setObjectName("FolderActionHoverColor");
-        actionHoverColor->hide();
-        m_treeView->setHeaderHidden(true);
-        m_treeView->setRootIsDecorated(true);
-        m_treeView->setModel(m_model);
-        m_treeView->viewport()->setAttribute(Qt::WA_Hover);
-        m_treeView->viewport()->setMouseTracking(true);
-
-        // Optional: hide unnecessary columns
-        m_treeView->setColumnHidden(1, true); // Size
-        m_treeView->setColumnHidden(2, true); // Type
-        m_treeView->setColumnHidden(3, true); // Date modified
-
-        // Set root index
-        m_treeView->setRootIndex(m_model->index(QDir::rootPath()));
-
-        // Behavior
-        m_treeView->setHeaderHidden(true);
-        m_treeView->setAnimated(true);
-        m_treeView->setIndentation(16);
-        m_treeView->setIconSize(QSize(18, 18));
-
-        layout->addWidget(m_treeView);
-
-        layout->setContentsMargins(0, 0, 0, 0);
-
-        auto folderDelegate = new NfFolderActionDelegate(m_treeView);
-        m_treeView->setItemDelegate(folderDelegate);
-
-        QObject::connect(folderDelegate,
-                         &NfFolderActionDelegate::importRequested,
-                         this, [this](const std::filesystem::path& folderPath) {
-                                 NF_LOG_DEBUG("import folder: " << folderPath);
-                                 emit importRequested(folderPath);
-                         });
-
-        QObject::connect(m_treeView, &QTreeView::doubleClicked,
-                         this, [this](const QModelIndex& index)
-                         {
-                                 const auto utf8Path = m_model->filePath(index).toUtf8();
-                                 emit folderSelected(NfFileUtils::pathFromUtf8(
-                                         std::string_view{
-                                                 utf8Path.constData(),
-                                                 static_cast<std::size_t>(utf8Path.size())}));
-                         });
+        // Storage section
+        auto* section = new NfCollapsibleSection(title);
+        section->setContent(new NfStorageListView());
+        m_scrollStack->addWidget(section);
 }
 
 } // namespace NfDesktop
