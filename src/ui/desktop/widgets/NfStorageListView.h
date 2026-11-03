@@ -26,6 +26,8 @@
 
 #include <QWidget>
 
+class QString;
+
 namespace NfDesktop {
 
 class NfStorageListView : public QWidget
@@ -34,6 +36,9 @@ class NfStorageListView : public QWidget
 
 public:
         explicit NfStorageListView(QWidget* parent = nullptr);
+
+signals:
+        void pathSelected(const QString& path);
 };
 
 } // namespace NfDesktop

@@ -24,10 +24,18 @@
 #include "NfPlacesListView.h"
 
 #include <QListWidget>
+#include <QDir>
+#include <QFileInfo>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 #include <QtGlobal>
 
 namespace NfDesktop {
+
+namespace {
+constexpr int itemHeight = 28;
+constexpr int maxVisibleItems = 5;
+}
 
 NfPlacesListView::NfPlacesListView(QWidget* parent)
         : QWidget(parent)
@@ -36,21 +44,70 @@ NfPlacesListView::NfPlacesListView(QWidget* parent)
         layout->setContentsMargins(0, 0, 0, 0);
 
         auto* places = new QListWidget(this);
+        QStringList addedPaths;
+
 #if defined(Q_OS_WIN)
-        places->addItems({tr("User"),
-                          tr("Desktop"),
-                          tr("Downloads"),
-                          tr("Pictures"),
-                          tr("Recycle Bin")});
+        addPlace(places, tr("User"),
+                 QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
+                 addedPaths);
+        addPlace(places, tr("Desktop"),
+                 QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                 addedPaths);
+        addPlace(places, tr("Downloads"),
+                 QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+                 addedPaths);
+        addPlace(places, tr("Pictures"),
+                 QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+                 addedPaths);
+        addPlace(places, tr("Documents"),
+                 QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
+                 addedPaths);
 #elif defined(Q_OS_LINUX)
-        places->addItems({tr("/"),
-                          tr("Home"),
-                          tr("Desktop"),
-                          tr("Downloads"),
-                          tr("Pictures"),
-                          tr("Trash")});
+        addPlace(places, tr("/"), QDir::rootPath(), addedPaths);
+        addPlace(places, tr("Home"),
+                 QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
+                 addedPaths);
+        addPlace(places, tr("Desktop"),
+                 QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                 addedPaths);
+        addPlace(places, tr("Downloads"),
+                 QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+                 addedPaths);
+        addPlace(places, tr("Pictures"),
+                 QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+                 addedPaths);
 #endif
+        QObject::connect(places, &QListWidget::itemClicked,
+                         this, [this](QListWidgetItem* item) {
+                                 emit pathSelected(item->data(Qt::UserRole).toString());
+                         });
+
+        places->setMaximumHeight(maxVisibleItems * itemHeight
+                                 + 2 * places->frameWidth());
+
         layout->addWidget(places);
+}
+
+void NfPlacesListView::addPlace(QListWidget* places,
+                                const QString& label,
+                                const QString& path,
+                                QStringList& addedPaths)
+{
+        if (path.isEmpty() || addedPaths.contains(path))
+                return;
+
+        const QFileInfo info(path);
+        if (!info.exists() || !info.isDir())
+                return;
+
+        const auto absolutePath = info.absoluteFilePath();
+        if (addedPaths.contains(absolutePath))
+                return;
+
+        auto* item = new QListWidgetItem(label, places);
+        item->setSizeHint(QSize(0, itemHeight));
+        item->setData(Qt::UserRole, absolutePath);
+        addedPaths.append(absolutePath);
 }
 
 } // namespace NfDesktop

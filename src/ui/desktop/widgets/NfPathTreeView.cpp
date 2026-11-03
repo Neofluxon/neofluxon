@@ -31,6 +31,7 @@
 #include <QLabel>
 #include <QTreeView>
 #include <QFileSystemModel>
+#include <QFileInfo>
 #include <QFileIconProvider>
 #include <QPainter>
 #include <QStyle>
@@ -67,12 +68,11 @@ NfPathTreeView::NfPathTreeView(QWidget* parent)
         m_model = new QFileSystemModel(this);
         m_model->setIconProvider(new NfFolderIconProvider);
         m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
-        m_model->setRootPath(QDir::homePath()); // or "/" for full system
+        m_model->setRootPath(QDir::rootPath());
 
         // Tree view
         m_treeView = new QTreeView(this);
         m_treeView->setObjectName("FolderTreeView");
-        // Supplies the QSS-defined hover color to the custom-painted action button.
         auto* actionHoverColor = new QWidget(m_treeView);
         actionHoverColor->setObjectName("FolderActionHoverColor");
         actionHoverColor->hide();
@@ -86,9 +86,6 @@ NfPathTreeView::NfPathTreeView(QWidget* parent)
         m_treeView->setColumnHidden(1, true); // Size
         m_treeView->setColumnHidden(2, true); // Type
         m_treeView->setColumnHidden(3, true); // Date modified
-
-        // Set root index
-        m_treeView->setRootIndex(m_model->index(QDir::rootPath()));
 
         // Behavior
         m_treeView->setHeaderHidden(true);
@@ -119,6 +116,33 @@ NfPathTreeView::NfPathTreeView(QWidget* parent)
                                                  utf8Path.constData(),
                                                  static_cast<std::size_t>(utf8Path.size())}));
                          });
+}
+
+void NfPathTreeView::selectPath(const QString& path)
+{
+        const QFileInfo info(path);
+        if (!info.exists() || !info.isDir())
+                return;
+
+        const auto index = m_model->index(info.absoluteFilePath());
+        if (!index.isValid())
+                return;
+
+        // Expand all the parents, i.e. all the branch
+        // until to the current selected node.
+        auto parentIndex = index.parent();
+        while (parentIndex.isValid()) {
+                m_treeView->expand(parentIndex);
+                parentIndex = parentIndex.parent();
+        }
+
+        m_treeView->setCurrentIndex(index);
+        m_treeView->scrollTo(index);
+
+        const auto utf8Path = info.absoluteFilePath().toUtf8();
+        emit folderSelected(NfFileUtils::pathFromUtf8(
+                            std::string_view{utf8Path.constData(),
+                            static_cast<std::size_t>(utf8Path.size())}));
 }
 
 } // namespace NfDesktop

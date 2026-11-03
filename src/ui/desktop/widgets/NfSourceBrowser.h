@@ -34,7 +34,10 @@ class QFileSystemModel;
 namespace NfDesktop {
 
 class NfCollapsibleSection;
+class NfPathTreeView;
 class NfScrollStack;
+class NfPlacesListView;
+class NfStorageListView;
 
 class NfSourceBrowser : public QWidget
 {
@@ -49,6 +52,9 @@ signals:
 
 private:
         NfScrollStack* m_scrollStack{nullptr};
+        NfPathTreeView* m_pathTreeView{nullptr};
+        NfPlacesListView* m_placesListView{nullptr};
+        NfStorageListView* m_storageListView{nullptr};
         NfCollapsibleSection* m_imageSection{nullptr};
         NfCollapsibleSection* m_histogramSection{nullptr};
         NfCollapsibleSection* m_captureSection{nullptr};

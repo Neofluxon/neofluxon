@@ -43,19 +43,50 @@ NfSourceBrowser::NfSourceBrowser(QWidget* parent)
         layout->addWidget(m_scrollStack);
 
         // Folders section
-        auto* section = new NfCollapsibleSection(tr("Folders"));
-        section->setContent(new NfPathTreeView());
-        m_scrollStack->addWidget(section);
+        auto* foldersSection = new NfCollapsibleSection(tr("Folders"));
+        foldersSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        m_pathTreeView = new NfPathTreeView();
+        m_pathTreeView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        foldersSection->setContent(m_pathTreeView);
+        m_scrollStack->addWidget(foldersSection);
+        QObject::connect(foldersSection,
+                         &NfCollapsibleSection::expandedChanged,
+                         this,
+                         [this, foldersSection](bool expanded) {
+                                 m_scrollStack->setWidgetStretch(foldersSection,
+                                                                 expanded ? 1 : 0);
+                         });
 
         // Places section
-        section = new NfCollapsibleSection(tr("Places"));
-        section->setContent(new NfPlacesListView());
+        auto* section = new NfCollapsibleSection(tr("Places"));
+        m_placesListView = new NfPlacesListView();
+        section->setContent(m_placesListView);
         m_scrollStack->addWidget(section);
 
         // Storage section
         section = new NfCollapsibleSection(tr("Storage"));
-        section->setContent(new NfStorageListView());
+        m_storageListView = new NfStorageListView();
+        section->setContent(m_storageListView);
         m_scrollStack->addWidget(section);
+
+        foldersSection->setExpanded(true);
+
+        QObject::connect(m_pathTreeView,
+                         &NfPathTreeView::folderSelected,
+                         this,
+                         &NfSourceBrowser::folderSelected);
+        QObject::connect(m_pathTreeView,
+                         &NfPathTreeView::importRequested,
+                         this,
+                         &NfSourceBrowser::importRequested);
+        QObject::connect(m_placesListView,
+                         &NfPlacesListView::pathSelected,
+                         m_pathTreeView,
+                         &NfPathTreeView::selectPath);
+        QObject::connect(m_storageListView,
+                         &NfStorageListView::pathSelected,
+                         m_pathTreeView,
+                         &NfPathTreeView::selectPath);
 }
 
 } // namespace NfDesktop

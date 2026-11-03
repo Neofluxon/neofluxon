@@ -28,6 +28,7 @@
 
 #include <filesystem>
 
+class QString;
 class QTreeView;
 class QFileSystemModel;
 
@@ -39,6 +40,7 @@ class NfPathTreeView : public QWidget
 
 public:
     explicit NfPathTreeView(QWidget* parent = nullptr);
+    void selectPath(const QString& path);
 
 signals:
     void folderSelected(const std::filesystem::path& path);

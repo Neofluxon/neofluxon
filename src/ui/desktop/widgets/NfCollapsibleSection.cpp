@@ -66,6 +66,10 @@ void NfCollapsibleSection::setContent(QWidget* widget)
         if (!widget)
                 return;
 
+        if (widget->sizePolicy().verticalPolicy() == QSizePolicy::Expanding)
+                m_contentFrame->setSizePolicy(QSizePolicy::Expanding,
+                                              QSizePolicy::Expanding);
+
         auto* layout = new QVBoxLayout(m_contentFrame);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(widget);

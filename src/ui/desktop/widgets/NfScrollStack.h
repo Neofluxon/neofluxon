@@ -36,8 +36,9 @@ class NfScrollStack : public QScrollArea {
 
  public:
         explicit NfScrollStack(QWidget* parent = nullptr);
-        void addWidget(QWidget* widget);
+        void addWidget(QWidget* widget, int stretch = 0);
         void insertWidget(int index, QWidget* widget);
+        void setWidgetStretch(QWidget* widget, int stretch);
         void addStretch(int stretch = 0);
 
 private:

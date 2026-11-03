@@ -26,6 +26,9 @@
 
 #include <QWidget>
 
+class QString;
+class QListWidget;
+
 namespace NfDesktop {
 
 class NfPlacesListView : public QWidget
@@ -34,6 +37,15 @@ class NfPlacesListView : public QWidget
 
 public:
         explicit NfPlacesListView(QWidget* parent = nullptr);
+
+signals:
+        void pathSelected(const QString& path);
+
+private:
+        void addPlace(QListWidget* places,
+                      const QString& label,
+                      const QString& path,
+                      QStringList& addedPaths);
 };
 
 } // namespace NfDesktop

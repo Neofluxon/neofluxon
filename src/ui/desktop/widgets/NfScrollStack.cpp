@@ -40,19 +40,25 @@ NfScrollStack::NfScrollStack(QWidget* parent)
         m_mainLayout = new QVBoxLayout(m_scrollContent);
         m_mainLayout->setContentsMargins(4, 4, 4, 4);
         m_mainLayout->setSpacing(2);
-        m_mainLayout->setAlignment(Qt::AlignTop);
 
         setWidget(m_scrollContent);
 }
 
-void NfScrollStack::addWidget(QWidget* widget)
+void NfScrollStack::addWidget(QWidget* widget, int stretch)
 {
-        m_mainLayout->addWidget(widget);
+        m_mainLayout->addWidget(widget, stretch);
 }
 
 void NfScrollStack::insertWidget(int index, QWidget* widget)
 {
         m_mainLayout->insertWidget(index, widget);
+}
+
+void NfScrollStack::setWidgetStretch(QWidget* widget, int stretch)
+{
+        const auto index = m_mainLayout->indexOf(widget);
+        if (index >= 0)
+                m_mainLayout->setStretch(index, stretch);
 }
 
 void NfScrollStack::addStretch(int stretch)

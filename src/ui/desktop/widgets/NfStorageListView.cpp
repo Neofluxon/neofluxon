@@ -23,10 +23,18 @@
 
 #include "NfStorageListView.h"
 
+#include <QDir>
 #include <QListWidget>
+#include <QSet>
+#include <QStorageInfo>
 #include <QVBoxLayout>
 
 namespace NfDesktop {
+
+namespace {
+constexpr int itemHeight = 28;
+constexpr int maxVisibleItems = 5;
+}
 
 NfStorageListView::NfStorageListView(QWidget* parent)
         : QWidget(parent)
@@ -35,7 +43,40 @@ NfStorageListView::NfStorageListView(QWidget* parent)
         layout->setContentsMargins(0, 0, 0, 0);
 
         auto* storage = new QListWidget(this);
-        storage->addItems({tr("HDD1"), tr("JHDD2")});
+        QSet<QString> addedPaths;
+        for (const auto& volume : QStorageInfo::mountedVolumes()) {
+                if (!volume.isValid() || !volume.isReady())
+                        continue;
+
+                const auto path = QDir::cleanPath(volume.rootPath());
+                if (path.isEmpty() || addedPaths.contains(path))
+                        continue;
+
+#if defined(Q_OS_LINUX)
+                if (path != QDir::rootPath()
+                    && !volume.device().startsWith(QByteArrayLiteral("/dev/")))
+                        continue;
+#endif
+
+                auto label = volume.displayName();
+                if (label.isEmpty())
+                        label = volume.device();
+                if (label.isEmpty())
+                        label = path;
+
+                auto* item = new QListWidgetItem(label, storage);
+                item->setSizeHint(QSize(0, itemHeight));
+                item->setData(Qt::UserRole, path);
+                item->setToolTip(path);
+                addedPaths.insert(path);
+        }
+        QObject::connect(storage, &QListWidget::itemClicked,
+                         this, [this](QListWidgetItem* item) {
+                                 emit pathSelected(item->data(Qt::UserRole).toString());
+                         });
+
+        storage->setMaximumHeight(maxVisibleItems * itemHeight
+                                  + 2 * storage->frameWidth());
         layout->addWidget(storage);
 }
 
