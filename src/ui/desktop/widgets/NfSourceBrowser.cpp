@@ -65,6 +65,7 @@ NfSourceBrowser::NfSourceBrowser(QWidget* parent)
         // Places section
         auto* section = new NfCollapsibleSection(tr("Places"), false);
         section->setObjectName(QStringLiteral("SourceBrowserPlacesSection"));
+        section->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
         m_placesListView = new NfPlacesListView();
         section->setContent(m_placesListView);
         m_scrollStack->addWidget(section);
@@ -72,12 +73,11 @@ NfSourceBrowser::NfSourceBrowser(QWidget* parent)
         // Storage section
         m_scrollStack->addSpacing(6);
         section = new NfCollapsibleSection(tr("Storage"), false);
+        section->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
         section->setObjectName(QStringLiteral("SourceBrowserStorageSection"));
         m_storageListView = new NfStorageListView();
         section->setContent(m_storageListView);
         m_scrollStack->addWidget(section);
-
-        foldersSection->setExpanded(true);
 
         QObject::connect(m_pathTreeView,
                          &NfPathTreeView::folderSelected,

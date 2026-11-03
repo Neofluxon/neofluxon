@@ -27,6 +27,7 @@
 #include <QWidget>
 
 class QString;
+class QListWidget;
 
 namespace NfDesktop {
 
@@ -37,8 +38,14 @@ class NfStorageListView : public QWidget
 public:
         explicit NfStorageListView(QWidget* parent = nullptr);
 
+protected:
+        QSize sizeHint() const override;
+
 signals:
         void pathSelected(const QString& path);
+
+private:
+        QListWidget* m_storage;
 };
 
 } // namespace NfDesktop

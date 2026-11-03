@@ -62,7 +62,6 @@ void NfImageMetadataPanel::setupUi()
                                        const QSet<QString>& allowedKeys) {
                 auto* section = new NfCollapsibleSection(title);
                 section->setObjectName(QStringLiteral("MetadataSection"));
-                section->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
                 section->setExpanded(m_context->uiState->metadataSectionExpanded(key));
                 QObject::connect(section,
                                  &NfCollapsibleSection::expandedChanged,
@@ -92,6 +91,8 @@ void NfImageMetadataPanel::setupUi()
                    {tr("Bit depth"), tr("Color space"), tr("Compression"), tr("Orientation"),
                     tr("EXIF"), tr("IPTC"), tr("XMP"), tr("Software"),
                     tr("Modification Date")});
+
+        m_scrollStack->addStretch();
 }
 
 } // NfDesktop

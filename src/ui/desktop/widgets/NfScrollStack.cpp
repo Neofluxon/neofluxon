@@ -31,6 +31,7 @@ namespace NfDesktop {
 NfScrollStack::NfScrollStack(QWidget* parent)
         : QScrollArea(parent)
 {
+        setObjectName("NfScrollStack");
         setWidgetResizable(true);
         setFrameShape(QFrame::NoFrame);
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -39,7 +40,7 @@ NfScrollStack::NfScrollStack(QWidget* parent)
         m_scrollContent = new QWidget(this);
         m_mainLayout = new QVBoxLayout(m_scrollContent);
         m_mainLayout->setContentsMargins(4, 4, 4, 4);
-        m_mainLayout->setSpacing(2);
+        m_mainLayout->setSpacing(0);
 
         setWidget(m_scrollContent);
 }

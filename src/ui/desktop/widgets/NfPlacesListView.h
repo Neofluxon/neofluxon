@@ -41,12 +41,17 @@ public:
 signals:
         void pathSelected(const QString& path);
 
+protected:
+        QSize sizeHint() const override;
+
 private:
         void addPlace(QListWidget* places,
                       const QString& label,
                       const QString& path,
                       const QString& iconPath,
                       QStringList& addedPaths);
+
+        QListWidget *m_places{nullptr};
 };
 
 } // namespace NfDesktop

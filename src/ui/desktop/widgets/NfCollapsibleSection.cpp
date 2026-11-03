@@ -36,6 +36,7 @@ NfCollapsibleSection::NfCollapsibleSection(const QString& title,
         : QWidget(parent)
         , m_collapsible{collapsible}
 {
+        setAttribute(Qt::WA_StyledBackground);
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);

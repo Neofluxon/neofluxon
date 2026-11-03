@@ -35,18 +35,20 @@ namespace NfDesktop {
 
 namespace {
 constexpr int itemHeight = 28;
-constexpr int maxVisibleItems = 8;
+constexpr int maxVisibleItems = 5;
 }
 
 NfStorageListView::NfStorageListView(QWidget* parent)
         : QWidget(parent)
 {
+        setAttribute(Qt::WA_StyledBackground);
         auto* layout = new QVBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);
 
-        auto* storage = new QListWidget(this);
-        storage->setFrameShape(QFrame::NoFrame);
-        storage->setIconSize(QSize(14, 14));
+        m_storage = new QListWidget(this);
+        m_storage->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+        m_storage->setFrameShape(QFrame::NoFrame);
+        m_storage->setIconSize(QSize(14, 14));
         QSet<QString> addedPaths;
         for (const auto& volume : QStorageInfo::mountedVolumes()) {
                 if (!volume.isValid() || !volume.isReady())
@@ -57,8 +59,15 @@ NfStorageListView::NfStorageListView(QWidget* parent)
                         continue;
 
 #if defined(Q_OS_LINUX)
-                if (path != QDir::rootPath()
-                    && !volume.device().startsWith(QByteArrayLiteral("/dev/")))
+                const QString homePath = QDir::cleanPath(QDir::homePath());
+                if (path == QStringLiteral("/")
+                    || path == homePath
+                    || path == QStringLiteral("/home")
+                    || path == QStringLiteral("/media")
+                    || path == QStringLiteral("/mnt")
+                    || path == QStringLiteral("/run/media")
+                    || path == QStringLiteral("/boot/efi")
+                    || !volume.device().startsWith(QByteArrayLiteral("/dev/")))
                         continue;
 #endif
 
@@ -68,24 +77,31 @@ NfStorageListView::NfStorageListView(QWidget* parent)
                 if (label.isEmpty())
                         label = path;
 
-                auto* item = new QListWidgetItem(label, storage);
+                auto* item = new QListWidgetItem(label, m_storage);
                 item->setIcon(QIcon(QStringLiteral(":/icons/place-storage.svg")));
                 item->setSizeHint(QSize(0, itemHeight));
                 item->setData(Qt::UserRole, path);
                 item->setToolTip(path);
                 addedPaths.insert(path);
         }
-        QObject::connect(storage, &QListWidget::itemClicked,
+        QObject::connect(m_storage, &QListWidget::itemClicked,
                          this, [this](QListWidgetItem* item) {
-                                 emit pathSelected(item->data(Qt::UserRole).toString());
+                         emit pathSelected(item->data(Qt::UserRole).toString());
                          });
 
-        int maxHeight = maxVisibleItems * itemHeight
-                + 2 * storage->frameWidth();
-        storage->setMaximumHeight(maxHeight);
-        setMaximumHeight(maxHeight);
-        layout->addWidget(storage);
+        layout->addWidget(m_storage);
+}
 
+QSize NfStorageListView::sizeHint() const
+{
+        auto size = QWidget::sizeHint();
+        if (m_storage) {
+                const auto count = std::min(maxVisibleItems,
+                                            m_storage->count());
+                size.setHeight(count * itemHeight);
+        }
+
+        return size;
 }
 
 } // namespace NfDesktop

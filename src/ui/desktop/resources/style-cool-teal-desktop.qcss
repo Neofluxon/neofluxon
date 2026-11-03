@@ -677,15 +677,6 @@ NfDesktop--NfCollapsibleSection QToolButton:focus {
     outline: none;
 }
 
-
-/* ================== NfSourceBrowser ============= */
-
-#NfPanel #NfSourceBrowser {
-    background: #1e1f28;
-    border: 1px solid #1c1d25;
-    border-radius: 4px;
-}
-
 #NfPanel #NfImageMetadataPanel {
     background-color: #1e1f28;
 }
@@ -716,6 +707,14 @@ NfDesktop--NfCollapsibleSection QToolButton:focus {
 #MetadataSection QToolButton:pressed {
     background-color: #323546;
     color: #ff6b00;
+}
+
+/* ================== NfSourceBrowser ============= */
+
+#NfPanel #NfSourceBrowser {
+    background: #1e1f28;
+    border: 1px solid #1c1d25;
+    border-radius: 4px;
 }
 
 QScrollArea#SourceBrowserScrollStack QScrollBar:vertical,
