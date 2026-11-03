@@ -61,6 +61,11 @@ void NfScrollStack::setWidgetStretch(QWidget* widget, int stretch)
                 m_mainLayout->setStretch(index, stretch);
 }
 
+void NfScrollStack::addSpacing(int spacing)
+{
+        m_mainLayout->addSpacing(spacing);
+}
+
 void NfScrollStack::addStretch(int stretch)
 {
         m_mainLayout->addStretch(stretch);

@@ -31,6 +31,7 @@
 #include "NfSourceBrowser.h"
 #include "NfLibraryAdapter.h"
 #include "NfLibraryBrowser.h"
+#include "NfSeparator.h"
 #include "core/NfLogger.h"
 
 #include <QVBoxLayout>
@@ -48,10 +49,18 @@ NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);
+        panelLayout->setSpacing(2);
 
         // Main menu
         auto mainMenu = new NfMainMenu(this);
         panelLayout->addWidget(mainMenu);
+
+        auto* separator = new NfSeparator(NfSeparator::Orientation::Horizontal,
+                                          1,
+                                          this);
+        separator->setObjectName(QStringLiteral("PanelSeparator"));
+        panelLayout->addWidget(separator);
+        panelLayout->addSpacing(12);
 
         m_stack->addWidget(m_sourceBrowser);
 

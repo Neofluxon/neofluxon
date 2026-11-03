@@ -24,38 +24,48 @@
 #include "NfCollapsibleSection.h"
 
 #include <QToolButton>
+#include <QLabel>
 #include <QFrame>
 #include <QVBoxLayout>
 
 namespace NfDesktop {
 
-NfCollapsibleSection::NfCollapsibleSection(const QString& title, QWidget* parent)
+NfCollapsibleSection::NfCollapsibleSection(const QString& title,
+                                           bool collapsible,
+                                           QWidget* parent)
         : QWidget(parent)
+        , m_collapsible{collapsible}
 {
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        m_toggleButton = new QToolButton(this);
-        m_toggleButton->setCheckable(true);
-        m_toggleButton->setText(title);
-        m_toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        // By default collapsed
-        m_toggleButton->setChecked(false);
-        m_toggleButton->setArrowType(Qt::RightArrow);
+        if (m_collapsible) {
+                m_toggleButton = new QToolButton(this);
+                m_toggleButton->setCheckable(true);
+                m_toggleButton->setText(title);
+                m_toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+                m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+                m_toggleButton->setChecked(false);
+                m_toggleButton->setArrowType(Qt::RightArrow);
+                m_mainLayout->addWidget(m_toggleButton);
+                QObject::connect(m_toggleButton,
+                                 &QToolButton::toggled,
+                                 this,
+                                 &NfCollapsibleSection::toggle);
+        } else {
+                m_titleLabel = new QLabel(title, this);
+                m_titleLabel->setObjectName(QStringLiteral("SectionTitle"));
+                m_titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+                m_titleLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+                m_mainLayout->addWidget(m_titleLabel);
+        }
 
         m_contentFrame = new QFrame(this);
         m_contentFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        m_mainLayout->addWidget(m_toggleButton);
         m_mainLayout->addWidget(m_contentFrame);
-        m_contentFrame->setVisible(false);
-
-        QObject::connect(m_toggleButton,
-                         &QToolButton::toggled,
-                         this,
-                         &NfCollapsibleSection::toggle);
+        m_contentFrame->setVisible(!m_collapsible);
 }
 
 void NfCollapsibleSection::setContent(QWidget* widget)
@@ -85,30 +95,15 @@ void NfCollapsibleSection::setContent(QWidget* widget)
 
 bool NfCollapsibleSection::isExpanded() const
 {
-        return m_toggleButton->isChecked();
+        return m_collapsible && m_toggleButton->isChecked();
 }
 
 void NfCollapsibleSection::setExpanded(bool expanded)
 {
-        if (!m_collapsible && !expanded)
+        if (!m_collapsible)
                 return;
 
         m_toggleButton->setChecked(expanded);
-}
-
-void NfCollapsibleSection::setCollapsible(bool collapsible)
-{
-        m_collapsible = collapsible;
-        m_toggleButton->setCheckable(collapsible);
-
-        if (!collapsible) {
-                m_toggleButton->setChecked(true);
-                m_contentFrame->setVisible(true);
-                m_toggleButton->setArrowType(Qt::NoArrow);
-                return;
-        }
-
-        m_toggleButton->setArrowType(isExpanded() ? Qt::DownArrow : Qt::RightArrow);
 }
 
 void NfCollapsibleSection::toggle(bool checked)

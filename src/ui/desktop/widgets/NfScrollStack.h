@@ -39,6 +39,7 @@ class NfScrollStack : public QScrollArea {
         void addWidget(QWidget* widget, int stretch = 0);
         void insertWidget(int index, QWidget* widget);
         void setWidgetStretch(QWidget* widget, int stretch);
+        void addSpacing(int spacing);
         void addStretch(int stretch = 0);
 
 private:

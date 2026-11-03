@@ -28,6 +28,7 @@
 #include <QString>
 
 class QToolButton;
+class QLabel;
 class QFrame;
 class QVBoxLayout;
 class QLayout;
@@ -39,11 +40,11 @@ class NfCollapsibleSection : public QWidget {
 
 public:
         explicit NfCollapsibleSection(const QString& title,
+                                      bool collapsible = true,
                                       QWidget* parent = nullptr);
         void setContent(QWidget* widget);
         bool isExpanded() const;
         void setExpanded(bool expanded);
-        void setCollapsible(bool b = true);
 
 public slots:
         void toggle(bool collapsed);
@@ -52,10 +53,11 @@ signals:
         void expandedChanged(bool expanded);
 
 private:
-        QToolButton* m_toggleButton;
+        QToolButton* m_toggleButton{nullptr};
+        QLabel* m_titleLabel{nullptr};
         QFrame* m_contentFrame;
         QVBoxLayout* m_mainLayout;
-        bool m_collapsible{true};
+        bool m_collapsible;
 };
 
 } // namespace NfDesktop
