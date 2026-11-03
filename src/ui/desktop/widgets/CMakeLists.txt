@@ -10,7 +10,7 @@ set(WIDGETS_HEADERS
     NfRightPanel.h
     NfMainMenu.h
     NfFolderActionDelegate.h
-    NfPathBrowser.h
+    NfPathTreeView.h
     NfLibraryListHeader.h
     NfLibraryListView.h
     NfRepresentationListView.h
@@ -31,6 +31,9 @@ set(WIDGETS_HEADERS
     NfImageMetadataPanel.h
     NfMetadataItemDelegate.h
     NfMetadataSectionWidget.h
+    NfPlacesListView.h
+    NfStorageListView.h
+    NfSourceBrowser.h
 )
 
 set(WIDGETS_UTILS
@@ -50,7 +53,7 @@ set(WIDGETS_SOURCES
     NfRightPanel.cpp
     NfMainMenu.cpp
     NfFolderActionDelegate.cpp
-    NfPathBrowser.cpp
+    NfPathTreeView.cpp
     NfLibraryListHeader.cpp
     NfLibraryListView.cpp
     NfRepresentationListView.cpp
@@ -71,6 +74,9 @@ set(WIDGETS_SOURCES
     NfImageMetadataPanel.cpp
     NfMetadataItemDelegate.cpp
     NfMetadataSectionWidget.cpp
+    NfPlacesListView.cpp
+    NfStorageListView.cpp
+    NfSourceBrowser.cpp
 )
 
 add_library(NfDesktopWidgets STATIC

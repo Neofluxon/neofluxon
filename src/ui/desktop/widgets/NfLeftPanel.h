@@ -36,7 +36,7 @@ struct NfContext;
 
 namespace NfDesktop {
 
-class NfPathBrowser;
+class NfSourceBrowser;
 class NfLibraryTreeView;
 class NfLibraryBrowser;
 
@@ -54,7 +54,7 @@ protected slots:
 
 private:
         NfUi::NfContext *m_context;
-        NfPathBrowser* m_pathBrowser;
+        NfSourceBrowser* m_sourceBrowser;
         NfLibraryBrowser* m_libraryBrowser;
         QStackedWidget* m_stack;
 };

@@ -28,12 +28,13 @@
 
 #include <filesystem>
 
-class NfScrollStack;
-class NfCollapsibleSection;
 class QTreeView;
 class QFileSystemModel;
 
 namespace NfDesktop {
+
+class NfCollapsibleSection;
+class NfScrollStack;
 
 class NfSourceBrowser : public QWidget
 {

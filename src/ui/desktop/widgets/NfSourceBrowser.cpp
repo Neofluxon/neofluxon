@@ -28,24 +28,32 @@
 #include "NfPlacesListView.h"
 #include "NfStorageListView.h"
 
+#include <QVBoxLayout>
+
 namespace NfDesktop {
 
 NfSourceBrowser::NfSourceBrowser(QWidget* parent)
         : QWidget(parent)
         , m_scrollStack{new NfScrollStack(this)}
 {
+        auto* layout = new QVBoxLayout(this);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(0);
+
+        layout->addWidget(m_scrollStack);
+
         // Folders section
-        auto* section = new NfCollapsibleSection(title);
+        auto* section = new NfCollapsibleSection(tr("Folders"));
         section->setContent(new NfPathTreeView());
         m_scrollStack->addWidget(section);
 
         // Places section
-        auto* section = new NfCollapsibleSection(title);
+        section = new NfCollapsibleSection(tr("Places"));
         section->setContent(new NfPlacesListView());
         m_scrollStack->addWidget(section);
 
         // Storage section
-        auto* section = new NfCollapsibleSection(title);
+        section = new NfCollapsibleSection(tr("Storage"));
         section->setContent(new NfStorageListView());
         m_scrollStack->addWidget(section);
 }

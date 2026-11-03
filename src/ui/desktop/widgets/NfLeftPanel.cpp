@@ -28,7 +28,7 @@
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfMainMenu.h"
-#include "NfPathBrowser.h"
+#include "NfSourceBrowser.h"
 #include "NfLibraryAdapter.h"
 #include "NfLibraryBrowser.h"
 #include "core/NfLogger.h"
@@ -43,7 +43,7 @@ namespace NfDesktop {
 NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
         , m_context{ctx}
-        , m_pathBrowser{new NfPathBrowser(this)}
+        , m_sourceBrowser{new NfSourceBrowser(this)}
         , m_libraryBrowser{nullptr}
         , m_stack{new QStackedWidget(this)}
 {
@@ -53,7 +53,7 @@ NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
         auto mainMenu = new NfMainMenu(this);
         panelLayout->addWidget(mainMenu);
 
-        m_stack->addWidget(m_pathBrowser);
+        m_stack->addWidget(m_sourceBrowser);
 
         panelLayout->addWidget(m_stack);
 
@@ -95,12 +95,12 @@ NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
                          &NfUiState::modeChanged,
                          updateMode);
 
-        QObject::connect(m_pathBrowser,
-                         &NfPathBrowser::folderSelected,
+        QObject::connect(m_sourceBrowser,
+                         &NfSourceBrowser::folderSelected,
                          m_context->uiState->folderModeState(),
                          &NfUiFolderModeState::setPath);
-        QObject::connect(m_pathBrowser,
-                         &NfPathBrowser::importRequested,
+        QObject::connect(m_sourceBrowser,
+                         &NfSourceBrowser::importRequested,
                          this,
                          &NfLeftPanel::showImportWidget);
 
@@ -109,7 +109,7 @@ NfLeftPanel::NfLeftPanel(NfContext *ctx, QWidget *parent)
 
 void NfLeftPanel::showPathBrowser()
 {
-        m_stack->setCurrentWidget(m_pathBrowser);
+        m_stack->setCurrentWidget(m_sourceBrowser);
 }
 
 void NfLeftPanel::showLibraryBrowser()
