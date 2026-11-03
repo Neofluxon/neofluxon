@@ -45,6 +45,7 @@ private:
         void addPlace(QListWidget* places,
                       const QString& label,
                       const QString& path,
+                      const QString& iconPath,
                       QStringList& addedPaths);
 };
 

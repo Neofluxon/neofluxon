@@ -43,6 +43,7 @@ public:
         void setContent(QWidget* widget);
         bool isExpanded() const;
         void setExpanded(bool expanded);
+        void setCollapsible(bool b = true);
 
 public slots:
         void toggle(bool collapsed);
@@ -54,6 +55,7 @@ private:
         QToolButton* m_toggleButton;
         QFrame* m_contentFrame;
         QVBoxLayout* m_mainLayout;
+        bool m_collapsible{true};
 };
 
 } // namespace NfDesktop

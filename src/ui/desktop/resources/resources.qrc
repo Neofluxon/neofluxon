@@ -21,5 +21,12 @@
   <file>icons/viewmode_grid.svg</file>
   <file>icons/viewmode_preview.svg</file>
   <file>icons/settings.svg</file>
+  <file>icons/place-root.svg</file>
+  <file>icons/place-home.svg</file>
+  <file>icons/place-desktop.svg</file>
+  <file>icons/place-downloads.svg</file>
+  <file>icons/place-pictures.svg</file>
+  <file>icons/place-documents.svg</file>
+  <file>icons/place-storage.svg</file>
 </qresource>
 </RCC>

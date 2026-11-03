@@ -66,12 +66,20 @@ void NfCollapsibleSection::setContent(QWidget* widget)
         if (!widget)
                 return;
 
-        if (widget->sizePolicy().verticalPolicy() == QSizePolicy::Expanding)
+        const auto expandsVertically =
+                widget->sizePolicy().verticalPolicy() == QSizePolicy::Expanding;
+        if (expandsVertically) {
                 m_contentFrame->setSizePolicy(QSizePolicy::Expanding,
                                               QSizePolicy::Expanding);
+        } else {
+                m_contentFrame->setSizePolicy(QSizePolicy::Expanding,
+                                              QSizePolicy::Fixed);
+                m_contentFrame->setMaximumHeight(widget->maximumHeight());
+        }
 
         auto* layout = new QVBoxLayout(m_contentFrame);
         layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(0);
         layout->addWidget(widget);
 }
 
@@ -82,11 +90,32 @@ bool NfCollapsibleSection::isExpanded() const
 
 void NfCollapsibleSection::setExpanded(bool expanded)
 {
+        if (!m_collapsible && !expanded)
+                return;
+
         m_toggleButton->setChecked(expanded);
+}
+
+void NfCollapsibleSection::setCollapsible(bool collapsible)
+{
+        m_collapsible = collapsible;
+        m_toggleButton->setCheckable(collapsible);
+
+        if (!collapsible) {
+                m_toggleButton->setChecked(true);
+                m_contentFrame->setVisible(true);
+                m_toggleButton->setArrowType(Qt::NoArrow);
+                return;
+        }
+
+        m_toggleButton->setArrowType(isExpanded() ? Qt::DownArrow : Qt::RightArrow);
 }
 
 void NfCollapsibleSection::toggle(bool checked)
 {
+        if (!m_collapsible)
+                return;
+
         m_toggleButton->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
         m_contentFrame->setVisible(checked);
         emit expandedChanged(checked);

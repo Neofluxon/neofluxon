@@ -24,6 +24,8 @@
 #include "NfStorageListView.h"
 
 #include <QDir>
+#include <QFrame>
+#include <QIcon>
 #include <QListWidget>
 #include <QSet>
 #include <QStorageInfo>
@@ -33,7 +35,7 @@ namespace NfDesktop {
 
 namespace {
 constexpr int itemHeight = 28;
-constexpr int maxVisibleItems = 5;
+constexpr int maxVisibleItems = 8;
 }
 
 NfStorageListView::NfStorageListView(QWidget* parent)
@@ -43,6 +45,8 @@ NfStorageListView::NfStorageListView(QWidget* parent)
         layout->setContentsMargins(0, 0, 0, 0);
 
         auto* storage = new QListWidget(this);
+        storage->setFrameShape(QFrame::NoFrame);
+        storage->setIconSize(QSize(14, 14));
         QSet<QString> addedPaths;
         for (const auto& volume : QStorageInfo::mountedVolumes()) {
                 if (!volume.isValid() || !volume.isReady())
@@ -65,6 +69,7 @@ NfStorageListView::NfStorageListView(QWidget* parent)
                         label = path;
 
                 auto* item = new QListWidgetItem(label, storage);
+                item->setIcon(QIcon(QStringLiteral(":/icons/place-storage.svg")));
                 item->setSizeHint(QSize(0, itemHeight));
                 item->setData(Qt::UserRole, path);
                 item->setToolTip(path);
@@ -75,9 +80,12 @@ NfStorageListView::NfStorageListView(QWidget* parent)
                                  emit pathSelected(item->data(Qt::UserRole).toString());
                          });
 
-        storage->setMaximumHeight(maxVisibleItems * itemHeight
-                                  + 2 * storage->frameWidth());
+        int maxHeight = maxVisibleItems * itemHeight
+                + 2 * storage->frameWidth();
+        storage->setMaximumHeight(maxHeight);
+        setMaximumHeight(maxHeight);
         layout->addWidget(storage);
+
 }
 
 } // namespace NfDesktop

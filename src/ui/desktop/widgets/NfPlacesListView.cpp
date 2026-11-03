@@ -25,7 +25,9 @@
 
 #include <QListWidget>
 #include <QDir>
+#include <QFrame>
 #include <QFileInfo>
+#include <QIcon>
 #include <QStandardPaths>
 #include <QVBoxLayout>
 #include <QtGlobal>
@@ -44,37 +46,49 @@ NfPlacesListView::NfPlacesListView(QWidget* parent)
         layout->setContentsMargins(0, 0, 0, 0);
 
         auto* places = new QListWidget(this);
+        places->setFrameShape(QFrame::NoFrame);
+        places->setIconSize(QSize(14, 14));
         QStringList addedPaths;
 
 #if defined(Q_OS_WIN)
         addPlace(places, tr("User"),
                  QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
+                 QStringLiteral(":/icons/place-home.svg"),
                  addedPaths);
         addPlace(places, tr("Desktop"),
                  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                 QStringLiteral(":/icons/place-desktop.svg"),
                  addedPaths);
         addPlace(places, tr("Downloads"),
                  QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+                 QStringLiteral(":/icons/place-downloads.svg"),
                  addedPaths);
         addPlace(places, tr("Pictures"),
                  QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+                 QStringLiteral(":/icons/place-pictures.svg"),
                  addedPaths);
         addPlace(places, tr("Documents"),
                  QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
+                 QStringLiteral(":/icons/place-documents.svg"),
                  addedPaths);
 #elif defined(Q_OS_LINUX)
-        addPlace(places, tr("/"), QDir::rootPath(), addedPaths);
+        addPlace(places, tr("/"), QDir::rootPath(),
+                 QStringLiteral(":/icons/place-root.svg"), addedPaths);
         addPlace(places, tr("Home"),
                  QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
+                 QStringLiteral(":/icons/place-home.svg"),
                  addedPaths);
         addPlace(places, tr("Desktop"),
                  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                 QStringLiteral(":/icons/place-desktop.svg"),
                  addedPaths);
         addPlace(places, tr("Downloads"),
                  QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+                 QStringLiteral(":/icons/place-downloads.svg"),
                  addedPaths);
         addPlace(places, tr("Pictures"),
                  QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+                 QStringLiteral(":/icons/place-pictures.svg"),
                  addedPaths);
 #endif
         QObject::connect(places, &QListWidget::itemClicked,
@@ -82,8 +96,10 @@ NfPlacesListView::NfPlacesListView(QWidget* parent)
                                  emit pathSelected(item->data(Qt::UserRole).toString());
                          });
 
-        places->setMaximumHeight(maxVisibleItems * itemHeight
-                                 + 2 * places->frameWidth());
+        const auto maxHeight = maxVisibleItems * itemHeight
+                + 2 * places->frameWidth();
+        places->setMaximumHeight(maxHeight);
+        setMaximumHeight(maxHeight);
 
         layout->addWidget(places);
 }
@@ -91,6 +107,7 @@ NfPlacesListView::NfPlacesListView(QWidget* parent)
 void NfPlacesListView::addPlace(QListWidget* places,
                                 const QString& label,
                                 const QString& path,
+                                const QString& iconPath,
                                 QStringList& addedPaths)
 {
         if (path.isEmpty() || addedPaths.contains(path))
@@ -105,6 +122,7 @@ void NfPlacesListView::addPlace(QListWidget* places,
                 return;
 
         auto* item = new QListWidgetItem(label, places);
+        item->setIcon(QIcon(iconPath));
         item->setSizeHint(QSize(0, itemHeight));
         item->setData(Qt::UserRole, absolutePath);
         addedPaths.append(absolutePath);

@@ -44,6 +44,7 @@ NfSourceBrowser::NfSourceBrowser(QWidget* parent)
 
         // Folders section
         auto* foldersSection = new NfCollapsibleSection(tr("Folders"));
+        foldersSection->setCollapsible(false);
         foldersSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         m_pathTreeView = new NfPathTreeView();
         m_pathTreeView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
