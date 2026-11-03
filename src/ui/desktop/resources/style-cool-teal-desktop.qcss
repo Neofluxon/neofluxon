@@ -686,6 +686,38 @@ NfDesktop--NfCollapsibleSection QToolButton:focus {
     border-radius: 4px;
 }
 
+#NfPanel #NfImageMetadataPanel {
+    background-color: #1e1f28;
+}
+
+#NfPanel #NfImageMetadataPanel QScrollArea,
+#NfPanel #NfImageMetadataPanel QScrollArea QWidget {
+    background-color: transparent;
+}
+
+#MetadataSection QToolButton {
+    min-height: 32px;
+    max-height: 32px;
+    text-align: left;
+}
+
+#MetadataSection QToolButton:checked,
+#MetadataSection QToolButton:checked:!hover {
+    background: transparent;
+    color: #aeb5c0;
+}
+
+#MetadataSection QToolButton:hover,
+#MetadataSection QToolButton:checked:hover {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
+}
+
+#MetadataSection QToolButton:pressed {
+    background-color: #323546;
+    color: #ff6b00;
+}
+
 QScrollArea#SourceBrowserScrollStack QScrollBar:vertical,
 QScrollArea#SourceBrowserScrollStack QScrollBar:horizontal {
     background-color: #1a1b23;

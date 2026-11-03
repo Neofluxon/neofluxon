@@ -44,6 +44,8 @@ NfImageMetadataPanel::NfImageMetadataPanel(NfContext *ctx,
         , m_model{new NfPhotoMetadataModel(m_context, this)}
         , m_scrollStack{new NfScrollStack(this)}
 {
+        setObjectName(QStringLiteral("NfImageMetadataPanel"));
+        setAttribute(Qt::WA_StyledBackground);
         setupUi();
 }
 
@@ -59,6 +61,8 @@ void NfImageMetadataPanel::setupUi()
                                        const QString& title,
                                        const QSet<QString>& allowedKeys) {
                 auto* section = new NfCollapsibleSection(title);
+                section->setObjectName(QStringLiteral("MetadataSection"));
+                section->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
                 section->setExpanded(m_context->uiState->metadataSectionExpanded(key));
                 QObject::connect(section,
                                  &NfCollapsibleSection::expandedChanged,
