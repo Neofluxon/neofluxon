@@ -86,7 +86,7 @@ void NfBrowserViewModeBar::setupUi()
                          QIcon(":/icons/viewmode_grid.svg"));
         createModeButton(ViewMode::Preview,
                          tr("Preview"),
-                         QIcon(":/icons/viewmode_preview.svg"));
+                         QIcon(":/icons/picture.svg"));
 
         for (auto* button : m_buttons)
                 mainLayout->addWidget(button, 0, Qt::AlignVCenter);

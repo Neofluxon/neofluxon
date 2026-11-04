@@ -69,7 +69,7 @@ NfPlacesListView::NfPlacesListView(QWidget* parent)
                  addedPaths);
         addPlace(m_places, tr("Pictures"),
                  QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
-                 QStringLiteral(":/icons/place-pictures.svg"),
+                 QStringLiteral(":/icons/picture.svg"),
                  addedPaths);
         addPlace(m_places, tr("Documents"),
                  QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
@@ -92,7 +92,7 @@ NfPlacesListView::NfPlacesListView(QWidget* parent)
                  addedPaths);
         addPlace(m_places, tr("Pictures"),
                  QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
-                 QStringLiteral(":/icons/place-pictures.svg"),
+                 QStringLiteral(":/icons/picture.svg"),
                  addedPaths);
 
 #endif
