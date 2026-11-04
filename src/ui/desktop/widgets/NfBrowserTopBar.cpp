@@ -51,6 +51,7 @@ void NfBrowserTopBar::setupUi()
         auto* layout = new QHBoxLayout(this);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(4);
+        layout->addStretch();
 
         //        m_breadcrumbBar = new NfBrowserBreadcrumbBar(this);
         m_viewModeBar = new NfBrowserViewModeBar(this);
@@ -95,6 +96,8 @@ void NfBrowserTopBar::setupUi()
                          this, &NfBrowserTopBar::updateEditButton);
 
                          layout->addWidget(m_editButton, 0, Qt::AlignVCenter);*/
+
+        layout->addStretch();
 }
 
 void NfBrowserTopBar::updateEditButton()
