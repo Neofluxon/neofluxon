@@ -41,7 +41,7 @@ NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiBrowserState* state,
                                  QWidget* parent)
         : NfStyledWidget(parent)
         , m_state{state}
-        , m_editor{QStringLiteral("rawtherapee")}
+          //        , m_editor{QStringLiteral("rawtherapee")}
 {
         setupUi();
 }
@@ -62,7 +62,7 @@ void NfBrowserTopBar::setupUi()
         layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
         layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
         layout->addWidget(m_filterBar, 0, Qt::AlignVCenter);
-        m_editButton = new QToolButton(this);
+        /*m_editButton = new QToolButton(this);
         m_editButton->setObjectName("editInButton");
         m_editButton->setPopupMode(QToolButton::MenuButtonPopup);
 
@@ -94,12 +94,12 @@ void NfBrowserTopBar::setupUi()
         QObject::connect(m_state, &NfUi::NfUiBrowserState::currentPhotoChanged,
                          this, &NfBrowserTopBar::updateEditButton);
 
-        layout->addWidget(m_editButton, 0, Qt::AlignVCenter);
+                         layout->addWidget(m_editButton, 0, Qt::AlignVCenter);*/
 }
 
 void NfBrowserTopBar::updateEditButton()
 {
-        const auto editorName = m_editor == QStringLiteral("gimp")
+        /*const auto editorName = m_editor == QStringLiteral("gimp")
                 ? tr("GIMP")
                 : tr("RawTherapee");
         m_editButton->setText(tr("Edit in %1").arg(editorName));
@@ -107,12 +107,12 @@ void NfBrowserTopBar::updateEditButton()
         m_editButton->setEnabled(hasPhoto);
         m_editButton->setToolTip(hasPhoto
                                  ? tr("Open the selected photo in %1").arg(editorName)
-                                 : tr("Select a photo to edit"));
+                                 : tr("Select a photo to edit"));*/
 }
 
 void NfBrowserTopBar::openCurrentPhoto()
 {
-        const auto& path = m_state->currentPhoto().path();
+        /*const auto& path = m_state->currentPhoto().path();
         if (path.empty())
                 return;
 
@@ -129,7 +129,7 @@ void NfBrowserTopBar::openCurrentPhoto()
                                      tr("Could not launch %1. Make sure it is installed "
                                         "and available in PATH.")
                                              .arg(editorName));
-        }
+                                             }*/
 }
 
 } // namespace NfDesktop

@@ -60,8 +60,7 @@ private:
         NfBrowserViewModeBar* m_viewModeBar{nullptr};
         NfBrowserSortBar* m_sortBar{nullptr};
         NfBrowserFilterBar* m_filterBar{nullptr};
-        QToolButton* m_editButton{nullptr};
-        QString m_editor;
+        //QToolButton* m_editButton{nullptr};
 };
 
 } // namespace NfDesktop
