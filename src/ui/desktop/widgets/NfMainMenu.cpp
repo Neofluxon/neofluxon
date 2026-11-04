@@ -66,7 +66,7 @@ NfMainMenu::NfMainMenu(QWidget* parent)
         menuLayout->addWidget(m_foldersButton);
 
         m_libraryButton = new QPushButton(tr("Library"), this);
-        m_libraryButton->setIcon(QIcon(":/icons/nav-library.svg"));
+        m_libraryButton->setIcon(QIcon(":/icons/library.svg"));
         m_libraryButton->setIconSize(QSize(16, 16));
         m_libraryButton->setCheckable(true);
         m_libraryButton->setAutoExclusive(true);
