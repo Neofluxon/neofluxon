@@ -25,6 +25,7 @@
 #include "NfUiBrowserState.h"
 
 #include <QAction>
+#include <QIcon>
 #include <QSignalBlocker>
 #include <QHBoxLayout>
 #include <QMenu>
@@ -54,6 +55,9 @@ void NfBrowserFilterBar::setupUi()
 
         m_button = new QToolButton(this);
         m_button->setPopupMode(QToolButton::InstantPopup);
+        m_button->setIcon(QIcon(":/icons/filter.svg"));
+        m_button->setIconSize(QSize(16, 16));
+        m_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
         auto* menu = new QMenu(m_button);
 

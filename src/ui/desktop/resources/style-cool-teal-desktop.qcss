@@ -5,6 +5,29 @@ QWidget {
     font-size: 13px;
 }
 
+QMenu#LibraryContextMenu {
+    background-color: #1e1f28;
+    color: #aeb5c0;
+    border: 1px solid #404452;
+    padding: 4px 0;
+}
+
+QMenu#LibraryContextMenu::item {
+    background-color: transparent;
+    padding: 5px 24px;
+}
+
+QMenu#LibraryContextMenu::item:selected {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
+}
+
+QMenu#LibraryContextMenu::separator {
+    height: 1px;
+    background-color: #404452;
+    margin: 4px 8px;
+}
+
 QPushButton:hover {
     border: 1px solid #ff6b00;
 }

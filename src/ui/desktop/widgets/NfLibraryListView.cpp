@@ -60,6 +60,7 @@ void NfLibraryListView::contextMenuEvent(QContextMenuEvent* event)
         setCurrentIndex(index);
 
         QMenu menu(this);
+        menu.setObjectName("LibraryContextMenu");
         auto* renameAction = menu.addAction(tr("Rename Library"));
         auto* removeAction = menu.addAction(tr("Delete Library"));
 

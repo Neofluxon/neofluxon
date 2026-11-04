@@ -26,6 +26,7 @@
 #include "core/NfLogger.h"
 
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QMenu>
 #include <QSignalBlocker>
 #include <QToolButton>
@@ -56,6 +57,9 @@ void NfBrowserSortBar::setupUi()
 
         m_button = new QToolButton(this);
         m_button->setPopupMode(QToolButton::InstantPopup);
+        m_button->setIcon(QIcon(":/icons/sort.svg"));
+        m_button->setIconSize(QSize(16, 16));
+        m_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
         auto* menu = new QMenu(m_button);
 
@@ -94,12 +98,8 @@ void NfBrowserSortBar::setupUi()
                 return action;
         };
 
-        auto* orderGroup = new QActionGroup(menu);
-        orderGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
         m_ascendingAction = addOrderAction(tr("Ascending"), SortOrder::Ascending);
-        orderGroup->addAction(m_ascendingAction);
         m_descendingAction = addOrderAction(tr("Descending"), SortOrder::Descending);
-        orderGroup->addAction(m_descendingAction);
 
         m_button->setMenu(menu);
 

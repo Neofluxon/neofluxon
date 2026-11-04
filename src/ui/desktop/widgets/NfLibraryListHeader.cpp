@@ -24,6 +24,7 @@
 #include "NfLibraryListHeader.h"
 
 #include <QHBoxLayout>
+#include <QIcon>
 
 namespace NfDesktop {
 
@@ -35,7 +36,9 @@ NfLibraryListHeader::NfLibraryListHeader(QWidget* parent)
 
         auto* titleLabel = new QLabel(tr("LIBRARIES"), this);
 
-        m_addButton = new QPushButton("+", this);
+        m_addButton = new QPushButton(this);
+        m_addButton->setIcon(QIcon(":/icons/plus.svg"));
+        m_addButton->setIconSize(QSize(14, 14));
         m_addButton->setToolTip(tr("Add library"));
         m_addButton->setFixedSize(20, 20);
 
