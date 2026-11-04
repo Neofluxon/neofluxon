@@ -30,6 +30,7 @@
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
 #include "NfMetadataProvider.h"
+#include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
 
 #include <QFrame>
@@ -37,6 +38,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QSplitter>
 
 using namespace NfUi;
 
@@ -45,6 +47,7 @@ namespace NfDesktop {
 NfMainWindow::NfMainWindow(NfContext *ctx)
         : QMainWindow()
         , m_context{ctx}
+        , m_splitter{new QSplitter(Qt::Horizontal)}
 {
         setWindowTitle("Neofluxon");
 
@@ -68,21 +71,39 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         hLayout->setContentsMargins(0,0,0,0);
         hLayout->setSpacing(0);
 
+        m_splitter->setObjectName(QStringLiteral("MainSplitter"));
+        m_splitter->setChildrenCollapsible(false);
+
+        // Resizable, has minimum width, and is collapsible
         auto leftPanel = new NfLeftPanel(m_context, this);
-        hLayout->addWidget(leftPanel);
+        leftPanel->setMinimumWidth(220);
+        m_splitter->addWidget(leftPanel);
+        m_splitter->addWidget(new NfCentralWidget(m_context, this));
 
-        hLayout->addWidget(new NfCentralWidget(m_context, this));
-
+        // Resizable, has minimum and minmum width, and is collapsible
         auto rightPanel = new NfRightPanel(m_context, this);
-        hLayout->addWidget(rightPanel);
+        rightPanel->setMinimumWidth(240);
+        rightPanel->setMaximumWidth(420);
+        m_splitter->addWidget(rightPanel);
+
+        // Set both panels are collapsable
+        m_splitter->setCollapsible(0, true);
+        m_splitter->setCollapsible(2, true);
+
+        m_splitter->setStretchFactor(0, 0);
+        m_splitter->setStretchFactor(1, 1);
+        m_splitter->setStretchFactor(2, 0);
+
+        // Default widths: left panel, central widget, left panel
+        m_splitter->setSizes({300, 800, 300});
+
+        hLayout->addWidget(m_splitter, 1);
 
         QWidget *contentWrapper = new QWidget;
         contentWrapper->setAttribute(Qt::WA_TranslucentBackground);
         contentWrapper->setLayout(hLayout);
         vLayout->addWidget(contentWrapper);
 
-        leftPanel->raise();
-        rightPanel->raise();
         topBar->raise();
 
         setCentralWidget(container);

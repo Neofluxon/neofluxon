@@ -242,12 +242,6 @@ QScrollBar::sub-page:horizontal {
     filter: brightness(0.9);
 }
 
-#NfPanel {
-    width: 250px;
-    min-width: 250px;
-    max-width: 250px;
-}
-
 /* Left panel */
 
 #NfPanel[side="left"] {

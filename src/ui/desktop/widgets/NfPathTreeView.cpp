@@ -72,7 +72,12 @@ NfPathTreeView::NfPathTreeView(QWidget* parent)
 
         // Tree view
         m_treeView = new QTreeView(this);
+        m_treeView->setTextElideMode(Qt::ElideNone);
+        m_treeView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        m_treeView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        m_treeView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         m_treeView->setObjectName("FolderTreeView");
+
         auto* actionHoverColor = new QWidget(m_treeView);
         actionHoverColor->setObjectName("FolderActionHoverColor");
         actionHoverColor->hide();

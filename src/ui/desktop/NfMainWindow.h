@@ -26,6 +26,8 @@
 
 #include <QMainWindow>
 
+class QSplitter;
+
 namespace NfUi {
 struct NfContext;
 }
@@ -44,6 +46,7 @@ public:
 
 private:
         NfContext *m_context;
+        QSplitter *m_splitter;
 };
 
 } // namespace NfDesktop
