@@ -1,5 +1,5 @@
 /**
- * File name: NfBackgroundTask.h
+ * File name: NfUserTasksView.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,30 +21,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_BACKGROUND_TASK_H
-#define NF_BACKGROUND_TASK_H
+#ifndef NF_USER_TASKS_VIEW_H
+#define NF_USER_TASKS_VIEW_H
 
-#include <QString>
+#include <QListView>
+#include <QTimer>
 
-namespace NfUi {
+namespace NfDesktop {
 
-struct NfBackgroundTask
+class NfUserTasksModel;
+
+class NfUserTasksView : public QListView
 {
-        enum class State {
-                Running,
-                Paused,
-                Stopped
-        };
+        Q_OBJECT
 
-        QString id;
-        QString operation;
-        QString sourcePath;
-        State state;
-        int progress;
-        QString progressText;
-        QString actionText;
+public:
+        explicit NfUserTasksView(NfUserTasksModel* model,
+                                     QWidget* parent = nullptr);
+
+private:
+        void updateHeight();
+        void updateActivity();
+
+        QTimer m_activityTimer;
 };
 
-} // namespace NfUi
+} // namespace NfDesktop
 
-#endif // NF_BACKGROUND_TASK_H
+#endif // NF_USER_TASKS_VIEW_H

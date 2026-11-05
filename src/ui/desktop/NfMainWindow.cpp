@@ -30,9 +30,9 @@
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
 #include "NfMetadataProvider.h"
-#include "NfBackgroundTasksAdapter.h"
-#include "NfBagroundTasksModel.h"
-#include "NfBagroundTasksView.h"
+#include "NfUserTasksAdapter.h"
+#include "NfUserTasksModel.h"
+#include "NfUserTasksView.h"
 #include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
 
@@ -67,9 +67,9 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         taskButton->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
         taskButton->setIconSize(QSize(14, 14));
         taskButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        taskButton->setText(tr("Importing folder 42%"));
-        taskButton->setToolTip(tr("Show background tasks"));
-        taskButton->setAccessibleName(tr("Importing folder, 42 percent"));
+        taskButton->setText(tr("User tasks"));
+        taskButton->setToolTip(tr("Show user tasks"));
+        taskButton->setAccessibleName(tr("Show user tasks"));
         taskButton->setAutoRaise(true);
         statusBar()->addPermanentWidget(taskButton);
 
@@ -83,26 +83,42 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         popupLayout->setSpacing(8);
 
         auto* headerLayout = new QHBoxLayout;
-        auto* headerLabel = new QLabel(tr("Background tasks"), taskPopup);
+        auto* headerLabel = new QLabel(tr("User tasks"), taskPopup);
         headerLabel->setObjectName(QStringLiteral("TaskPopupTitle"));
-        auto* countLabel = new QLabel(tr("2 running · 1 paused · 1 stopped"), taskPopup);
+        auto* countLabel = new QLabel(taskPopup);
         countLabel->setObjectName(QStringLiteral("TaskPopupCount"));
         headerLayout->addWidget(headerLabel);
         headerLayout->addStretch();
         headerLayout->addWidget(countLabel);
         popupLayout->addLayout(headerLayout);
 
-        auto* taskAdapter = new NfUi::NfBackgroundTasksAdapter(this);
-        auto* taskModel = new NfBagroundTasksModel(taskAdapter, this);
-        countLabel->setText(
-                tr("%1 running · %2 paused · %3 stopped")
-                        .arg(taskModel->count(NfUi::NfBackgroundTask::State::Running))
-                        .arg(taskModel->count(NfUi::NfBackgroundTask::State::Paused))
-                        .arg(taskModel->count(NfUi::NfBackgroundTask::State::Stopped)));
-        auto* taskView = new NfBagroundTasksView(taskModel, taskPopup);
+        auto* taskAdapter = new NfUi::NfUserTasksAdapter(
+                m_context->core()->userTaskManager(), this);
+        auto* taskModel = new NfUserTasksModel(taskAdapter, this);
+        const auto updateTaskStatus = [taskButton, countLabel, taskModel]() {
+                using Status = NfCore::NfImportFolderTaskData::Status;
+                const auto active = taskModel->count(Status::Scanning)
+                        + taskModel->count(Status::Importing);
+                const auto finished = taskModel->count(Status::Completed)
+                        + taskModel->count(Status::Failed)
+                        + taskModel->count(Status::Cancelled);
+                countLabel->setText(
+                        QObject::tr("%1 active · %2 finished")
+                                .arg(active).arg(finished));
+                taskButton->setVisible(taskModel->rowCount() > 0);
+                taskButton->setText(QObject::tr("User tasks (%1)")
+                                             .arg(taskModel->rowCount()));
+        };
+        QObject::connect(taskModel, &QAbstractItemModel::rowsInserted,
+                         this, updateTaskStatus);
+        QObject::connect(taskModel, &QAbstractItemModel::rowsRemoved,
+                         this, updateTaskStatus);
+        QObject::connect(taskModel, &QAbstractItemModel::dataChanged,
+                         this, updateTaskStatus);
+        updateTaskStatus();
+        auto* taskView = new NfUserTasksView(taskModel, taskPopup);
         popupLayout->addWidget(taskView);
 
-        taskButton->setVisible(taskModel->rowCount() > 0);
         QObject::connect(taskButton, &QToolButton::clicked, this,
                          [this, taskButton, taskPopup]() {
                                  if (taskPopup->isVisible()) {

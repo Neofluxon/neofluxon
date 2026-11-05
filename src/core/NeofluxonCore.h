@@ -39,6 +39,7 @@ class NfScheduler;
 class NfThreadPool;
 class NfThreadAllocationManager;
 class NfLibraryManager;
+class NfUserTaskManager;
 
 class NeofluxonCore {
 public:
@@ -54,6 +55,7 @@ public:
         NfLibraryManager* libraryManger() const;
         NfCache* thumbnailCache() const;
         NfCache* previewCache() const;
+        NfUserTaskManager* userTaskManager() const;
 
 private:
         std::unique_ptr<NfCache> m_thumbnailCache;
@@ -67,6 +69,7 @@ private:
         std::unique_ptr<NfLibraryManager> m_libraryManager;
         std::unique_ptr<NfPhotoLoader> m_photoLoader;
         std::unique_ptr<NfPhotoMetadataLoader> m_metadataLoader;
+        std::unique_ptr<NfUserTaskManager> m_userTaskManager;
 };
 
 } // namespace NfCore

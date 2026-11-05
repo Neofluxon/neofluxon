@@ -186,7 +186,7 @@ QFrame#TaskPopup {
     border-radius: 4px;
 }
 
-QListView#NfBagroundTasksView {
+QListView#NfUserTasksView {
     background: transparent;
     border: none;
     color: #e6eaf2;
@@ -195,12 +195,12 @@ QListView#NfBagroundTasksView {
     outline: none;
 }
 
-QListView#NfBagroundTasksView QScrollBar:vertical {
+QListView#NfUserTasksView QScrollBar:vertical {
     background: transparent;
     margin: 2px;
 }
 
-QListView#NfBagroundTasksView QScrollBar::groove:vertical {
+QListView#NfUserTasksView QScrollBar::groove:vertical {
     background-color: #1a1b23;
     border-radius: 4px;
 }

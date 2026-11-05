@@ -43,6 +43,7 @@ class NfLibrary;
 class NfScheduler;
 class NfLibraryDatabase;
 class NfLibraryQuery;
+class NfUserTaskManager;
 
 class NfLibraryManager {
 public:
@@ -50,7 +51,8 @@ public:
         using LibraryTreeResultCallback = std::function<void(NfLibraryTreeSnapshot snapshot)>;
         using LibraryResultCallback = std::function<void(NfLibrarySnapshot snapshot)>;
         NfLibraryManager(NfScheduler *backgroundScheduler,
-                         NfScheduler *foregroundScheduler);
+                         NfScheduler *foregroundScheduler,
+                         NfUserTaskManager* userTaskManager);
         ~NfLibraryManager();
         [[nodiscard]] bool initialize(std::string& errorMessage);
         std::vector<std::unique_ptr<NfLibrary>> libraries() const;
@@ -71,6 +73,7 @@ public:
 private:
         NfScheduler* m_backgroundScheduler;
         NfScheduler* m_foregroundScheduler;
+        NfUserTaskManager* m_userTaskManager;
         std::unique_ptr<NfLibraryDatabase> m_database;
         std::mutex m_mutex;
         FolderImportedCallback m_folderImportedCb;

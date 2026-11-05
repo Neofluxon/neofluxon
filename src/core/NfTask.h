@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <atomic>
+#include <cstdint>
 #include <functional>
 
 namespace NfCore {

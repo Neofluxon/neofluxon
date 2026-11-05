@@ -32,6 +32,7 @@
 #include "NfDiskCacheSettings.h"
 #include "NfScheduler.h"
 #include "NfThreadPool.h"
+#include "NfUserTaskManager.h"
 #include "NfLogger.h"
 #include "utils/NfFileUtils.h"
 
@@ -99,9 +100,11 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 auto backgroundScheduler = std::make_unique<NfScheduler>();
                 auto backgroundThreadPool = std::make_unique<NfThreadPool>(backgroundScheduler.get(),
                                                                            threadAllocationManager->getBackgroundThreadCount());
+                auto userTaskManager = std::make_unique<NfUserTaskManager>();
 
                 auto libraryManager = std::make_unique<NfLibraryManager>(
-                        backgroundScheduler.get(), foregroundScheduler.get());
+                        backgroundScheduler.get(), foregroundScheduler.get(),
+                        userTaskManager.get());
                 if (!libraryManager->initialize(errorMessage)) {
                         NF_LOG_ERROR(errorMessage);
                         return false;
@@ -131,6 +134,7 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 m_libraryManager = std::move(libraryManager);
                 m_photoLoader = std::move(photoLoader);
                 m_metadataLoader = std::move(metadataLoader);
+                m_userTaskManager = std::move(userTaskManager);
         } catch (const std::exception& exception) {
                 errorMessage = "Unable to initialize application core: ";
                 errorMessage += exception.what();
@@ -168,6 +172,11 @@ NfCache* NeofluxonCore::thumbnailCache() const
 NfCache* NeofluxonCore::previewCache() const
 {
         return m_previewCache.get();
+}
+
+NfUserTaskManager* NeofluxonCore::userTaskManager() const
+{
+        return m_userTaskManager.get();
 }
 
 } // namespace NfCore

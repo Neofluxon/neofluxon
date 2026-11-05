@@ -27,7 +27,8 @@
 #include "NfSourceRecords.h"
 #include "NfLibraryDatabase.h"
 #include "NfLibrary.h"
-#include "NfLibraryFolderImportTask.h"
+#include "NfImportFolderTask.h"
+#include "NfUserTaskManager.h"
 #include "NfScheduler.h"
 #include "NfLibraryQuery.h"
 #include "NfLogger.h"
@@ -38,9 +39,11 @@
 namespace NfCore {
 
 NfLibraryManager::NfLibraryManager(NfScheduler *backgroundScheduler,
-                                   NfScheduler *foregroundScheduler)
+                                   NfScheduler *foregroundScheduler,
+                                   NfUserTaskManager* userTaskManager)
         : m_backgroundScheduler{backgroundScheduler}
         , m_foregroundScheduler{foregroundScheduler}
+        , m_userTaskManager{userTaskManager}
 {
 }
 
@@ -169,12 +172,14 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
                 return;
         }
 
-        auto task = std::make_unique<NfLibraryFolderImportTask>(path, std::move(library));
+        auto task = std::make_unique<NfImportFolderTask>(
+                path, std::move(library), m_userTaskManager);
+        task->reportSubmitted();
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
 
-                auto* importTask = dynamic_cast<NfLibraryFolderImportTask*>(result);
+                auto* importTask = dynamic_cast<NfImportFolderTask*>(result);
                 if (importTask) {
                         std::scoped_lock lock(m_mutex);
                         if (m_folderImportedCb)

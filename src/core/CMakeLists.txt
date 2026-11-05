@@ -57,11 +57,15 @@ set(CORE_HEADERS
         NfRawImageDecoder.h
         NfScheduler.h
         NfTask.h
+        NfUserTask.h
+        NfUserTaskData.h
+        NfImportFolderTaskData.h
+        NfImportFolderTask.h
+        NfUserTaskManager.h
         NfThumbnail.h
         NfThumbnailTask.h
         library/NfLibrary.h
         library/NfLibraryDatabase.h
-        library/NfLibraryFolderImportTask.h
         library/NfSourceRecords.h
         library/NfLibraryPhotoSource.h
         library/NfLibraryPhotoScanTask.h
@@ -108,11 +112,12 @@ set(CORE_SOURCES
         NfRawImageDecoder.cpp
         NfScheduler.cpp
         NfTask.cpp
+        NfImportFolderTask.cpp
+        NfUserTaskManager.cpp
         NfThumbnail.cpp
         NfThumbnailTask.cpp
         library/NfLibrary.cpp
         library/NfLibraryDatabase.cpp
-        library/NfLibraryFolderImportTask.cpp
         library/NfLibraryPhotoSource.cpp
         library/NfLibraryPhotoScanTask.cpp
         library/NfLibraryManager.cpp
