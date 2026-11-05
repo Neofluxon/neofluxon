@@ -35,6 +35,7 @@ NfPhotoPreviewView::NfPhotoPreviewView(NfBrowserModel *model, QWidget* parent)
         , m_model{model}
         , m_photoPreview{new QLabel(this)}
 {
+        setAttribute(Qt::WA_StyledBackground, true);
         m_photoPreview->setAlignment(Qt::AlignCenter);
 
         auto layout = new QVBoxLayout(this);

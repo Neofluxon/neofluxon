@@ -46,9 +46,10 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
         , m_mainLayout{nullptr}
         , m_browserView{nullptr}
 {
+        setAttribute(Qt::WA_StyledBackground, true);
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
-        m_mainLayout->setSpacing(5);
+        m_mainLayout->setSpacing(6);
 
         auto browserTopBar = new NfBrowserTopBar(m_state->browser(), this);
         m_mainLayout->addWidget(browserTopBar);

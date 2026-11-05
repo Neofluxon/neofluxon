@@ -55,14 +55,27 @@ void NfBrowserSortBar::setupUi()
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(0);
 
-        m_button = new QToolButton(this);
-        m_button->setPopupMode(QToolButton::InstantPopup);
-        m_button->setIcon(QIcon(":/icons/sort.svg"));
-        m_button->setIconSize(QSize(16, 16));
-        m_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        m_sortButton = new QToolButton(this);
+        m_sortButton->setObjectName("sortOrderButton");
+        m_sortButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        m_sortButton->setIconSize(QSize(18, 18));
+        m_sortButton->setFixedSize(32, 32);
+        m_sortButton->setAutoRaise(true);
+        QObject::connect(m_sortButton, &QToolButton::clicked, this, [this]() {
+                m_state->sortOrder() == SortOrder::Ascending
+                        ? m_state->setSortOrder(SortOrder::Descending)
+                        : m_state->setSortOrder(SortOrder::Ascending);
+        });
+        layout->addWidget(m_sortButton);
 
-        auto* menu = new QMenu(m_button);
+        m_fieldButton = new QToolButton(this);
+        m_fieldButton->setObjectName("sortFieldButton");
+        m_fieldButton->setPopupMode(QToolButton::InstantPopup);
+        m_fieldButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+        m_fieldButton->setMinimumHeight(32);
+        m_fieldButton->setToolTip(tr("Sort field"));
 
+        auto* menu = new QMenu(this);
         const auto addFiledAction = [this, menu] (const QString& label,
                                                   SortField field) -> QAction* {
                 auto* action = menu->addAction(label);
@@ -70,6 +83,10 @@ void NfBrowserSortBar::setupUi()
                 QObject::connect(action,
                                  &QAction::triggered,
                                  [this, field](bool b) {
+                                         {
+                                                 const QSignalBlocker blocker(m_state);
+                                                 m_state->setSortFields({});
+                                         }
                                          m_state->enableSortField(field, b);
                                          NF_LOG_DEBUG("sortfileds: " << m_state->sortingFields().size());
                                  });
@@ -79,31 +96,16 @@ void NfBrowserSortBar::setupUi()
         };
 
         auto* fieldGroup = new QActionGroup(menu);
-        fieldGroup->addAction(addFiledAction(tr("Name"), SortField::Name));
-        fieldGroup->addAction(addFiledAction(tr("Date Taken"), SortField::DateTaken));
-        fieldGroup->addAction(addFiledAction(tr("File Size"), SortField::FileSize));
+        fieldGroup->addAction(addFiledAction(tr("Name"),
+                                             SortField::Name));
+        fieldGroup->addAction(addFiledAction(tr("Date Taken"),
+                                             SortField::DateTaken));
+        fieldGroup->addAction(addFiledAction(tr("File Size"),
+                                             SortField::FileSize));
 
-        menu->addSeparator();
+        m_fieldButton->setMenu(menu);
 
-        const auto addOrderAction = [this, menu] (const QString& label,
-                                                  SortOrder sortOrder) -> QAction* {
-                auto* action = menu->addAction(label);
-                action->setCheckable(true);
-                QObject::connect(action,
-                                 &QAction::triggered,
-                                 [this, sortOrder](bool b) {
-                                         m_state->setSortOrder(sortOrder);
-                                 });
-
-                return action;
-        };
-
-        m_ascendingAction = addOrderAction(tr("Ascending"), SortOrder::Ascending);
-        m_descendingAction = addOrderAction(tr("Descending"), SortOrder::Descending);
-
-        m_button->setMenu(menu);
-
-        layout->addWidget(m_button);
+        layout->addWidget(m_fieldButton);
 }
 
 void NfBrowserSortBar::updateSorting()
@@ -111,32 +113,24 @@ void NfBrowserSortBar::updateSorting()
         for (const auto &act : m_fieldActions)
                 act.second->setChecked(false);
 
-        int nFields = 0;
+        QString fieldText = tr("Default");
         for (const auto &field : m_state->sortingFields()) {
                 if (auto res = m_fieldActions.find(field);
                     res != m_fieldActions.end()) {
                         const QSignalBlocker blocker(res->second);
                         res->second->setChecked(true);
-                        nFields++;
+                        fieldText = res->second->iconText();
+                        break;
                 }
         }
+        m_fieldButton->setText(fieldText);
 
-        auto sortOrder = m_state->sortOrder();
-        {
-                const QSignalBlocker blocker(m_ascendingAction);
-                m_ascendingAction->setChecked(sortOrder == SortOrder::Ascending);
-                m_ascendingAction->setEnabled(nFields > 0);
-        }
-        {
-                const QSignalBlocker blocker(m_descendingAction);
-                m_descendingAction->setChecked(sortOrder == SortOrder::Descending);
-                m_descendingAction->setEnabled(nFields > 0);
-        }
-
-        auto orderText = sortOrder ==  SortOrder::Ascending ? tr("Asc") : tr("Des");
-        auto text = QString("Sort (%1) %2").arg(nFields)
-                .arg(nFields > 0 ? orderText : "" );
-        m_button->setText(text);
+        m_sortButton->setIcon(QIcon(m_state->sortOrder() == SortOrder::Ascending
+                                    ? ":/icons/sort-ascending.svg"
+                                    : ":/icons/sort-descending.svg"));
+        m_sortButton->setToolTip(m_state->sortOrder() == SortOrder::Ascending
+                                 ? tr("Sort descending")
+                                 : tr("Sort ascending"));
 }
 
 } // namespace NfDesktop

@@ -406,15 +406,15 @@ QCheckBox {
 
 /* Outer bar container */
 NfDesktop--NfBrowserViewModeBar {
-/*    background-color: #121824;
-    border: 1px solid #232d3f;*/
+    background-color: #20222e;
+    border: none;
     border-radius: 6px;
     padding: 2px;
 }
 
 /* Base button style */
 NfDesktop--NfBrowserViewModeBar QToolButton {
-    background-color: transparent;
+    background-color: #20222e;
     color: #94a3b8;
     border: 1px solid transparent; /* Reserve 1px border space to prevent layout jump */
     border-radius: 4px;
@@ -431,13 +431,13 @@ NfDesktop--NfBrowserViewModeBar QToolButton:hover {
 
 /* Active / Checked state */
 NfDesktop--NfBrowserViewModeBar QToolButton:checked {
-    background-color: #292c38;
+    background-color: #20222e;
     color: #e6eaf2;
 }
 
 /* Active + Hover state */
 NfDesktop--NfBrowserViewModeBar QToolButton:checked:hover {
-    background-color: #323646;
+    background-color: #1e293b;
 }
 
 NfDesktop--NfBrowserViewModeBar QToolButton:focus {
@@ -500,6 +500,21 @@ NfDesktop--NfBrowserFilterBar {
     border: none;
 }
 
+NfDesktop--NfBrowserTopBar {
+    background-color: #20222e;
+    border: none;
+}
+
+#BrowserControlSeparator {
+    background-color: #323546;
+    border: none;
+}
+
+NfDesktop--NfFolderView,
+NfDesktop--NfLibraryView {
+    background-color: #20222e;
+}
+
 /* Flat interactive QToolButtons */
 NfDesktop--NfBrowserSortBar QToolButton,
 NfDesktop--NfBrowserFilterBar QToolButton,
@@ -509,6 +524,20 @@ NfDesktop--NfBrowserTopBar QToolButton#editInButton {
     outline: none;
     color: #a0a5b5;
     padding: 2px 6px;
+}
+
+NfDesktop--NfBrowserSortBar QToolButton#sortOrderButton {
+    padding-right: 1px;
+}
+
+NfDesktop--NfBrowserSortBar QToolButton#sortFieldButton {
+    padding-left: 1px;
+}
+
+NfDesktop--NfBrowserSortBar QToolButton#sortFieldButton::menu-indicator,
+NfDesktop--NfBrowserFilterBar QToolButton::menu-indicator {
+    image: none;
+    width: 0;
 }
 
 NfDesktop--NfBrowserTopBar NfDesktop--NfBrowserSortBar QToolButton:hover,
@@ -534,6 +563,14 @@ NfDesktop--NfThumbnailsView {
     border: none;
     outline: none;
     padding: 8px;
+}
+
+NfDesktop--NfPhotoPreviewView {
+    background-color: #20222e;
+}
+
+NfDesktop--NfPhotoPreviewView QLabel {
+    background-color: transparent;
 }
 
 NfDesktop--NfThumbnailsView::item {

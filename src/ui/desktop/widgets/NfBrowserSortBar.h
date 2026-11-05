@@ -49,7 +49,8 @@ private:
         void updateSorting();
 
         NfUi::NfUiBrowserState *m_state;
-        QToolButton* m_button{nullptr};
+        QToolButton* m_sortButton{nullptr};
+        QToolButton* m_fieldButton{nullptr};
         std::unordered_map<SortField, QAction*> m_fieldActions;
         QAction* m_ascendingAction{nullptr};
         QAction* m_descendingAction{nullptr};

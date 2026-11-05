@@ -56,8 +56,10 @@ void NfBrowserFilterBar::setupUi()
         m_button = new QToolButton(this);
         m_button->setPopupMode(QToolButton::InstantPopup);
         m_button->setIcon(QIcon(":/icons/filter.svg"));
-        m_button->setIconSize(QSize(16, 16));
+        m_button->setIconSize(QSize(18, 18));
         m_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        m_button->setFixedHeight(32);
+        m_button->setAccessibleName(tr("Filter photos"));
 
         auto* menu = new QMenu(m_button);
 
@@ -90,7 +92,7 @@ void NfBrowserFilterBar::setupUi()
 
         m_button->setMenu(menu);
 
-        layout->addWidget(m_button);
+        layout->addWidget(m_button, 0, Qt::AlignVCenter);
 }
 
 void NfBrowserFilterBar::updateFormatFilter()
@@ -102,7 +104,10 @@ void NfBrowserFilterBar::updateFormatFilter()
         }
 
         m_clearAction->setEnabled(!formats.empty());
-        m_button->setText(tr("Filter (%1)").arg(formats.size()));
+        m_button->setText(QString::number(formats.size()));
+        m_button->setToolTip(formats.empty()
+                             ? tr("Filter photos")
+                             : tr("Filter photos (%1 active)").arg(formats.size()));
 }
 
 } // namespace NfDesktop

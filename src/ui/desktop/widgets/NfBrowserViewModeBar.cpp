@@ -100,8 +100,8 @@ void NfBrowserViewModeBar::createModeButton(ViewMode mode,
         button->setToolTip(text);
         button->setAccessibleName(text);
         button->setIcon(icon);
-        button->setIconSize(QSize(16, 16));
-        button->setFixedSize(28, 28);
+        button->setIconSize(QSize(18, 18));
+        button->setFixedSize(32, 32);
         button->setCheckable(true);
         button->setToolButtonStyle(Qt::ToolButtonIconOnly);
         button->setCursor(Qt::PointingHandCursor);

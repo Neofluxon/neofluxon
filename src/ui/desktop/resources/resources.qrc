@@ -21,6 +21,8 @@
   <file>icons/viewmode_grid.svg</file>
   <file>icons/viewmode_preview.svg</file>
   <file>icons/sort.svg</file>
+  <file>icons/sort-ascending.svg</file>
+  <file>icons/sort-descending.svg</file>
   <file>icons/filter.svg</file>
   <file>icons/settings.svg</file>
   <file>icons/place-root.svg</file>

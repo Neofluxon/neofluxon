@@ -26,6 +26,7 @@
 #include "NfBrowserViewModeBar.h"
 #include "NfBrowserSortBar.h"
 #include "NfBrowserFilterBar.h"
+#include "NfSeparator.h"
 #include "NfUiBrowserState.h"
 
 #include <QHBoxLayout>
@@ -43,15 +44,15 @@ NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiBrowserState* state,
         , m_state{state}
           //        , m_editor{QStringLiteral("rawtherapee")}
 {
+        setObjectName("NfBrowserTopBar");
         setupUi();
 }
 
 void NfBrowserTopBar::setupUi()
 {
         auto* layout = new QHBoxLayout(this);
-        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setContentsMargins(0, 0, 12, 0);
         layout->setSpacing(4);
-        layout->addStretch();
 
         //        m_breadcrumbBar = new NfBrowserBreadcrumbBar(this);
         m_viewModeBar = new NfBrowserViewModeBar(this);
@@ -61,7 +62,16 @@ void NfBrowserTopBar::setupUi()
 
         //        layout->addWidget(m_breadcrumbBar,1);
         layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
+        const auto addSeparator = [this, layout]() {
+                auto* separator = new NfSeparator(NfSeparator::Orientation::Vertical, 1, this);
+                separator->setAttribute(Qt::WA_StyledBackground, true);
+                separator->setFixedHeight(20);
+                separator->setObjectName("BrowserControlSeparator");
+                layout->addWidget(separator, 0, Qt::AlignVCenter);
+        };
+        addSeparator();
         layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
+        layout->addStretch();
         layout->addWidget(m_filterBar, 0, Qt::AlignVCenter);
         /*m_editButton = new QToolButton(this);
         m_editButton->setObjectName("editInButton");
@@ -96,8 +106,6 @@ void NfBrowserTopBar::setupUi()
                          this, &NfBrowserTopBar::updateEditButton);
 
                          layout->addWidget(m_editButton, 0, Qt::AlignVCenter);*/
-
-        layout->addStretch();
 }
 
 void NfBrowserTopBar::updateEditButton()
