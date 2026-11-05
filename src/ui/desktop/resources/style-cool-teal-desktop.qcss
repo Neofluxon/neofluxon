@@ -156,6 +156,68 @@ QScrollBar::sub-page:horizontal {
     border-radius: 4px;
 }
 
+QStatusBar#NfStatusBar {
+    background-color: #242632;
+    color: #aeb5c0;
+    border: none;
+}
+
+QStatusBar#NfStatusBar::item {
+    border: none;
+}
+
+QStatusBar#NfStatusBar QToolButton#TaskStatusButton {
+    background-color: transparent;
+    color: #aeb5c0;
+    border: none;
+    padding: 4px 8px;
+}
+
+QStatusBar#NfStatusBar QToolButton#TaskStatusButton:hover {
+    background-color: #2a2c3a;
+    color: #e6eaf2;
+    border-radius: 4px;
+}
+
+QFrame#TaskPopup {
+    background-color: #242632;
+    color: #aeb5c0;
+    border: 1px solid #323546;
+    border-radius: 4px;
+}
+
+QListView#NfBagroundTasksView {
+    background: transparent;
+    border: none;
+    color: #e6eaf2;
+    alternate-background-color: #1a1b23;
+    selection-background-color: #aeb5c0;
+    outline: none;
+}
+
+QListView#NfBagroundTasksView QScrollBar:vertical {
+    background: transparent;
+    margin: 2px;
+}
+
+QListView#NfBagroundTasksView QScrollBar::groove:vertical {
+    background-color: #1a1b23;
+    border-radius: 4px;
+}
+
+QFrame#TaskPopup QLabel {
+    background: transparent;
+}
+
+QLabel#TaskPopupTitle {
+    color: #e6eaf2;
+    font-weight: 600;
+}
+
+QLabel#TaskPopupCount {
+    color: #8f96a6;
+}
+
 #NfPanel QWidget {
     background-color: transparent;
 }

@@ -30,15 +30,23 @@
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
 #include "NfMetadataProvider.h"
+#include "NfBagroundTasksModel.h"
+#include "NfBagroundTasksView.h"
 #include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
 
 #include <QFrame>
+#include <QLabel>
 #include <QWidget>
 #include <QGraphicsDropShadowEffect>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QStyle>
 #include <QSplitter>
+#include <QStatusBar>
+#include <QToolButton>
+
+#include <algorithm>
 
 using namespace NfUi;
 
@@ -50,6 +58,73 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         , m_splitter{new QSplitter(Qt::Horizontal)}
 {
         setWindowTitle("Neofluxon");
+        statusBar()->setObjectName(QStringLiteral("NfStatusBar"));
+        statusBar()->setSizeGripEnabled(false);
+
+        auto* taskButton = new QToolButton(statusBar());
+        taskButton->setObjectName(QStringLiteral("TaskStatusButton"));
+        taskButton->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+        taskButton->setIconSize(QSize(14, 14));
+        taskButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        taskButton->setText(tr("Importing folder 42%"));
+        taskButton->setToolTip(tr("Show background tasks"));
+        taskButton->setAccessibleName(tr("Importing folder, 42 percent"));
+        taskButton->setAutoRaise(true);
+        statusBar()->addPermanentWidget(taskButton);
+
+        auto* taskPopup = new QFrame(this, Qt::Popup | Qt::FramelessWindowHint);
+        taskPopup->setObjectName(QStringLiteral("TaskPopup"));
+        taskPopup->setAttribute(Qt::WA_StyledBackground, true);
+        taskPopup->setFixedWidth(400);
+
+        auto* popupLayout = new QVBoxLayout(taskPopup);
+        popupLayout->setContentsMargins(16, 10, 12, 16);
+        popupLayout->setSpacing(8);
+
+        auto* headerLayout = new QHBoxLayout;
+        auto* headerLabel = new QLabel(tr("Background tasks"), taskPopup);
+        headerLabel->setObjectName(QStringLiteral("TaskPopupTitle"));
+        auto* countLabel = new QLabel(tr("2 running · 1 paused · 1 stopped"), taskPopup);
+        countLabel->setObjectName(QStringLiteral("TaskPopupCount"));
+        headerLayout->addWidget(headerLabel);
+        headerLayout->addStretch();
+        headerLayout->addWidget(countLabel);
+        popupLayout->addLayout(headerLayout);
+
+        auto* taskModel = new NfBagroundTasksModel(this);
+        countLabel->setText(
+                tr("%1 running · %2 paused · %3 stopped")
+                        .arg(taskModel->count(NfBagroundTask::State::Running))
+                        .arg(taskModel->count(NfBagroundTask::State::Paused))
+                        .arg(taskModel->count(NfBagroundTask::State::Stopped)));
+        auto* taskView = new NfBagroundTasksView(taskModel, taskPopup);
+        popupLayout->addWidget(taskView);
+
+        taskButton->setVisible(taskModel->rowCount() > 0);
+        QObject::connect(taskButton, &QToolButton::clicked, this,
+                         [this, taskButton, taskPopup]() {
+                                 if (taskPopup->isVisible()) {
+                                         taskPopup->hide();
+                                         return;
+                                 }
+
+                                 taskPopup->adjustSize();
+                                 const auto buttonTopLeft =
+                                         taskButton->mapToGlobal(QPoint(0, 0));
+                                 const auto windowBottomRight =
+                                         mapToGlobal(rect().bottomRight());
+                                 constexpr int popupEdgeSpacing = 12;
+                                 const auto popupX = std::min(
+                                         buttonTopLeft.x() + taskButton->width()
+                                                 - taskPopup->width(),
+                                         windowBottomRight.x() - taskPopup->width()
+                                                 - popupEdgeSpacing);
+                                 taskPopup->move(
+                                         popupX,
+                                         buttonTopLeft.y() - taskPopup->height()
+                                                 - popupEdgeSpacing);
+                                 taskPopup->show();
+                         });
 
         m_context->library = new NfLibraryAdapter(m_context->core()->libraryManger(), this);
         m_context->metadataProvider = new NfMetadataProvider(m_context->core(), this);

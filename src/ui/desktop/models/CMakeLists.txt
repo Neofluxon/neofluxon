@@ -1,6 +1,7 @@
 # --- Sources Definition ---
 set(MODEL_HEADERS
     NfBrowserModel.h
+    NfBagroundTasksModel.h
     NfFolderModel.h
     NfLibraryModel.h
     NfLibraryTreeItem.h
@@ -11,6 +12,7 @@ set(MODEL_HEADERS
 
 set(MODEL_SOURCES
     NfBrowserModel.cpp
+    NfBagroundTasksModel.cpp
     NfFolderModel.cpp
     NfLibraryModel.cpp
     NfLibraryTreeItem.cpp

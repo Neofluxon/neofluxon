@@ -1,5 +1,7 @@
 set(WIDGETS_HEADERS
     NfStyledWidget.h
+    NfBagroundTaskDelegate.h
+    NfBagroundTasksView.h
     NfScrollStack.h
     NfCollapsibleSection.h
     NfThumbnailDelegate.h
@@ -44,6 +46,8 @@ set(WIDGETS_UTILS
 
 set(WIDGETS_SOURCES
     NfStyledWidget.cpp
+    NfBagroundTaskDelegate.cpp
+    NfBagroundTasksView.cpp
     NfScrollStack.cpp
     NfCollapsibleSection.cpp
     NfThumbnailDelegate.cpp
