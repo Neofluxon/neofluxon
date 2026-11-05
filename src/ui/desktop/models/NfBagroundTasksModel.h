@@ -24,29 +24,18 @@
 #ifndef NF_BAGROUND_TASKS_MODEL_H
 #define NF_BAGROUND_TASKS_MODEL_H
 
+#include "NfBackgroundTask.h"
+
 #include <QAbstractListModel>
-#include <QString>
 
 #include <cstddef>
 #include <vector>
 
+namespace NfUi {
+class NfBackgroundTasksAdapter;
+}
+
 namespace NfDesktop {
-
-struct NfBagroundTask
-{
-        enum class State {
-                Running,
-                Paused,
-                Stopped
-        };
-
-        QString operation;
-        QString sourcePath;
-        State state;
-        int progress;
-        QString progressText;
-        QString actionText;
-};
 
 class NfBagroundTasksModel : public QAbstractListModel
 {
@@ -59,18 +48,27 @@ public:
                 StateRole,
                 ProgressRole,
                 ProgressTextRole,
-                ActionTextRole
+                ActionTextRole,
+                TaskIdRole
         };
 
-        explicit NfBagroundTasksModel(QObject* parent = nullptr);
+        explicit NfBagroundTasksModel(NfUi::NfBackgroundTasksAdapter* adapter,
+                                      QObject* parent = nullptr);
 
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index,
                       int role = Qt::DisplayRole) const override;
-        int count(NfBagroundTask::State state) const;
+        int count(NfUi::NfBackgroundTask::State state) const;
+        void requestAction(const QModelIndex& index);
 
 private:
-        std::vector<NfBagroundTask> m_tasks;
+        void onTaskAdded(const NfUi::NfBackgroundTask& task);
+        void onTaskUpdated(const NfUi::NfBackgroundTask& task);
+        void onTaskRemoved(const QString& taskId);
+        int rowForTaskId(const QString& taskId) const;
+
+        NfUi::NfBackgroundTasksAdapter* m_adapter;
+        std::vector<NfUi::NfBackgroundTask> m_tasks;
 };
 
 } // namespace NfDesktop

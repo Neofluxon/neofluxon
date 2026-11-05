@@ -22,19 +22,25 @@
  */
 
 #include "NfBagroundTasksModel.h"
+#include "NfBackgroundTasksAdapter.h"
+
+#include <algorithm>
+#include <iterator>
 
 namespace NfDesktop {
 
-NfBagroundTasksModel::NfBagroundTasksModel(QObject* parent)
+NfBagroundTasksModel::NfBagroundTasksModel(NfUi::NfBackgroundTasksAdapter* adapter,
+                                           QObject* parent)
         : QAbstractListModel(parent)
-        , m_tasks{
-                {tr("Import folder \"/home/user/folder1\" to library"),
-                 QStringLiteral("/home/user/folder1"),
-                 NfBagroundTask::State::Running,
-                 42,
-                 tr("1,240 / 2,950 photos"),
-                 tr("Cancel")}}
+        , m_adapter{adapter}
+        , m_tasks{adapter->tasks()}
 {
+        QObject::connect(m_adapter, &NfUi::NfBackgroundTasksAdapter::taskAdded,
+                         this, &NfBagroundTasksModel::onTaskAdded);
+        QObject::connect(m_adapter, &NfUi::NfBackgroundTasksAdapter::taskUpdated,
+                         this, &NfBagroundTasksModel::onTaskUpdated);
+        QObject::connect(m_adapter, &NfUi::NfBackgroundTasksAdapter::taskRemoved,
+                         this, &NfBagroundTasksModel::onTaskRemoved);
 }
 
 int NfBagroundTasksModel::rowCount(const QModelIndex& parent) const
@@ -63,12 +69,14 @@ QVariant NfBagroundTasksModel::data(const QModelIndex& index, int role) const
                 return task.progressText;
         case ActionTextRole:
                 return task.actionText;
+        case TaskIdRole:
+                return task.id;
         default:
                 return {};
         }
 }
 
-int NfBagroundTasksModel::count(NfBagroundTask::State state) const
+int NfBagroundTasksModel::count(NfUi::NfBackgroundTask::State state) const
 {
         int taskCount = 0;
         for (const auto& task : m_tasks) {
@@ -76,6 +84,70 @@ int NfBagroundTasksModel::count(NfBagroundTask::State state) const
                         ++taskCount;
         }
         return taskCount;
+}
+
+void NfBagroundTasksModel::requestAction(const QModelIndex& index)
+{
+        if (!index.isValid() || index.row() < 0
+            || static_cast<std::size_t>(index.row()) >= m_tasks.size())
+                return;
+
+        const auto& task = m_tasks.at(static_cast<std::size_t>(index.row()));
+        switch (task.state) {
+        case NfUi::NfBackgroundTask::State::Running:
+                m_adapter->requestCancelTask(task.id);
+                break;
+        case NfUi::NfBackgroundTask::State::Paused:
+                m_adapter->requestResumeTask(task.id);
+                break;
+        case NfUi::NfBackgroundTask::State::Stopped:
+                m_adapter->requestRestartTask(task.id);
+                break;
+        }
+}
+
+void NfBagroundTasksModel::onTaskAdded(const NfUi::NfBackgroundTask& task)
+{
+        if (rowForTaskId(task.id) >= 0)
+                return;
+
+        const auto row = static_cast<int>(m_tasks.size());
+        beginInsertRows({}, row, row);
+        m_tasks.push_back(task);
+        endInsertRows();
+}
+
+void NfBagroundTasksModel::onTaskUpdated(const NfUi::NfBackgroundTask& task)
+{
+        const auto row = rowForTaskId(task.id);
+        if (row < 0)
+                return;
+
+        m_tasks[static_cast<std::size_t>(row)] = task;
+        const auto taskIndex = index(row);
+        emit dataChanged(taskIndex, taskIndex);
+}
+
+void NfBagroundTasksModel::onTaskRemoved(const QString& taskId)
+{
+        const auto row = rowForTaskId(taskId);
+        if (row < 0)
+                return;
+
+        beginRemoveRows({}, row, row);
+        m_tasks.erase(m_tasks.begin() + row);
+        endRemoveRows();
+}
+
+int NfBagroundTasksModel::rowForTaskId(const QString& taskId) const
+{
+        const auto it = std::find_if(m_tasks.begin(), m_tasks.end(),
+                                     [&taskId](const auto& task) {
+                                             return task.id == taskId;
+                                     });
+        return it == m_tasks.end()
+                ? -1
+                : static_cast<int>(std::distance(m_tasks.begin(), it));
 }
 
 } // namespace NfDesktop

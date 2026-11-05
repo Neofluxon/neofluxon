@@ -10,6 +10,8 @@ set(COMMON_HEADERS
     state/NfUiState.h
     NfPhotoProvider.h
     NfLibraryAdapter.h
+    NfBackgroundTask.h
+    NfBackgroundTasksAdapter.h
     NfMetadataProvider.h
 )
 
@@ -23,6 +25,7 @@ set(COMMON_SOURCES
     context/NfLibraryContext.cpp
     NfPhotoProvider.cpp
     NfLibraryAdapter.cpp
+    NfBackgroundTasksAdapter.cpp
     NfMetadataProvider.cpp
 )
 

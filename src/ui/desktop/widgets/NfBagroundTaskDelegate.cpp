@@ -24,6 +24,8 @@
 #include "NfBagroundTaskDelegate.h"
 #include "NfBagroundTasksModel.h"
 
+#include <QEvent>
+#include <QMouseEvent>
 #include <QPainter>
 
 namespace NfDesktop {
@@ -34,6 +36,31 @@ QSize NfBagroundTaskDelegate::sizeHint(const QStyleOptionViewItem&,
         return {360, 104};
 }
 
+bool NfBagroundTaskDelegate::editorEvent(QEvent* event,
+                                         QAbstractItemModel* model,
+                                         const QStyleOptionViewItem& option,
+                                         const QModelIndex& index)
+{
+        if (event->type() != QEvent::MouseButtonRelease)
+                return false;
+
+        const auto* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() != Qt::LeftButton)
+                return false;
+
+        const auto rect = option.rect.adjusted(0, 0, -4, -4);
+        const auto actionRect = QRect(rect.right() - 2 - 76,
+                                      rect.top() + 57,
+                                      76,
+                                      25);
+        if (!actionRect.contains(mouseEvent->pos()))
+                return false;
+
+        if (auto* taskModel = qobject_cast<NfBagroundTasksModel*>(model))
+                taskModel->requestAction(index);
+        return true;
+}
+
 void NfBagroundTaskDelegate::paint(QPainter* painter,
                                    const QStyleOptionViewItem& option,
                                    const QModelIndex& index) const
@@ -42,11 +69,11 @@ void NfBagroundTaskDelegate::paint(QPainter* painter,
         painter->setRenderHint(QPainter::Antialiasing);
 
         const auto rect = option.rect.adjusted(0, 0, -4, -4);
-        const auto state = static_cast<NfBagroundTask::State>(
+        const auto state = static_cast<NfUi::NfBackgroundTask::State>(
                 index.data(NfBagroundTasksModel::StateRole).toInt());
-        const auto stateText = state == NfBagroundTask::State::Running
+        const auto stateText = state == NfUi::NfBackgroundTask::State::Running
                 ? QObject::tr("Running")
-                : state == NfBagroundTask::State::Paused
+                : state == NfUi::NfBackgroundTask::State::Paused
                         ? QObject::tr("Paused")
                         : QObject::tr("Stopped");
         const auto textColor = option.palette.color(QPalette::Text);

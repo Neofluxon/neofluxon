@@ -30,6 +30,7 @@
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
 #include "NfMetadataProvider.h"
+#include "NfBackgroundTasksAdapter.h"
 #include "NfBagroundTasksModel.h"
 #include "NfBagroundTasksView.h"
 #include "core/NfApplicationPaths.h"
@@ -91,12 +92,13 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         headerLayout->addWidget(countLabel);
         popupLayout->addLayout(headerLayout);
 
-        auto* taskModel = new NfBagroundTasksModel(this);
+        auto* taskAdapter = new NfUi::NfBackgroundTasksAdapter(this);
+        auto* taskModel = new NfBagroundTasksModel(taskAdapter, this);
         countLabel->setText(
                 tr("%1 running · %2 paused · %3 stopped")
-                        .arg(taskModel->count(NfBagroundTask::State::Running))
-                        .arg(taskModel->count(NfBagroundTask::State::Paused))
-                        .arg(taskModel->count(NfBagroundTask::State::Stopped)));
+                        .arg(taskModel->count(NfUi::NfBackgroundTask::State::Running))
+                        .arg(taskModel->count(NfUi::NfBackgroundTask::State::Paused))
+                        .arg(taskModel->count(NfUi::NfBackgroundTask::State::Stopped)));
         auto* taskView = new NfBagroundTasksView(taskModel, taskPopup);
         popupLayout->addWidget(taskView);
 
