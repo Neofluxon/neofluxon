@@ -28,7 +28,6 @@
 #include "NfUserTaskData.h"
 
 #include <functional>
-#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -49,26 +48,16 @@ public:
         NfUserTaskManager() = default;
         NfUserTaskManager(const NfUserTaskManager&) = delete;
         NfUserTaskManager& operator=(const NfUserTaskManager&) = delete;
-
         SubscriptionId subscribe(Observer observer);
-        void unsubscribe(SubscriptionId subscription);
-
+        void unsubscribe(SubscriptionId id);
         void taskAdded(TaskId id, NfUserTaskData data);
         void taskUpdated(TaskId id, NfUserTaskData data);
         void taskRemoved(TaskId id);
 
 private:
-        struct ObserverEntry {
-                std::mutex mutex;
-                bool active{true};
-                Observer observer;
-        };
-
-        std::vector<std::shared_ptr<ObserverEntry>> observers() const;
-
         mutable std::mutex m_observersMutex;
-        std::unordered_map<SubscriptionId, std::shared_ptr<ObserverEntry>> m_observers;
-        SubscriptionId m_nextSubscription{1};
+        std::unordered_map<SubscriptionId, Observer> m_observers;
+        SubscriptionId m_subscriptionGenerator{};
 };
 
 } // namespace NfCore

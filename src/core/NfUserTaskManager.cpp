@@ -10,6 +10,15 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #include "NfUserTaskManager.h"
@@ -23,64 +32,42 @@ NfUserTaskManager::SubscriptionId
 NfUserTaskManager::subscribe(Observer observer)
 {
         std::lock_guard lock(m_observersMutex);
-        const auto id = m_nextSubscription++;
-        m_observers.emplace(id, std::make_shared<ObserverEntry>());
-        m_observers.at(id)->observer = std::move(observer);
+        const auto id = m_subscriptionGenerator++;
+        const auto res = m_observers.emplace(id, ObserverEntry);
+        if (res.second)
+                res.first->obeserver = std::move(observer);
+
         return id;
 }
 
-void NfUserTaskManager::unsubscribe(SubscriptionId subscription)
-{
-        std::shared_ptr<ObserverEntry> entry;
-        {
-                std::lock_guard lock(m_observersMutex);
-                const auto it = m_observers.find(subscription);
-                if (it == m_observers.end())
-                        return;
-                entry = std::move(it->second);
-                m_observers.erase(it);
-        }
-
-        std::lock_guard lock(entry->mutex);
-        entry->active = false;
-        entry->observer = {};
-}
-
-std::vector<std::shared_ptr<NfUserTaskManager::ObserverEntry>>
-NfUserTaskManager::observers() const
+void NfUserTaskManager::unsubscribe(SubscriptionId id)
 {
         std::lock_guard lock(m_observersMutex);
-        std::vector<std::shared_ptr<ObserverEntry>> result;
-        result.reserve(m_observers.size());
-        for (const auto& [id, entry] : m_observers) {
-                (void)id;
-                result.push_back(entry);
-        }
-        return result;
+        m_observers.erase(id);
 }
 
 void NfUserTaskManager::taskAdded(TaskId id, NfUserTaskData data)
 {
-        for (const auto& entry : observers()) {
-                std::lock_guard lock(entry->mutex);
-                if (entry->active && entry->observer.taskAdded)
+        std::lock_guard lock(m_observersMutex);
+        for (const auto& entry : m_observers) {
+                if (entry->observer.taskAdded)
                         entry->observer.taskAdded(id, data);
         }
 }
 
 void NfUserTaskManager::taskUpdated(TaskId id, NfUserTaskData data)
 {
-        for (const auto& entry : observers()) {
-                std::lock_guard lock(entry->mutex);
-                if (entry->active && entry->observer.taskUpdated)
+        std::lock_guard lock(m_observersMutex);
+        for (const auto& entry : m_observers) {
+                if (entry->observer.taskUpdated)
                         entry->observer.taskUpdated(id, data);
         }
 }
 
 void NfUserTaskManager::taskRemoved(TaskId id)
 {
-        for (const auto& entry : observers()) {
-                std::lock_guard lock(entry->mutex);
+        std::lock_guard lock(m_observersMutex);
+        for (const auto& entry : m_observers) {
                 if (entry->active && entry->observer.taskRemoved)
                         entry->observer.taskRemoved(id);
         }

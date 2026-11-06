@@ -112,6 +112,7 @@ set(CORE_SOURCES
         NfRawImageDecoder.cpp
         NfScheduler.cpp
         NfTask.cpp
+        NfUserTask.cpp
         NfImportFolderTask.cpp
         NfUserTaskManager.cpp
         NfThumbnail.cpp
