@@ -46,6 +46,12 @@ void NfUserTaskManager::unsubscribe(SubscriptionId id)
         m_observers.erase(id);
 }
 
+NfUserTaskManager::~NfUserTaskManager()
+{
+        std::lock_guard lock(m_observersMutex);
+        m_observers.clear();
+}
+
 void NfUserTaskManager::taskAdded(TaskId id, NfUserTaskData data)
 {
         std::lock_guard lock(m_observersMutex);

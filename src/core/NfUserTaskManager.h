@@ -46,6 +46,7 @@ public:
         };
 
         NfUserTaskManager() = default;
+        ~NfUserTaskManager();
         NfUserTaskManager(const NfUserTaskManager&) = delete;
         NfUserTaskManager& operator=(const NfUserTaskManager&) = delete;
         SubscriptionId subscribe(Observer observer);
