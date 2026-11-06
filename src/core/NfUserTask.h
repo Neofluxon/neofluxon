@@ -32,17 +32,17 @@ public:
         ~NfUserTask() override = default;
 
 protected:
-        void publishTaskAdded(NfUserTaskData data)
+        void notifyTaskAdded(NfUserTaskData data)
         {
                 m_taskManager->taskAdded(taskId(), std::move(data));
         }
 
-        void publishTaskUpdated(NfUserTaskData data)
+        void notifyTaskUpdated(NfUserTaskData data)
         {
                 m_taskManager->taskUpdated(taskId(), std::move(data));
         }
 
-        void publishTaskRemoved()
+        void notifyTaskRemoved()
         {
                 m_taskManager->taskRemoved(taskId());
         }

@@ -1,5 +1,5 @@
 /**
- * File name: NfImportFolderTask.cpp
+ * File name: NfImportFolderTask.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -10,10 +10,18 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #include "NfImportFolderTask.h"
-
 #include "NfDirectoryIterator.h"
 #include "NfPhotoDirectoryIterator.h"
 #include "NfUserTaskManager.h"
@@ -38,11 +46,6 @@ NfImportFolderTask::NfImportFolderTask(const std::filesystem::path& folderPath,
 
 NfImportFolderTask::~NfImportFolderTask() = default;
 
-void NfImportFolderTask::reportSubmitted()
-{
-        publishTaskAdded({NfUserTaskType::ImportFolder, m_data});
-}
-
 NfTask::TaskStatus NfImportFolderTask::execute()
 {
         const auto result = importFolder();
@@ -57,13 +60,37 @@ NfTask::TaskStatus NfImportFolderTask::execute()
                 m_data.status = NfImportFolderTaskData::Status::Cancelled;
                 break;
         }
-        reportUpdate();
+
+        notifyUpdate();
+
         return result;
+}
+
+void NfImportFolderTask::notifySubmitted()
+{
+        notifyTaskAdded(m_data);
+}
+
+void NfImportFolderTask::notifyUpdate()
+{
+        notifyTaskUpdated(m_data);
 }
 
 NfTask::TaskStatus NfImportFolderTask::importFolder()
 {
         NF_LOG_DEBUG("scan folder: " << m_path);
+
+        m_data.status = NfImportFolderTaskData::Status::Importing;
+        notifyUpdate();
+
+        // Check if the folder already has been imported
+        // TODO: probably in the future we will ignore this check
+        // so we can reimport maybe new added photos in the path
+        if (m_library->folderExists(m_path)) {
+                m_data.status = NfImportFolderTaskData::Status::Completed;
+                NF_LOG_DEBUG("folder already exists, skip:" << m_path);
+                return TaskStatus::Success;
+        }
 
         NfDirectoryIterator dirIterator;
         if (const auto result = dirIterator.setPath(m_path); !result) {
@@ -72,45 +99,13 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
                 return TaskStatus::Failed;
         }
 
-        NfPhotoDirectoryIterator photoCounter;
-        if (const auto result = photoCounter.setPath(m_path); !result) {
-                NF_LOG_ERROR("failed to count photos in folder " << m_path << ": "
-                             << result.error().what());
-                return TaskStatus::Failed;
-        }
-
-        while (true) {
-                if (isCancelled())
-                        return TaskStatus::Cancelled;
-
-                auto nextPhoto = photoCounter.next();
-                if (!nextPhoto) {
-                        NF_LOG_ERROR("failed to count photos in folder " << m_path << ": "
-                                     << nextPhoto.error().what());
-                        return TaskStatus::Failed;
-                }
-                if (!nextPhoto.value())
-                        break;
-
-                ++m_data.discoveredPhotos;
-                reportUpdate();
-        }
-
-        m_data.status = NfImportFolderTaskData::Status::Importing;
-        reportUpdate();
-
-        if (m_library->folderExists(m_path)) {
-                m_data.processedPhotos = m_data.discoveredPhotos;
-                m_data.skippedPhotos = m_data.discoveredPhotos;
-                reportUpdate();
-                NF_LOG_DEBUG("folder already exists, skip:" << m_path);
-                return TaskStatus::Success;
-        }
-
+         // First import photos from the root directory.
         if (const auto status = importPhotosFromDirectory(m_path);
-            status != TaskStatus::Success)
+            status != TaskStatus::Success) {
                 return status;
+        }
 
+        // Import photos from the directory tree.
         while (true) {
                 if (isCancelled())
                         return TaskStatus::Cancelled;
@@ -122,8 +117,10 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
                         return TaskStatus::Failed;
                 }
 
-                if (!nextDirectory.value())
+                // No more directories. Import finished.
+                if (!nextDirectory.value()) {
                         break;
+                }
 
                 auto directory = *nextDirectory.value();
                 if (m_library->folderExists(directory)) {
@@ -136,23 +133,23 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
                         return status;
         }
 
-        if (m_data.processedPhotos < m_data.discoveredPhotos) {
-                const auto skipped = m_data.discoveredPhotos - m_data.processedPhotos;
-                m_data.processedPhotos += skipped;
-                m_data.skippedPhotos += skipped;
-                reportUpdate();
-        }
-
         NF_LOG_DEBUG("folder import finished: " << m_path);
+
         return TaskStatus::Success;
 }
 
 NfTask::TaskStatus
 NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
 {
-        NF_LOG_DEBUG("import photos from path: " << path);
+        NF_LOG_DEBUG("import photos from directory: " << path);
 
-        m_library->addFolder(path);
+        // TODO: probably in the future we will check the status to see
+        // if the fail reson is that folder exist in order to allow reimport
+        // of new photos.
+        if (!m_library->addFolder(path)) {
+                NF_LOG_ERROR("Failed add folder to library:" << path);
+                return TaskStatus::Failed;
+        }
 
         NfPhotoDirectoryIterator photoIterator;
         if (const auto result = photoIterator.setPath(path, false); !result) {
@@ -167,32 +164,38 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
 
                 auto nextPhoto = photoIterator.next();
                 if (!nextPhoto) {
-                        NF_LOG_ERROR("failed to scan photos in folder " << path << ": "
+                        NF_LOG_ERROR("failed to scan photos in folder "
+                                     << path << ": "
                                      << nextPhoto.error().what());
                         return TaskStatus::Failed;
                 }
+
+                // No more photos found return success.
                 if (!nextPhoto.value())
                         return TaskStatus::Success;
 
+                m_data.discoveredPhotos++;
+
                 auto& photo = *nextPhoto.value();
                 if (!photo.loadSummary()) {
-                        NF_LOG_ERROR("failed to load photo summary: " << photo.path());
-                        ++m_data.processedPhotos;
-                        ++m_data.failedPhotos;
-                        reportUpdate();
+                        NF_LOG_ERROR("failed to load photo summary: "
+                                     << photo.path());
+                        m_data.failedPhotos++;
+                        notifyUpdate();
                         continue;
                 }
 
-                m_library->addPhoto(photo);
-                ++m_data.processedPhotos;
-                ++m_data.importedPhotos;
-                reportUpdate();
-        }
-}
+                if (!m_library->addPhoto(photo)) {
+                        NF_LOG_ERROR("failed to add photo: " << photo.path());
+                        m_data.failedPhotos++;
+                        notifyUpdate();
+                        continue;
+                }
 
-void NfImportFolderTask::reportUpdate()
-{
-        publishTaskUpdated({NfUserTaskType::ImportFolder, m_data});
+                m_data.importedPhotos++;
+
+                notifyUpdate();
+        }
 }
 
 } // namespace NfCore

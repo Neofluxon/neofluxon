@@ -83,7 +83,7 @@ std::vector<std::unique_ptr<NfLibrary>> NfLibraryAdapter::libraries() const
 void NfLibraryAdapter::requestLibraryTree(NfRequestType request)
 {
         m_library->loadTreeAsync([this](NfLibraryTreeSnapshot snapshot) {
-                emit libraryTreeUpdated(snapshot);
+                emit libraryTreeUpdated(std::move(snapshot));
         }, request);
 }
 
@@ -92,7 +92,7 @@ void NfLibraryAdapter::requestLibraryBranch(uint64_t libraryId,
 {
         m_library->loadLibraryBranchAsync(static_cast<int64_t>(libraryId),
                                           [this](NfLibrarySnapshot snapshot) {
-                                                  emit libraryBranchUpdated(snapshot);
+                                                  emit libraryBranchUpdated(std::move(snapshot));
                                           },
                                           request);
 }

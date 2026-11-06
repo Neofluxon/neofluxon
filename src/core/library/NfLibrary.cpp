@@ -74,16 +74,18 @@ std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations(
         return reps;
 }
 
-void NfLibrary::addFolder(const std::filesystem::path& folder)
+bool NfLibrary::addFolder(const std::filesystem::path& folder)
 {
         NfLibraryDatabase::Transaction tx(m_db);
         auto folderId = m_db->addFolder(folder, id());
         if (folderId < 0) {
                 NF_LOG_ERROR("Failed to add folder: " << folder);
-                return;
+                return false;
         }
 
         tx.commit();
+
+        return true;
 }
 
 void NfLibrary::addPhoto(const NfPhoto& photo)

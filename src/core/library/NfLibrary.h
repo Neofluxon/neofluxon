@@ -48,7 +48,7 @@ public:
         int64_t id() const;
         std::string name() const noexcept;
         std::vector<std::unique_ptr<NfLibraryRepresentation>> representations() const;
-        void addFolder(const std::filesystem::path& folder);
+        bool addFolder(const std::filesystem::path& folder);
         void addPhoto(const NfPhoto& photo);
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
         bool folderExists(std::filesystem::path &folder) const;
