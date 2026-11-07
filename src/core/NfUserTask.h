@@ -41,20 +41,9 @@ public:
         ~NfUserTask() override = default;
 
 protected:
-        void notifyTaskAdded(NfUserTaskData data)
-        {
-                m_taskManager->taskAdded(taskId(), std::move(data));
-        }
-
-        void notifyTaskUpdated(NfUserTaskData data)
-        {
-                m_taskManager->taskUpdated(taskId(), std::move(data));
-        }
-
-        void notifyTaskRemoved()
-        {
-                m_taskManager->taskRemoved(taskId());
-        }
+        void notifyTaskAdded(NfUserTaskData data);
+        void notifyTaskUpdated(NfUserTaskData data);
+        void notifyTaskRemoved();
 
 private:
         NfUserTaskManager* m_taskManager;

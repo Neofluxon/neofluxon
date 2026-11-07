@@ -29,10 +29,14 @@
 #include "core/NfUserTaskData.h"
 
 #include <QAbstractListModel>
+#include <QMetaType>
 
 #include <cstddef>
 #include <unordered_map>
 #include <vector>
+
+Q_DECLARE_METATYPE(NfCore::NfUserTaskData)
+Q_DECLARE_METATYPE(NfCore::NfImportFolderTaskData)
 
 namespace NfUi {
 class NfUserTasksAdapter;
@@ -46,7 +50,7 @@ class NfUserTasksModel : public QAbstractListModel
 
 public:
         enum DataRole {
-                TaskDataRole = Qt::UserRole + 1,
+                TaskDataRole = Qt::UserRole + 1
         };
 
         using TaskId = NfCore::NfTask::TaskId;
@@ -57,7 +61,6 @@ public:
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index,
                       int role = Qt::DisplayRole) const override;
-        int count(NfCore::NfImportFolderTaskData::Status status) const;
 
 private:
         struct TaskItem {
@@ -65,12 +68,11 @@ private:
                 NfCore::NfUserTaskData data;
         };
 
-        QVariant data(const NfCore::NfImportFolderTaskData& data, int role) const
-        int rowForTaskId(TaskId id) const;
+        int rowByTaskId(TaskId id) const;
         void onTaskAdded(TaskId id, NfCore::NfUserTaskData data);
         void onTaskUpdated(TaskId id, NfCore::NfUserTaskData data);
         void onTaskRemoved(TaskId id);
-        void updateTakItem(int row, NfUserTaskData data);
+        void updateTakItem(int row, NfCore::NfUserTaskData data);
         void rebuildIndexMap();
 
         NfUi::NfUserTasksAdapter* m_adapter;

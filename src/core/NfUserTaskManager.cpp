@@ -33,10 +33,7 @@ NfUserTaskManager::subscribe(Observer observer)
 {
         std::lock_guard lock(m_observersMutex);
         const auto id = m_subscriptionGenerator++;
-        const auto res = m_observers.emplace(id, ObserverEntry);
-        if (res.second)
-                res.first->obeserver = std::move(observer);
-
+        m_observers.emplace(id, std::move(observer));
         return id;
 }
 
@@ -55,27 +52,27 @@ NfUserTaskManager::~NfUserTaskManager()
 void NfUserTaskManager::taskAdded(TaskId id, NfUserTaskData data)
 {
         std::lock_guard lock(m_observersMutex);
-        for (const auto& entry : m_observers) {
-                if (entry->observer.taskAdded)
-                        entry->observer.taskAdded(id, data);
+        for (auto& [subscriptionId, observer] : m_observers) {
+                if (observer.taskAdded)
+                        observer.taskAdded(id, data);
         }
 }
 
 void NfUserTaskManager::taskUpdated(TaskId id, NfUserTaskData data)
 {
         std::lock_guard lock(m_observersMutex);
-        for (const auto& entry : m_observers) {
-                if (entry->observer.taskUpdated)
-                        entry->observer.taskUpdated(id, data);
+        for (auto& [subscriptionId, observer] : m_observers) {
+                if (observer.taskUpdated)
+                        observer.taskUpdated(id, data);
         }
 }
 
 void NfUserTaskManager::taskRemoved(TaskId id)
 {
         std::lock_guard lock(m_observersMutex);
-        for (const auto& entry : m_observers) {
-                if (entry->active && entry->observer.taskRemoved)
-                        entry->observer.taskRemoved(id);
+        for (auto& [subscriptionId, observer] : m_observers) {
+                if (observer.taskRemoved)
+                        observer.taskRemoved(id);
         }
 }
 

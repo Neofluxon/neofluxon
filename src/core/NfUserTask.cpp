@@ -25,11 +25,6 @@
 
 namespace NfCore {
 
-NfUserTask::NfUserTask(NfUserTaskManager* taskManager)
-        : m_taskManager{taskManager}
-{
-}
-
 void NfUserTask::notifyTaskAdded(NfUserTaskData data)
 {
         m_taskManager->taskAdded(taskId(), std::move(data));

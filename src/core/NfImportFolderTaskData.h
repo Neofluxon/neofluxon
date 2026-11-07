@@ -42,6 +42,8 @@ struct NfImportFolderTaskData {
         uint64_t importedPhotos{0};
         uint64_t failedPhotos{0};
         Status status{Status::Importing};
+
+        bool operator==(const NfImportFolderTaskData&) const = default;
 };
 
 } // namespace NfCore

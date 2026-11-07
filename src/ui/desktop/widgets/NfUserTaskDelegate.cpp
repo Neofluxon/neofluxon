@@ -24,9 +24,12 @@
 #include "NfUserTaskDelegate.h"
 #include "NfUserTasksModel.h"
 #include "core/NfImportFolderTaskData.h"
+#include "core/utils/NfFileUtils.h"
 
 #include <QDateTime>
 #include <QPainter>
+
+using namespace NfCore;
 
 namespace NfDesktop {
 
@@ -40,19 +43,19 @@ void NfUserTaskDelegate::paint(QPainter* painter,
                                const QStyleOptionViewItem& option,
                                const QModelIndex& index) const
 {
-        const taskData = index.data(NfUserTasksModel::TaskDataRole);
+        const auto taskData = index.data(NfUserTasksModel::TaskDataRole);
         if (!taskData.isValid())
                 return;
 
-        if (taskData.canConvert<NfImportFolderData>())
-                paint(painter, option, taskData.value<NfImportFolderData>());
+        if (taskData.canConvert<NfImportFolderTaskData>())
+                paint(painter, option, taskData.value<NfImportFolderTaskData>());
 }
 
 void NfUserTaskDelegate::paint(QPainter* painter,
                                const QStyleOptionViewItem& option,
-                               NfImportFolderData taskData) const
+                               NfImportFolderTaskData taskData) const
 {
-        using Status = NfCore::NfImportFolderTaskData::Status;
+        using Status = NfImportFolderTaskData::Status;
 
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing);
@@ -86,7 +89,7 @@ void NfUserTaskDelegate::paint(QPainter* painter,
                                 rect.top() + 6,
                                 rect.width() - 115, 22),
                           Qt::AlignVCenter | Qt::AlignLeft,
-                          index.data(Qt::DisplayRole).toString());
+                          QObject::tr("Import folder to library"));
         painter->setPen(mutedTextColor);
         painter->drawText(QRect(right - 100,
                                 rect.top() + 6,
@@ -94,7 +97,7 @@ void NfUserTaskDelegate::paint(QPainter* painter,
                           Qt::AlignVCenter | Qt::AlignRight, statusText);
 
         const auto path = QString::fromStdString(
-                          NfFileUtils::pathToUtf8(taskData->sourceFolder));
+                          NfFileUtils::pathToUtf8(taskData.sourceFolder));
         painter->drawText(QRect(left, rect.top() + 30, rect.width() - 20, 20),
                           Qt::AlignVCenter | Qt::AlignLeft,
                           painter->fontMetrics().elidedText(

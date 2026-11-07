@@ -37,13 +37,15 @@ class NfUserTasksView : public QListView
 
 public:
         explicit NfUserTasksView(NfUserTasksModel* model,
-                                     QWidget* parent = nullptr);
+                                 QWidget* parent = nullptr);
+        void setMaxVisibleRows(int rows);
 
 private:
         void updateHeight();
         void updateActivity();
 
         QTimer m_activityTimer;
+        int m_maxVisibleRows{5};
 };
 
 } // namespace NfDesktop

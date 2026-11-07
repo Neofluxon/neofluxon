@@ -53,7 +53,7 @@ NfUserTasksAdapter::NfUserTasksAdapter(NfUserTaskManager* taskManager,
 
 NfUserTasksAdapter::~NfUserTasksAdapter()
 {
-        m_taskManager->unsubscribe(m_subscriptionId);
+        m_taskManager->unsubscribe(m_subscription);
 }
 
 } // namespace NfUi

@@ -26,14 +26,19 @@
 
 #include <QAbstractItemModel>
 
+#include <algorithm>
+
+using namespace NfCore;
+
 namespace NfDesktop {
 
+// TODO: Implement failed and paused tasks
+//       to be retained and managed buy the user
+
 NfUserTasksView::NfUserTasksView(NfUserTasksModel* model,
-                                         QWidget* parent)
+                                 QWidget* parent)
         : QListView(parent)
 {
-        constexpr int rowSpacing = 8;
-
         setObjectName(QStringLiteral("NfUserTasksView"));
         setModel(model);
         setItemDelegate(new NfUserTaskDelegate(this));
@@ -42,7 +47,7 @@ NfUserTasksView::NfUserTasksView(NfUserTasksModel* model,
         setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-        setSpacing(rowSpacing);
+        setSpacing(8);
         setUniformItemSizes(true);
 
         QObject::connect(model, &QAbstractItemModel::rowsInserted,
@@ -51,30 +56,37 @@ NfUserTasksView::NfUserTasksView(NfUserTasksModel* model,
                          this, [this]() { updateHeight(); updateActivity(); });
         QObject::connect(model, &QAbstractItemModel::dataChanged,
                          this, [this]() { updateActivity(); });
+
+        // We need this to make the spinner in the task delegate
+        // to move when there are tasks with status importing
         QObject::connect(&m_activityTimer, &QTimer::timeout,
                          this, [this]() { viewport()->update(); });
         m_activityTimer.setInterval(80);
+
         updateHeight();
         updateActivity();
 }
 
 void NfUserTasksView::updateHeight()
 {
-        constexpr int rowHeight = 116;
-        constexpr int rowSpacing = 8;
-        constexpr int maxVisibleRows = 5;
-        const auto visibleRows = qMin(model()->rowCount(), maxVisibleRows);
+        // We need to update the height if tasks added/removed.
+        const auto visibleRows = std::min(model()->rowCount(), m_maxVisibleRows);
+        const auto rowHeight = itemDelegate()->sizeHint(QStyleOptionViewItem{},
+                                                        QModelIndex{}).height();
         setFixedHeight(visibleRows * rowHeight
-                       + qMax(0, visibleRows - 1) * rowSpacing);
+                       + std::max(0, visibleRows - 1) * spacing());
+}
+
+void NfUserTasksView::setMaxVisibleRows(int rows)
+{
+        m_maxVisibleRows = std::max(0, rows);
+        updateHeight();
 }
 
 void NfUserTasksView::updateActivity()
 {
         const auto* taskModel = qobject_cast<NfUserTasksModel*>(model());
-        const bool active = taskModel
-                && (taskModel->count(NfCore::NfImportFolderTaskData::Status::Scanning)
-                    + taskModel->count(
-                            NfCore::NfImportFolderTaskData::Status::Importing) > 0);
+        const bool active = taskModel && taskModel->rowCount() > 0;
         if (active && !m_activityTimer.isActive())
                 m_activityTimer.start();
         else if (!active && m_activityTimer.isActive())

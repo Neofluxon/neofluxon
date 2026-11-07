@@ -185,13 +185,7 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
                         continue;
                 }
 
-                if (!m_library->addPhoto(photo)) {
-                        NF_LOG_ERROR("failed to add photo: " << photo.path());
-                        m_data.failedPhotos++;
-                        notifyUpdate();
-                        continue;
-                }
-
+                m_library->addPhoto(photo);
                 m_data.importedPhotos++;
 
                 notifyUpdate();

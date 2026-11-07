@@ -30,7 +30,7 @@
 
 namespace NfCore {
 
-using NfUserTaskData = std::variant<NfImportFolderData>;
+using NfUserTaskData = std::variant<NfImportFolderTaskData>;
 
 } // namespace NfCore
 

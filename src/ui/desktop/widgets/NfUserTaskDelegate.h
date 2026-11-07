@@ -24,6 +24,8 @@
 #ifndef NF_USER_TASK_DELEGATE_H
 #define NF_USER_TASK_DELEGATE_H
 
+#include "core/NfImportFolderTaskData.h"
+
 #include <QStyledItemDelegate>
 
 namespace NfDesktop {
@@ -38,6 +40,9 @@ public:
         void paint(QPainter* painter,
                    const QStyleOptionViewItem& option,
                    const QModelIndex& index) const override;
+        void paint(QPainter* painter,
+                   const QStyleOptionViewItem& option,
+                   NfCore::NfImportFolderTaskData taskData) const;
 };
 
 } // namespace NfDesktop

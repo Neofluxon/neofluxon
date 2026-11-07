@@ -174,7 +174,7 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
 
         auto task = std::make_unique<NfImportFolderTask>(
                 path, std::move(library), m_userTaskManager);
-        task->reportSubmitted();
+        task->notifySubmitted();
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
                 if (status != NfTask::TaskStatus::Success)
                         return;
