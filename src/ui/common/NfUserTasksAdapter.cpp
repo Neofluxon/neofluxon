@@ -23,6 +23,7 @@
 
 #include "NfUserTasksAdapter.h"
 #include "core/NfUserTaskManager.h"
+#include "core/NfTask.h"
 
 #include <utility>
 

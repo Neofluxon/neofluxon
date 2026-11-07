@@ -1,5 +1,5 @@
 /**
- * File name: NfUserTasksModel.cpp
+ * File name: NfUserTasksModel.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -10,15 +10,26 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #include "NfUserTasksModel.h"
 
 #include "NfUserTasksAdapter.h"
 #include "utils/NfFileUtils.h"
+#include "core/NfImportFolderTaskData.h"
 
 #include <QString>
-#include <any>
+
+#include <variant>
 
 namespace NfDesktop {
 
@@ -42,58 +53,40 @@ int NfUserTasksModel::rowCount(const QModelIndex& parent) const
 
 QVariant NfUserTasksModel::data(const QModelIndex& index, int role) const
 {
-        if (!index.isValid() || index.row() < 0
+        if (!index.isValid()
             || static_cast<std::size_t>(index.row()) >= m_tasks.size())
-                return {};
-
-        const auto& item = m_tasks.at(static_cast<std::size_t>(index.row()));
-        const auto taskType = m_taskTypes.find(item.id);
-        if (taskType == m_taskTypes.end())
                 return {};
 
         switch (role) {
         case Qt::DisplayRole:
-                switch (taskType->second) {
-                case NfCore::NfUserTaskType::ImportFolder:
-                        return tr("Import folder");
-                }
-                return {};
-        case TaskIdRole:
-                return QVariant::fromValue<qulonglong>(item.id);
-        case TaskTypeRole:
-                return static_cast<int>(taskType->second);
-        default:
-                break;
-        }
+                return tr("Import folder to library");
+        case TaskDataRole:
+                const auto& item = m_tasks[static_cast<std::size_t>(index.row())];
+                if (const auto *data = std::get_if<NfImportFolderData>(&item.data()))
+                        return data(item.data, role);
 
-        switch (taskType->second) {
-        case NfCore::NfUserTaskType::ImportFolder: {
-                const auto* data =
-                        std::any_cast<NfCore::NfImportFolderTaskData>(&item.data.taskData);
-                if (!data)
-                        return {};
-                switch (role) {
-                case SourcePathRole:
-                        return QString::fromStdString(
-                                NfCore::NfFileUtils::pathToUtf8(data->sourceFolder));
-                case StatusRole:
-                        return static_cast<int>(data->status);
-                case DiscoveredPhotosRole:
-                        return QVariant::fromValue<qulonglong>(data->discoveredPhotos);
-                case ProcessedPhotosRole:
-                        return QVariant::fromValue<qulonglong>(data->processedPhotos);
-                case ImportedPhotosRole:
-                        return QVariant::fromValue<qulonglong>(data->importedPhotos);
-                case SkippedPhotosRole:
-                        return QVariant::fromValue<qulonglong>(data->skippedPhotos);
-                case FailedPhotosRole:
-                        return QVariant::fromValue<qulonglong>(data->failedPhotos);
-                default:
-                        return {};
-                }
-        }
-        }
         return {};
+}
+
+QVariant NfUserTasksModel::data(const NfImportFolderData& data, int role) const
+{
+        switch (role) {
+        case Qt::DisplayRole:
+                return tr("Import folder to library");
+        case DataRole::SourcePathRole:
+                return QString::fromStdString(
+                                              NfFileUtils::pathToUtf8(data->sourceFolder));
+        case DataRole::DiscoveredPhotosRole:
+                return QVariant::fromValue<qulonglong>(data->discoveredPhotos);
+        case DataRole::ImportedPhotosRole:
+                return QVariant::fromValue<qulonglong>(data->importedPhotos);
+        case DataRole::FailedPhotosRole:
+                return QVariant::fromValue<qulonglong>(data->failedPhotos);
+        case DataRole::StatusRole:
+                return static_cast<int>(data->status);
+        default:
+                return {};
+        }
 }
 
 int NfUserTasksModel::count(NfCore::NfImportFolderTaskData::Status status) const
@@ -121,45 +114,62 @@ int NfUserTasksModel::rowForTaskId(NfCore::NfTask::TaskId id) const
         return -1;
 }
 
-void NfUserTasksModel::onTaskAdded(
-        qulonglong id, NfCore::NfUserTaskData data)
+void NfUserTasksModel::onTaskAdded(TaskId id, NfUserTaskData data)
 {
-        const auto existingRow = rowForTaskId(id);
-        if (existingRow >= 0) {
-                onTaskUpdated(id, std::move(data));
+        const auto row = getRowByTaskId(id);
+        if (row >= 0) {
+                // Update existing item
+                updateTask(id, std::move(data));
                 return;
         }
 
-        const auto row = static_cast<int>(m_tasks.size());
-        beginInsertRows({}, row, row);
-        m_taskTypes[id] = data.type;
+        // Insert new item
+        const auto newRow = static_cast<int>(m_tasks.size());
+        beginInsertRows({}, newRow, newRow);
         m_tasks.push_back({id, std::move(data)});
         endInsertRows();
+
+        rebuildIndexMap();
 }
 
-void NfUserTasksModel::onTaskUpdated(
-        qulonglong id, NfCore::NfUserTaskData data)
+void NfUserTasksModel::onTaskUpdated(TaskId id, NfUserTaskData data)
 {
-        const auto row = rowForTaskId(id);
+        const auto row = getRowByTaskId(id);
         if (row < 0)
                 return;
 
-        m_taskTypes[id] = data.type;
-        m_tasks[static_cast<std::size_t>(row)].data = std::move(data);
-        const auto modelIndex = index(row);
-        emit dataChanged(modelIndex, modelIndex);
+        updateTakItem(row, std::move(data));
 }
 
 void NfUserTasksModel::onTaskRemoved(qulonglong id)
 {
-        const auto row = rowForTaskId(id);
+        const auto row = getRowByTaskId(id);
         if (row < 0)
                 return;
 
         beginRemoveRows({}, row, row);
         m_tasks.erase(m_tasks.begin() + row);
-        m_taskTypes.erase(id);
         endRemoveRows();
+
+        rebuildIndexMap();
+}
+
+NfUserTasksModel::updateTakItem(int row, NfUserTaskData data)
+{
+        auto &taskItem = m_tasks[row];
+        if (taskItem.data != data) {
+                taskItem.data = std::move(data);
+                const auto modelIndex = index(row);
+                emit dataChanged(modelIndex, modelIndex);
+        }
+}
+
+void NfUserTasksModel::rebuildIndexMap()
+{
+        m_indexMap.clear();
+        m_indexMap.reserve(m_tasks.size());
+        for (int row = 0; row < static_cast<int>(m_tasks.size()); row++)
+                m_indexMap[m_tasks[row].id] = row;
 }
 
 } // namespace NfDesktop

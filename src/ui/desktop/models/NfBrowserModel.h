@@ -97,7 +97,7 @@ private:
         QPixmap getPreview(const QModelIndex& index) const;
         bool acceptsPhoto(const NfPhoto& photo) const;
         void rebuildVisiblePhotos();
-        void rebuildPersistentIndexMap();
+        void rebuildIndexMap();
         void sortPhotos();
         const NfPhoto& photoByIndex(size_t i) const;
 

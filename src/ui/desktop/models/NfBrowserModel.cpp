@@ -77,7 +77,7 @@ void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& forma
                 sortPhotos();
         endResetModel();
 
-        rebuildPersistentIndexMap();
+        rebuildIndexMap();
 
         emit photoIndexesUpdated();
 }
@@ -92,7 +92,7 @@ void NfBrowserModel::setSortFields(const NfUiBrowserState::SortFields &fields)
         if (!m_sortFields.empty()) {
                 emit layoutAboutToBeChanged();
                 sortPhotos();
-                rebuildPersistentIndexMap();
+                rebuildIndexMap();
                 emit layoutChanged();
         }
 }
@@ -106,7 +106,7 @@ void NfBrowserModel::setSortOrder(const NfUiBrowserState::SortOrder sortOrder)
         if (!m_sortFields.empty()) {
                 emit layoutAboutToBeChanged();
                 sortPhotos();
-                rebuildPersistentIndexMap();
+                rebuildIndexMap();
                 emit layoutChanged();
         }
 }
@@ -163,7 +163,7 @@ void NfBrowserModel::sortPhotos()
                           comparator);
 }
 
-void NfBrowserModel::rebuildPersistentIndexMap()
+void NfBrowserModel::rebuildIndexMap()
 {
         m_itemsMap.clear();
         m_itemsMap.reserve(m_visibleIndexes.size());
@@ -279,7 +279,7 @@ void NfBrowserModel::onPhotosLoaded(const std::vector<NfPhoto> &newPhotos)
 
         endInsertRows();
 
-        rebuildPersistentIndexMap();
+        rebuildIndexMap();
         emit photoIndexesUpdated();
 }
 

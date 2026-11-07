@@ -10,6 +10,15 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #ifndef NF_USER_TASKS_MODEL_H
@@ -37,16 +46,10 @@ class NfUserTasksModel : public QAbstractListModel
 
 public:
         enum DataRole {
-                TaskIdRole = Qt::UserRole + 1,
-                TaskTypeRole,
-                SourcePathRole,
-                StatusRole,
-                DiscoveredPhotosRole,
-                ProcessedPhotosRole,
-                ImportedPhotosRole,
-                SkippedPhotosRole,
-                FailedPhotosRole
+                TaskDataRole = Qt::UserRole + 1,
         };
+
+        using TaskId = NfCore::NfTask::TaskId;
 
         explicit NfUserTasksModel(NfUi::NfUserTasksAdapter* adapter,
                                   QObject* parent = nullptr);
@@ -58,18 +61,22 @@ public:
 
 private:
         struct TaskItem {
-                NfCore::NfTask::TaskId id;
+                TaskId id;
                 NfCore::NfUserTaskData data;
         };
 
-        int rowForTaskId(NfCore::NfTask::TaskId id) const;
-        void onTaskAdded(qulonglong id, NfCore::NfUserTaskData data);
-        void onTaskUpdated(qulonglong id, NfCore::NfUserTaskData data);
-        void onTaskRemoved(qulonglong id);
+        QVariant data(const NfCore::NfImportFolderTaskData& data, int role) const
+        int rowForTaskId(TaskId id) const;
+        void onTaskAdded(TaskId id, NfCore::NfUserTaskData data);
+        void onTaskUpdated(TaskId id, NfCore::NfUserTaskData data);
+        void onTaskRemoved(TaskId id);
+        void updateTakItem(int row, NfUserTaskData data);
+        void rebuildIndexMap();
 
         NfUi::NfUserTasksAdapter* m_adapter;
         std::vector<TaskItem> m_tasks;
-        std::unordered_map<NfCore::NfTask::TaskId, NfCore::NfUserTaskType> m_taskTypes;
+        // Map of task id to model row
+        std::unordered_map<TaskId, int> m_taskIndexMap;
 };
 
 } // namespace NfDesktop

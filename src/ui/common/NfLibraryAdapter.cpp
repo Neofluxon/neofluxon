@@ -37,7 +37,7 @@ NfLibraryAdapter::NfLibraryAdapter(NfLibraryManager *library,
 {
         // TODO: do the same way as for requestLibraryTree()
         m_library->setFolderImportedCallback([this]() {
-                // emit folderImported();
+                // TODO: emit folderImported();
                 requestLibraryTree();
         });
 }
