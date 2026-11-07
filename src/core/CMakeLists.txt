@@ -57,6 +57,7 @@ set(CORE_HEADERS
         NfRawImageDecoder.h
         NfScheduler.h
         NfTask.h
+        NfTimer.h
         NfUserTask.h
         NfUserTaskData.h
         NfImportFolderTaskData.h
@@ -112,6 +113,7 @@ set(CORE_SOURCES
         NfRawImageDecoder.cpp
         NfScheduler.cpp
         NfTask.cpp
+        NfTimer.cpp
         NfUserTask.cpp
         NfImportFolderTask.cpp
         NfUserTaskManager.cpp

@@ -25,6 +25,7 @@
 #define NF_IMPORT_FOLDER_TASK_H
 
 #include "NfImportFolderTaskData.h"
+#include "NfTimer.h"
 #include "NfUserTask.h"
 
 #include <filesystem>
@@ -56,6 +57,7 @@ private:
         std::filesystem::path m_path;
         std::unique_ptr<NfLibrary> m_library;
         NfImportFolderTaskData m_data;
+        NfTimer m_progressTimer;
 };
 
 } // namespace NfCore

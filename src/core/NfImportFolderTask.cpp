@@ -30,6 +30,7 @@
 #include "NfPhoto.h"
 #include "NfLogger.h"
 
+#include <chrono>
 #include <utility>
 
 namespace NfCore {
@@ -37,9 +38,11 @@ namespace NfCore {
 NfImportFolderTask::NfImportFolderTask(const std::filesystem::path& folderPath,
                                        std::unique_ptr<NfLibrary> library,
                                        NfUserTaskManager* taskManager)
-        : m_path{folderPath}
+        : NfUserTask{taskManager}
+        , m_path{folderPath}
         , m_library{std::move(library)}
-        , NfUserTask{taskManager}
+        , m_progressTimer{std::chrono::milliseconds{500},
+                          [this]() { notifyUpdate(); }}
 {
         m_data.sourceFolder = folderPath;
 }
@@ -181,14 +184,14 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
                         NF_LOG_ERROR("failed to load photo summary: "
                                      << photo.path());
                         m_data.failedPhotos++;
-                        notifyUpdate();
+                        m_progressTimer.tick();
                         continue;
                 }
 
                 m_library->addPhoto(photo);
                 m_data.importedPhotos++;
 
-                notifyUpdate();
+                m_progressTimer.tick();
         }
 }
 
