@@ -172,26 +172,37 @@ void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id
                 return;
         }
 
-        auto task = std::make_unique<NfImportFolderTask>(
-                path, std::move(library), m_userTaskManager);
-        task->notifySubmitted();
+        auto task = std::make_unique<NfImportFolderTask>(path,
+                                                         std::move(library),
+                                                         m_userTaskManager);
         task->setResult([this](NfTask* result, NfTask::TaskStatus status) {
-                if (status != NfTask::TaskStatus::Success)
-                        return;
-
                 auto* importTask = dynamic_cast<NfImportFolderTask*>(result);
-                if (importTask) {
-                        std::scoped_lock lock(m_mutex);
-                        if (m_folderImportedCb)
-                                m_folderImportedCb();
-
-                        NF_LOG_DEBUG("library import finished");
+                if (!importTask) {
+                        NF_LOG_ERROR("not an import folder task");
+                        return;
                 }
-                });
+
+                if (status != NfTask::TaskStatus::Success) {
+                        NF_LOG_ERROR("import folder task failed for:  "
+                                     << importTask->path());
+                        importTask->notifyRemoved();
+                        return;
+                }
+
+                std::scoped_lock lock(m_mutex);
+                if (m_folderImportedCb)
+                        m_folderImportedCb();
+
+                importTask->notifyRemoved();
+
+                NF_LOG_DEBUG("library import finished for: "
+                             << importTask->path());
+        });
+
+        task->notifySubmitted();
+        m_backgroundScheduler->submit(std::move(task));
 
         NF_LOG_DEBUG("import task submitted for : " << path);
-
-        m_backgroundScheduler->submit(std::move(task));
 }
 
 std::vector<NfPhoto>

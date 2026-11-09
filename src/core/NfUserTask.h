@@ -39,6 +39,10 @@ public:
         {
         }
         ~NfUserTask() override = default;
+        virtual void notifySubmitted() = 0;
+        virtual void notifyCanceled() = 0;
+        virtual void notifyUpdated() = 0;
+        virtual void notifyRemoved() = 0;
 
 protected:
         void notifyTaskAdded(NfUserTaskData data);

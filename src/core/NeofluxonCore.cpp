@@ -51,6 +51,8 @@ NeofluxonCore::NeofluxonCore()
 NeofluxonCore::~NeofluxonCore()
 {
         NF_LOG_DEBUG("called");
+        m_foregroundScheduler->cancelAll();
+        m_backgroundScheduler->cancelAll();
         m_foregroundThreadPool.reset();
         m_backgroundThreadPool.reset();
 }

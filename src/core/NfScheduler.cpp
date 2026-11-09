@@ -129,7 +129,7 @@ void NfScheduler::cancelTask(NfTask::TaskId id)
         if (it == m_pendingTasks.end())
                 return;
 
-        // Running tasks are owned by workers and are not removed here.
+        // Just remove the pending task
         const auto sequenceIt = m_pendingTaskSequences.find(id);
         if (sequenceIt != m_pendingTaskSequences.end()) {
                 m_priorityQueue.erase({it->second->priority(),
@@ -137,6 +137,11 @@ void NfScheduler::cancelTask(NfTask::TaskId id)
                 m_pendingTaskSequences.erase(sequenceIt);
         }
         m_pendingTasks.erase(it);
+
+        // Cancel running task
+        const auto runningIt = m_runningTasks.find(id);
+        if (runningIt != m_runningTasks.end())
+                runningIt->second->cancel();
 }
 
 void NfScheduler::cancelTasks(const std::vector<NfTask::TaskId>& ids)
@@ -164,7 +169,6 @@ void NfScheduler::cancelTasks(const std::vector<NfTask::TaskId>& ids)
 void NfScheduler::cancelAll()
 {
         std::lock_guard<std::mutex> lock(m_mutex);
-        // Pending work is discarded; running tasks are asked to stop cooperatively.
         m_pendingTasks.clear();
         m_pendingTaskSequences.clear();
         m_priorityQueue.clear();

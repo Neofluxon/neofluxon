@@ -42,12 +42,17 @@ NfImportFolderTask::NfImportFolderTask(const std::filesystem::path& folderPath,
         , m_path{folderPath}
         , m_library{std::move(library)}
         , m_progressTimer{std::chrono::milliseconds{500},
-                          [this]() { notifyUpdate(); }}
+                          [this]() { notifyUpdated(); }}
 {
         m_data.sourceFolder = folderPath;
 }
 
 NfImportFolderTask::~NfImportFolderTask() = default;
+
+const std::filesystem::path& NfImportFolderTask::path() const
+{
+        return m_path;
+}
 
 NfTask::TaskStatus NfImportFolderTask::execute()
 {
@@ -64,7 +69,7 @@ NfTask::TaskStatus NfImportFolderTask::execute()
                 break;
         }
 
-        notifyUpdate();
+        notifyUpdated();
 
         return result;
 }
@@ -74,9 +79,21 @@ void NfImportFolderTask::notifySubmitted()
         notifyTaskAdded(m_data);
 }
 
-void NfImportFolderTask::notifyUpdate()
+void NfImportFolderTask::notifyCanceled()
+{
+        // TODO: for now is canceled is qualified as removed too
+        // Implement cancel nofication for UI
+        notifyRemoved();
+}
+
+void NfImportFolderTask::notifyUpdated()
 {
         notifyTaskUpdated(m_data);
+}
+
+void NfImportFolderTask::notifyRemoved()
+{
+        notifyTaskRemoved();
 }
 
 NfTask::TaskStatus NfImportFolderTask::importFolder()
@@ -84,7 +101,7 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
         NF_LOG_DEBUG("scan folder: " << m_path);
 
         m_data.status = NfImportFolderTaskData::Status::Importing;
-        notifyUpdate();
+        notifyUpdated();
 
         // Check if the folder already has been imported
         // TODO: probably in the future we will ignore this check
@@ -134,6 +151,8 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
                 if (const auto status = importPhotosFromDirectory(directory);
                     status != TaskStatus::Success)
                         return status;
+
+                notifyUpdated();
         }
 
         NF_LOG_DEBUG("folder import finished: " << m_path);

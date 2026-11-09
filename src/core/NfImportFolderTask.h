@@ -46,9 +46,12 @@ public:
         NfImportFolderTask(const NfImportFolderTask&) = delete;
         NfImportFolderTask& operator=(const NfImportFolderTask&) = delete;
         ~NfImportFolderTask() override;
+        const std::filesystem::path& path() const;
         TaskStatus execute() override;
-        void notifySubmitted();
-        void notifyUpdate();
+        void notifySubmitted() override;
+        void notifyCanceled() override;
+        void notifyUpdated() override;
+        void notifyRemoved() override;
 
 private:
         TaskStatus importFolder();
