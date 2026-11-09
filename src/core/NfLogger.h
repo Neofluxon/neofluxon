@@ -75,23 +75,8 @@ class NfLogger {
 
 
 #ifdef NDEBUG
-#define NF_LOG_INFO(msg) \
-    NfCore::NfLogger::log(NfCore::NfLogger::LogLevel::Info, \
-        ([&]() { \
-            std::ostringstream oss; \
-            oss << "[" << NEOFLUXON_NAME << "] " << msg; \
-            return oss.str(); \
-        })() \
-    )
-#define NF_LOG_ERROR(msg) \
-    NfCore::NfLogger::log(NfCore::NfLogger::LogLevel::Error, \
-        ([&]() { \
-            std::ostringstream oss; \
-            oss << "[" << NEOFLUXON_NAME << "] " << msg; \
-            return oss.str(); \
-        })() \
-    )
-
+#define NF_LOG_INFO(msg) ((void)0)
+#define NF_LOG_ERROR(msg) ((void)0)
 #define NF_LOG_DEBUG(msg) ((void)0)
 #else
 #define NF_LOG_INFO(msg) \
