@@ -70,7 +70,11 @@ NfUserTasksView::NfUserTasksView(NfUserTasksModel* model,
 void NfUserTasksView::updateHeight()
 {
         // We need to update the height if tasks added/removed.
-        const auto visibleRows = std::min(model()->rowCount(), m_maxVisibleRows);
+        const auto rowCount = model()->rowCount();
+        const auto visibleRows = std::min(rowCount, m_maxVisibleRows);
+        setVerticalScrollBarPolicy(rowCount > m_maxVisibleRows
+                                           ? Qt::ScrollBarAsNeeded
+                                           : Qt::ScrollBarAlwaysOff);
         const auto rowHeight = itemDelegate()->sizeHint(QStyleOptionViewItem{},
                                                         QModelIndex{}).height();
         setFixedHeight(visibleRows * rowHeight

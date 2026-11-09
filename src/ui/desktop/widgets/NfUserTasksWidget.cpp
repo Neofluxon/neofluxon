@@ -56,12 +56,11 @@ NfUserTasksWidget::NfUserTasksWidget(NfCore::NfUserTaskManager* taskManager,
         layout->addWidget(m_taskButton);
 
         m_taskButton->setObjectName(QStringLiteral("TaskStatusButton"));
-        m_taskButton->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
         m_taskButton->setIconSize(QSize(14, 14));
         m_taskButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        m_taskButton->setText(tr("User tasks"));
-        m_taskButton->setToolTip(tr("Show user tasks"));
-        m_taskButton->setAccessibleName(tr("Show user tasks"));
+        m_taskButton->setText(tr("Activity"));
+        m_taskButton->setToolTip(tr("Show activity"));
+        m_taskButton->setAccessibleName(tr("Show activity"));
         m_taskButton->setAutoRaise(true);
 
         m_taskPopup->setObjectName(QStringLiteral("TaskPopup"));
@@ -73,7 +72,7 @@ NfUserTasksWidget::NfUserTasksWidget(NfCore::NfUserTaskManager* taskManager,
         popupLayout->setSpacing(8);
 
         auto* headerLayout = new QHBoxLayout;
-        auto* headerLabel = new QLabel(tr("User tasks"), m_taskPopup);
+        auto* headerLabel = new QLabel(tr("Activity"), m_taskPopup);
         headerLabel->setObjectName(QStringLiteral("TaskPopupTitle"));
         m_countLabel = new QLabel(m_taskPopup);
         m_countLabel->setObjectName(QStringLiteral("TaskPopupCount"));
@@ -103,9 +102,9 @@ NfUserTasksWidget::NfUserTasksWidget(NfCore::NfUserTaskManager* taskManager,
 void NfUserTasksWidget::updateTaskStatus()
 {
         const auto taskCount = m_taskModel->rowCount();
-        m_countLabel->setText(tr("%1 tasks").arg(taskCount));
+        m_countLabel->setText(tr("%n activities", nullptr, taskCount));
         setVisible(taskCount > 0);
-        m_taskButton->setText(tr("User tasks (%1)").arg(taskCount));
+        m_taskButton->setText(tr("Activity (%1)").arg(taskCount));
 }
 
 void NfUserTasksWidget::toggleTaskPopup()

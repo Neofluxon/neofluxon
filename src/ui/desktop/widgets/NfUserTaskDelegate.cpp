@@ -104,14 +104,6 @@ void NfUserTaskDelegate::paint(QPainter* painter,
                                   path, Qt::ElideMiddle, rect.width() - 20));
 
         auto descriptionTop = rect.top() + 56;
-        if (status == Status::Importing) {
-                const QRectF spinner(left, descriptionTop + 1, 14, 14);
-                painter->setPen(QPen(option.palette.color(QPalette::Highlight), 2));
-                const auto angle = static_cast<int>(
-                        (QDateTime::currentMSecsSinceEpoch() / 10) % 360) * 16;
-                painter->drawArc(spinner, angle, 250 * 16);
-        }
-
         painter->setPen(mutedTextColor);
         painter->drawText(QRect(left, descriptionTop, rect.width() - 20, 20),
                           Qt::AlignVCenter | Qt::AlignLeft,
