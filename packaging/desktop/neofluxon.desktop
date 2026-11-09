@@ -2,9 +2,10 @@
 Type=Application
 Name=Neofluxon
 GenericName=Photography workflow application
-Comment=Organize and process your photos and raw images
+Comment=Organize photos and raw images
 Exec=neofluxon
 Icon=neofluxon
+StartupWMClass=neofluxon
 Categories=Graphics;Photography;
 Terminal=false
 StartupNotify=false

@@ -22,12 +22,14 @@
  */
 
 #include "NfApplication.h"
+#include "core/Neofluxon.h"
 
 #include <QProcessEnvironment>
 #include <QDebug>
 #include <QFile>
 #include <QDir>
 #include <QDirIterator>
+#include <QIcon>
 
 using namespace NfCore;
 
@@ -39,6 +41,12 @@ namespace NfDesktop {
                                        int falgs)
         : QApplication(argc, argv, falgs)
 {
+        setApplicationName(QStringLiteral(NEOFLUXON_NAME));
+        setApplicationDisplayName(QStringLiteral(NEOFLUXON_APP_NAME));
+        setApplicationVersion(QStringLiteral(NEOFLUXON_VERSION_STRING));
+        setDesktopFileName(QStringLiteral(NEOFLUXON_NAME));
+        setWindowIcon(QIcon::fromTheme(QStringLiteral(NEOFLUXON_NAME)));
+
 #ifdef NF_DEBUG
         qDebug() << "called";
 #endif // NF_DEBUG

@@ -34,6 +34,8 @@
 #include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
 
+#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -49,7 +51,9 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         , m_context{ctx}
         , m_splitter{new QSplitter(Qt::Horizontal)}
 {
-        setWindowTitle("Neofluxon");
+        setWindowTitle(QStringLiteral("%1 %2").arg(
+                QGuiApplication::applicationDisplayName(),
+                QCoreApplication::applicationVersion()));
         statusBar()->setObjectName(QStringLiteral("NfStatusBar"));
         statusBar()->setSizeGripEnabled(false);
         statusBar()->addPermanentWidget(new NfUserTasksWidget(m_context->core()->userTaskManager(),
