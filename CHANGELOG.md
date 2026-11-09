@@ -2,7 +2,7 @@
 
 Notable changes to Neofluxon are documented here.
 
-## [0.1.0] - 2026-11-09
+## [0.1.0] - // unreleased yet
 
 ### Added
 
