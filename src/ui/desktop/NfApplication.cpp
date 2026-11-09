@@ -45,7 +45,9 @@ namespace NfDesktop {
         setApplicationDisplayName(QStringLiteral(NEOFLUXON_APP_NAME));
         setApplicationVersion(QStringLiteral(NEOFLUXON_VERSION_STRING));
         setDesktopFileName(QStringLiteral(NEOFLUXON_NAME));
-        setWindowIcon(QIcon::fromTheme(QStringLiteral(NEOFLUXON_NAME)));
+        setWindowIcon(QIcon::fromTheme(
+                QStringLiteral(NEOFLUXON_NAME),
+                QIcon(QStringLiteral(":/icons/neofluxon.png"))));
 
 #ifdef NF_DEBUG
         qDebug() << "called";

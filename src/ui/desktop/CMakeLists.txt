@@ -9,12 +9,29 @@ set(DESKTOP_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
+if(WIN32)
+    enable_language(RC)
+endif()
+
 # Create executable
 add_executable(${PROJECT_NAME}
     ${DESKTOP_SOURCES}
     ${DESKTOP_HEADERS}
     resources/resources.qrc
 )
+
+if(WIN32)
+    set(NEOFLUXON_WINDOWS_ICON
+        "${CMAKE_SOURCE_DIR}/packaging/icons/neofluxon.ico")
+    set(NEOFLUXON_WINDOWS_RC
+        "${CMAKE_CURRENT_BINARY_DIR}/neofluxon.rc")
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/packaging/windows/neofluxon.rc.in"
+        "${NEOFLUXON_WINDOWS_RC}"
+        @ONLY
+    )
+    target_sources(${PROJECT_NAME} PRIVATE "${NEOFLUXON_WINDOWS_RC}")
+endif()
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE

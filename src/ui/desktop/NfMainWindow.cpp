@@ -51,9 +51,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         , m_context{ctx}
         , m_splitter{new QSplitter(Qt::Horizontal)}
 {
-        setWindowTitle(QStringLiteral("%1 %2").arg(
-                QGuiApplication::applicationDisplayName(),
-                QCoreApplication::applicationVersion()));
+        setWindowTitle(QStringLiteral("%1").arg(QGuiApplication::applicationDisplayName()));
         statusBar()->setObjectName(QStringLiteral("NfStatusBar"));
         statusBar()->setSizeGripEnabled(false);
         statusBar()->addPermanentWidget(new NfUserTasksWidget(m_context->core()->userTaskManager(),
