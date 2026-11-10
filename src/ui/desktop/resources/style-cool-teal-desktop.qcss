@@ -29,11 +29,11 @@ QMenu#LibraryContextMenu::separator {
 }
 
 QPushButton:hover {
-    border: 1px solid #ff6b00;
+    border: 1px solid #38bdf8;
 }
 
 QPushButton:pressed {
-    background-color: #ff6b00;
+    background-color: #38bdf8;
     color: #0b0d12;
 }
 
@@ -251,7 +251,7 @@ QLabel#TaskPopupCount {
 
 #NfMainMenu QPushButton:pressed {
     background-color: transparent;
-    color: #ff6b00;
+    color: #38bdf8;
 }
 
 #NfMainMenu QPushButton:checked {
@@ -367,13 +367,14 @@ QListWidget#SettingsCategories {
 
 QListWidget#SettingsCategories::item {
     padding: 7px 8px;
-    border-radius: 3px;
+    border-radius: 0;
 }
 
 QListWidget#SettingsCategories::item:selected {
-    background-color: #323546;
-    color: #e6eaf2;
-    border-left: 2px solid #ff6b00;
+    background-color: transparent;
+    color: #f3f4f6;
+    font-weight: 700;
+    border-left: 2px solid #596273;
 }
 
 QListWidget#SettingsCategories::item:hover:!selected {
@@ -433,7 +434,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background: #ff6b00;
+    background: #38bdf8;
     color: #0b0d12;
 }
 
@@ -445,11 +446,11 @@ QPushButton {
 }
 
 QPushButton:hover {
-    border: 1px solid #ff6b00;
+    border: 1px solid #38bdf8;
 }
 
 QPushButton:pressed {
-    background-color: #ff6b00;
+    background-color: #38bdf8;
     color: #0b0d12;
 }
 
@@ -751,8 +752,8 @@ NfDesktop--NfLibraryListHeader QPushButton:hover {
 
 NfDesktop--NfLibraryListHeader QPushButton:pressed {
     background-color: #1a2332;
-    color: #ff6b00;
-    border: 1px solid #ff6b00;
+    color: #38bdf8;
+    border: 1px solid #38bdf8;
 }
 
 NfDesktop--NfLibraryListHeader QPushButton:focus {
@@ -776,7 +777,7 @@ NfDesktop--NfCollapsibleSection QToolButton:hover {
 
 NfDesktop--NfCollapsibleSection QToolButton:pressed {
     background: #323546;
-    color: #ff6b00;
+    color: #38bdf8;
 }
 
 NfDesktop--NfCollapsibleSection QToolButton:checked {
@@ -822,7 +823,7 @@ NfDesktop--NfCollapsibleSection QToolButton:focus {
 
 #MetadataSection QToolButton:pressed {
     background-color: #323546;
-    color: #ff6b00;
+    color: #38bdf8;
 }
 
 /* ================== NfSourceBrowser ============= */

@@ -86,11 +86,15 @@ bool readU64(std::istream& stream, std::uint64_t& value)
 
 } // namespace
 
-NfDiskCache::NfDiskCache(NfDiskCacheSettings settings)
-        : m_settings{std::move(settings)}
+NfDiskCache::NfDiskCache(std::filesystem::path directory,
+                         std::uint64_t maxSizeBytes,
+                         std::uint64_t minimumFreeSpaceBytes)
+        : m_directory{std::move(directory)}
+        , m_maxSizeBytes{maxSizeBytes}
+        , m_minimumFreeSpaceBytes{minimumFreeSpaceBytes}
         , m_worker{[this] { workerLoop(); }}
 {
-        NfScopedTimer timer{"disk cache initialization: ", m_settings.directory};
+        NfScopedTimer timer{"disk cache initialization: ", m_directory};
 
         std::vector<IndexedEntry> entries;
         indexEntries(CacheType::Thumbnail, entries);
@@ -196,7 +200,7 @@ std::unique_ptr<NfImage> NfDiskCache::get(CacheType type, const NfPhotoId& id)
 
 void NfDiskCache::indexEntries(CacheType type, std::vector<IndexedEntry>& entries)
 {
-        const auto directory = m_settings.directory
+        const auto directory = m_directory
                 / (type == CacheType::Thumbnail ? "thumbnails" : "previews");
 
         std::error_code error;
@@ -291,7 +295,7 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
 
         const auto* data = image.getData();
         const auto fileSize = headerSize + data->size();
-        if (fileSize > m_settings.maxSizeBytes) {
+        if (fileSize > m_maxSizeBytes) {
                 NF_LOG_ERROR("file too big for disck cache. photo id = " << id.value());
                 return false;
         }
@@ -307,8 +311,9 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
         }
 
         const auto space = std::filesystem::space(destination.parent_path(), error);
-        if (error || fileSize > space.available) {
-                NF_LOG_ERROR("disk cache write skipped, not enouth free space");
+        if (error || space.available < m_minimumFreeSpaceBytes
+            || fileSize > space.available - m_minimumFreeSpaceBytes) {
+                NF_LOG_ERROR("disk cache write skipped to preserve minimum free space");
                 return false;
         }
 
@@ -362,8 +367,8 @@ bool NfDiskCache::put(CacheType type, const NfPhotoId& id, const NfImage& image)
                 }
         }
 
-        const bool fits = currentSizeWithoutDestination <= m_settings.maxSizeBytes
-                && fileSize <= m_settings.maxSizeBytes - currentSizeWithoutDestination;
+        const bool fits = currentSizeWithoutDestination <= m_maxSizeBytes
+                && fileSize <= m_maxSizeBytes - currentSizeWithoutDestination;
         const bool isOk = fits || evictToFit(additionalBytes, type, id.value());
 
         if (!isOk) {
@@ -415,7 +420,7 @@ bool NfDiskCache::evictToFit(std::uint64_t requiredBytes,
          * This avoids evicting files in tiny increments
          * every time the cache fills up.
          */
-        size_t freeSpace = 0.1 * m_settings.maxSizeBytes;
+        size_t freeSpace = 0.1 * m_maxSizeBytes;
         if (requiredBytes < freeSpace)
                 requiredBytes = freeSpace;
 
@@ -423,7 +428,7 @@ bool NfDiskCache::evictToFit(std::uint64_t requiredBytes,
                 m_lruOrderById.find(std::make_pair(protectedType, protectedId));
         const auto protectedSize = protectedEntry == m_lruOrderById.end()
                 ? 0 : protectedEntry->second->size;
-        const auto targetSize = m_settings.maxSizeBytes - requiredBytes;
+        const auto targetSize = m_maxSizeBytes - requiredBytes;
 
         while (!m_lruOrder.empty()
                && m_currentCacheSize - std::min(m_currentCacheSize, protectedSize)
@@ -500,7 +505,7 @@ std::filesystem::path NfDiskCache::entryPath(CacheType type,
 {
         const auto name = std::to_string(id) + ".nfc";
         const auto typeDirectory = type == CacheType::Thumbnail ? "thumbnails" : "previews";
-        return m_settings.directory / typeDirectory / name;
+        return m_directory / typeDirectory / name;
 }
 
 void NfDiskCache::removeQueuedId(std::uint64_t id, CacheType type)

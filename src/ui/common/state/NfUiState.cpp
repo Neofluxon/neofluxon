@@ -58,6 +58,16 @@ QString settingsFilePath()
         return pathToString(configPath);
 }
 
+QVariant settingValue(QSettings& settings,
+                      const QString& key,
+                      const QString& legacyKey,
+                      const QVariant& defaultValue = {})
+{
+        if (settings.contains(key))
+                return settings.value(key);
+        return settings.value(legacyKey, defaultValue);
+}
+
 std::filesystem::path stringToPath(const QString& path)
 {
         const auto utf8Path = path.toUtf8();
@@ -88,22 +98,28 @@ void saveBrowserState(QSettings& settings,
 
 void restoreBrowserState(QSettings& settings,
                          const QString& key,
+                         const QString& legacyKey,
                          NfUiBrowserState* state)
 {
-        const auto viewMode = settings.value(key + QStringLiteral("/viewMode"),
-                                             static_cast<int>(NfUiBrowserState::ViewMode::Grid)).toInt();
+        const auto viewMode = settingValue(
+                settings, key + QStringLiteral("/viewMode"),
+                legacyKey + QStringLiteral("/viewMode"),
+                static_cast<int>(NfUiBrowserState::ViewMode::Grid)).toInt();
         if (viewMode == static_cast<int>(NfUiBrowserState::ViewMode::Preview))
                 state->setViewMode(NfUiBrowserState::ViewMode::Preview);
         else
                 state->setViewMode(NfUiBrowserState::ViewMode::Grid);
 
-        const auto photoPath = settings.value(key + QStringLiteral("/currentPhoto")).toString();
+        const auto photoPath = settingValue(
+                settings, key + QStringLiteral("/currentPhoto"),
+                legacyKey + QStringLiteral("/currentPhoto")).toString();
         if (!photoPath.isEmpty())
                 state->setCurrentPhoto(NfPhoto{stringToPath(photoPath)});
 
         NfUiBrowserState::PhotoFormatFilter filter;
-        const auto formats =
-                settings.value(key + QStringLiteral("/formatFilter")).toStringList();
+        const auto formats = settingValue(
+                settings, key + QStringLiteral("/formatFilter"),
+                legacyKey + QStringLiteral("/formatFilter")).toStringList();
         if (formats.contains(QStringLiteral("raw")))
                 filter.insert(NfPhoto::PhotoFormat::Raw);
         if (formats.contains(QStringLiteral("jpeg")))
@@ -115,7 +131,7 @@ void restoreBrowserState(QSettings& settings,
 
 void saveLibraryQuery(QSettings& settings, const NfLibraryQuery& query)
 {
-        const auto key = QStringLiteral("ui/library/query");
+        const auto key = QStringLiteral("Library.Query");
         settings.remove(key);
         settings.setValue(key + QStringLiteral("/libraryId"),
                           QString::number(static_cast<qlonglong>(query.libraryId)));
@@ -151,10 +167,17 @@ void saveLibraryQuery(QSettings& settings, const NfLibraryQuery& query)
         }
 }
 
-void restoreLibraryQuery(QSettings& settings, NfUiLibraryModeState* state)
+void restoreLibraryQuery(QSettings& settings,
+                         NfUiLibraryModeState* state)
 {
         using RepresentationType = NfLibraryRepresentation::RepresentationType;
-        const auto key = QStringLiteral("ui/library/query");
+        const auto newKey = QStringLiteral("Library.Query");
+        const auto legacyKey = QStringLiteral("ui/library/query");
+        const auto newRepresentationKey =
+                newKey + QStringLiteral("/representationType");
+        const auto key = settings.contains(newRepresentationKey)
+                                 ? newKey
+                                 : legacyKey;
         const auto representationKey = key + QStringLiteral("/representationType");
         if (!settings.contains(representationKey))
                 return;
@@ -228,30 +251,45 @@ NfUiState::NfUiState(QObject* parent)
 {
         QSettings settings(settingsFilePath(), QSettings::IniFormat);
 
-        const auto savedMode = settings.value(QStringLiteral("ui/mode"),
-                                              static_cast<int>(NfUiMode::Shoots)).toInt();
+        const auto savedMode = settingValue(
+                settings, QStringLiteral("UI/mode"), QStringLiteral("ui/mode"),
+                static_cast<int>(NfUiMode::Shoots)).toInt();
         if (savedMode >= static_cast<int>(NfUiMode::Shoots) &&
             savedMode <= static_cast<int>(NfUiMode::Library))
                 m_uiMode = static_cast<NfUiMode>(savedMode);
 
-        const auto folderPath = settings.value(QStringLiteral("ui/folders/path")).toString();
+        const auto folderPath = settingValue(
+                settings, QStringLiteral("Folders/path"),
+                QStringLiteral("ui/folders/path")).toString();
         if (!folderPath.isEmpty())
                 m_folderModeState->setPath(stringToPath(folderPath));
 
         bool ok = false;
-        const auto currentLibrary = settings.value(QStringLiteral("ui/library/currentId"))
+        const auto currentLibrary = settingValue(
+                settings, QStringLiteral("Library/currentId"),
+                QStringLiteral("ui/library/currentId"))
                                             .toString().toULongLong(&ok);
         if (ok)
                 m_libraryModeState->setCurrentLibrary(currentLibrary);
 
         restoreLibraryQuery(settings, m_libraryModeState);
-        restoreBrowserState(settings, QStringLiteral("ui/folders/browser"),
+        restoreBrowserState(settings, QStringLiteral("Browser.Folders"),
+                            QStringLiteral("ui/folders/browser"),
                             m_folderModeState->browser());
-        restoreBrowserState(settings, QStringLiteral("ui/library/browser"),
+        restoreBrowserState(settings, QStringLiteral("Browser.Library"),
+                            QStringLiteral("ui/library/browser"),
                             m_libraryModeState->browser());
 
-        settings.beginGroup(QStringLiteral("ui/metadata/sections"));
-        for (const auto& section : settings.allKeys())
+        settings.beginGroup(QStringLiteral("Metadata.Sections"));
+        auto metadataKeys = settings.allKeys();
+        settings.endGroup();
+        if (metadataKeys.empty()) {
+                settings.beginGroup(QStringLiteral("ui/metadata/sections"));
+                metadataKeys = settings.allKeys();
+        } else {
+                settings.beginGroup(QStringLiteral("Metadata.Sections"));
+        }
+        for (const auto& section : metadataKeys)
                 m_metadataSectionStates.insert(section, settings.value(section).toBool());
         settings.endGroup();
 
@@ -322,21 +360,22 @@ void NfUiState::saveState()
         }
 
         QSettings settings(path, QSettings::IniFormat);
-        settings.setValue(QStringLiteral("ui/mode"), static_cast<int>(m_uiMode));
-        settings.setValue(QStringLiteral("ui/folders/path"),
+        settings.remove(QStringLiteral("ui"));
+        settings.setValue(QStringLiteral("UI/mode"), static_cast<int>(m_uiMode));
+        settings.setValue(QStringLiteral("Folders/path"),
                           pathToString(m_folderModeState->path()));
-        settings.setValue(QStringLiteral("ui/library/currentId"),
+        settings.setValue(QStringLiteral("Library/currentId"),
                           QString::number(static_cast<qulonglong>(
                                   m_libraryModeState->currentLibrary())));
         saveLibraryQuery(settings, m_libraryModeState->query());
-        saveBrowserState(settings, QStringLiteral("ui/folders/browser"),
+        saveBrowserState(settings, QStringLiteral("Browser.Folders"),
                          m_folderModeState->browser());
-        saveBrowserState(settings, QStringLiteral("ui/library/browser"),
+        saveBrowserState(settings, QStringLiteral("Browser.Library"),
                          m_libraryModeState->browser());
-        settings.remove(QStringLiteral("ui/metadata/sections"));
+        settings.remove(QStringLiteral("Metadata.Sections"));
         for (auto it = m_metadataSectionStates.cbegin();
              it != m_metadataSectionStates.cend(); ++it) {
-                settings.setValue(QStringLiteral("ui/metadata/sections/") + it.key(),
+                settings.setValue(QStringLiteral("Metadata.Sections/") + it.key(),
                                   it.value());
         }
 

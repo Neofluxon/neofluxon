@@ -24,11 +24,11 @@
 #include "NfSettingsDialog.h"
 
 #include "core/NfApplicationPaths.h"
+#include "core/NfSupportedFormats.h"
 
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QFrame>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -38,18 +38,19 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QScrollArea>
 #include <QSpinBox>
 #include <QStackedWidget>
 #include <QStandardPaths>
 #include <QStorageInfo>
 #include <QVBoxLayout>
 
+#include <algorithm>
+
 namespace NfDesktop {
 
 namespace {
 
-QLabel* createDescription(const QString& text, QWidget* parent)
+QLabel* descriptionLabel(const QString& text, QWidget* parent)
 {
         auto* label = new QLabel(text, parent);
         label->setObjectName("SettingsDescription");
@@ -61,13 +62,53 @@ QLabel* createDescription(const QString& text, QWidget* parent)
 
 NfSettingsDialog::NfSettingsDialog(QWidget* parent)
         : QDialog(parent)
-        , m_diskCacheSettings{NfCore::NfDiskCacheSettings::load()}
+        , m_settings{NfCore::NfSettings::defaults()}
 {
+        std::string settingsError;
+        m_settings = NfCore::NfSettings::load(&settingsError);
+        if (!settingsError.empty())
+                QMessageBox::warning(this, tr("Application Settings"),
+                                     QString::fromStdString(settingsError));
+
+        setWindowTitle(tr("Application Settings"));
+        resize(760, 600);
+
         setupUI();
-        setupConnections();
-        setWindowTitle(tr("Application Preferences"));
-        resize(760, 540);
         updateAvailableDiskSpace();
+        updateMemoryBudgetDescriptions();
+
+        QObject::connect(m_thumbnailMemoryLimit,
+                         qOverload<int>(&QSpinBox::valueChanged),
+                         this,
+                         &NfSettingsDialog::updateMemoryBudgetDescriptions);
+        QObject::connect(m_previewMemoryLimit,
+                         qOverload<int>(&QSpinBox::valueChanged),
+                         this,
+                         &NfSettingsDialog::updateMemoryBudgetDescriptions);
+        QObject::connect(m_categories,
+                         &QListWidget::currentRowChanged,
+                         m_pages,
+                         &QStackedWidget::setCurrentIndex);
+        QObject::connect(m_browseDiskCache,
+                         &QPushButton::clicked,
+                         this,
+                         [this]() {
+                                 const auto directory = QFileDialog::getExistingDirectory(
+                        this, tr("Select Disk Cache Folder"),
+                        m_diskCacheLocation->text());
+                if (!directory.isEmpty()) {
+                        m_diskCacheLocation->setText(directory);
+                        updateAvailableDiskSpace();
+                }
+        });
+        QObject::connect(m_okButton,
+                         &QPushButton::clicked,
+                         this,
+                         &NfSettingsDialog::accept);
+        QObject::connect(m_cancelButton,
+                         &QPushButton::clicked,
+                         this,
+                         &QDialog::reject);
 }
 
 void NfSettingsDialog::setupUI()
@@ -77,46 +118,48 @@ void NfSettingsDialog::setupUI()
         m_categories->setFixedWidth(150);
         m_categories->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         m_categories->setFocusPolicy(Qt::NoFocus);
+        m_categories->addItem(tr("Performance"));
+        m_categories->addItem(tr("File Types"));
 
         m_pages = new QStackedWidget(this);
         m_pages->setObjectName("SettingsPages");
 
-        m_categories->addItem(tr("Performance"));
-        m_categories->addItem(tr("File Types"));
-
+        // Perfromance page & page title
         auto* performancePage = new QWidget(this);
         auto* performanceLayout = new QVBoxLayout(performancePage);
         performanceLayout->setContentsMargins(16, 10, 16, 16);
         performanceLayout->setSpacing(12);
-
-        auto* pageTitle = new QLabel(tr("Performance & Resource Limits"), performancePage);
+        auto* pageTitle = new QLabel(tr("Performance & Resource Limits"),
+                                     performancePage);
         pageTitle->setObjectName("SettingsPageTitle");
         performanceLayout->addWidget(pageTitle);
 
-        auto* thumbnailGroup = new QGroupBox(tr("Thumbnail Cache Memory Limit"), performancePage);
+        // Memory cache
+        auto* thumbnailGroup = new QGroupBox(tr("Thumbnail Memory Budget"),
+                                             performancePage);
         auto* thumbnailLayout = new QFormLayout(thumbnailGroup);
         m_thumbnailMemoryLimit = new QSpinBox(thumbnailGroup);
         m_thumbnailMemoryLimit->setRange(64, 65536);
-        m_thumbnailMemoryLimit->setValue(2048);
-        m_thumbnailMemoryLimit->setSuffix(tr(" MB"));
+        m_thumbnailMemoryLimit->setValue(static_cast<int>(
+                m_settings.thumbnailMemoryLimitBytes / (1024ULL * 1024)));
+        m_thumbnailMemoryLimit->setSuffix(tr(" MiB"));
         m_thumbnailMemoryLimit->setMaximumWidth(180);
-        thumbnailLayout->addRow(tr("Size in MB:"), m_thumbnailMemoryLimit);
-        thumbnailLayout->addRow(QString{}, createDescription(
-                                        tr("Budget for decoded thumbnail images in RAM."),
-                                        thumbnailGroup));
+        thumbnailLayout->addRow(tr("Size in MiB:"), m_thumbnailMemoryLimit);
+        m_thumbnailMemoryAllocation = descriptionLabel(QString{}, thumbnailGroup);
+        thumbnailLayout->addRow(QString{}, m_thumbnailMemoryAllocation);
         performanceLayout->addWidget(thumbnailGroup);
 
-        auto* previewGroup = new QGroupBox(tr("Preview Cache Memory Limit"), performancePage);
+        auto* previewGroup = new QGroupBox(tr("Preview Memory Budget"), performancePage);
         auto* previewLayout = new QFormLayout(previewGroup);
         m_previewMemoryLimit = new QSpinBox(previewGroup);
         m_previewMemoryLimit->setRange(64, 65536);
-        m_previewMemoryLimit->setValue(2048);
-        m_previewMemoryLimit->setSuffix(tr(" MB"));
+        m_previewMemoryLimit->setValue(static_cast<int>(
+                m_settings.previewMemoryLimitBytes / (1024ULL * 1024)));
+        m_previewMemoryLimit->setSuffix(tr(" MiB"));
         m_previewMemoryLimit->setMaximumWidth(180);
-        previewLayout->addRow(tr("Size in MB:"), m_previewMemoryLimit);
-        previewLayout->addRow(QString{}, createDescription(
-                                      tr("Kept separate from the thumbnail memory cache."),
-                                      previewGroup));
+        previewLayout->addRow(tr("Size in MiB:"), m_previewMemoryLimit);
+        m_previewMemoryAllocation = descriptionLabel(QString{}, previewGroup);
+        previewLayout->addRow(QString{}, m_previewMemoryAllocation);
         performanceLayout->addWidget(previewGroup);
 
         auto* diskGroup = new QGroupBox(tr("Disk Cache"), performancePage);
@@ -124,11 +167,11 @@ void NfSettingsDialog::setupUI()
         m_diskCacheLimit = new QSpinBox(diskGroup);
         m_diskCacheLimit->setRange(1, 4096);
         m_diskCacheLimit->setValue(static_cast<int>(
-                m_diskCacheSettings.maxSizeBytes / (1024ULL * 1024 * 1024)));
+                m_settings.diskCacheMaxSizeBytes / (1024ULL * 1024 * 1024)));
         m_diskCacheLimit->setSuffix(tr(" GB"));
         m_diskCacheLimit->setMaximumWidth(180);
         diskLayout->addRow(tr("Disk cache limit:"), m_diskCacheLimit);
-        diskLayout->addRow(QString{}, createDescription(
+        diskLayout->addRow(QString{}, descriptionLabel(
                                    tr("Maximum total size of regenerable cached files."),
                                    diskGroup));
 
@@ -138,7 +181,7 @@ void NfSettingsDialog::setupUI()
         m_diskCacheLocation = new QLineEdit(locationRow);
         m_diskCacheLocation->setReadOnly(true);
         m_diskCacheLocation->setText(QString::fromStdString(
-                m_diskCacheSettings.directory.string()));
+                m_settings.diskCacheDirectory.string()));
         m_browseDiskCache = new QPushButton(tr("Browse…"), locationRow);
         locationLayout->addWidget(m_diskCacheLocation, 1);
         locationLayout->addWidget(m_browseDiskCache);
@@ -151,54 +194,63 @@ void NfSettingsDialog::setupUI()
         m_minimumFreeDiskSpace = new QSpinBox(diskGroup);
         m_minimumFreeDiskSpace->setRange(1, 4096);
         m_minimumFreeDiskSpace->setValue(static_cast<int>(
-                m_diskCacheSettings.minimumFreeSpaceBytes / (1024ULL * 1024 * 1024)));
+                m_settings.minimumFreeDiskSpaceBytes / (1024ULL * 1024 * 1024)));
         m_minimumFreeDiskSpace->setSuffix(tr(" GB"));
         m_minimumFreeDiskSpace->setMaximumWidth(180);
         m_minimumFreeDiskSpace->setToolTip(
                 tr("Cache writes stop before the selected cache drive falls below this amount of free space."));
         diskLayout->addRow(tr("Minimum free space on cache drive:"),
                            m_minimumFreeDiskSpace);
-        diskLayout->addRow(QString{}, createDescription(tr("A free-space threshold on the selected cache drive; it is not an extra allocation for Neofluxon's cache."),
+        diskLayout->addRow(QString{}, descriptionLabel(
+                                   tr("Cache writes stop before free space falls below this amount."),
                                    diskGroup));
         performanceLayout->addWidget(diskGroup);
 
         performanceLayout->addStretch();
 
-        auto* scrollArea = new QScrollArea(this);
-        scrollArea->setObjectName("SettingsScrollArea");
-        scrollArea->setWidgetResizable(true);
-        scrollArea->setFrameShape(QFrame::NoFrame);
-        scrollArea->setWidget(performancePage);
-        m_pages->addWidget(scrollArea);
+        m_pages->addWidget(performancePage);
 
         auto* fileTypesPage = new QWidget(this);
         auto* fileTypesLayout = new QVBoxLayout(fileTypesPage);
         fileTypesLayout->setContentsMargins(16, 10, 16, 16);
         fileTypesLayout->setSpacing(12);
 
-        auto* formatsTitle = new QLabel(tr("Supported File Types"), fileTypesPage);
+        auto* formatsTitle = new QLabel(tr("Supported Formats"),
+                                        fileTypesPage);
         formatsTitle->setObjectName("SettingsPageTitle");
         fileTypesLayout->addWidget(formatsTitle);
-        fileTypesLayout->addWidget(createDescription(
-                                           tr("Neofluxon currently supports the following image formats."),
-                                           fileTypesPage));
 
+        // Row formats group
         auto* rawGroup = new QGroupBox(tr("RAW"), fileTypesPage);
         auto* rawLayout = new QVBoxLayout(rawGroup);
-        for (const auto& format : {".cr3", ".cr2", ".dng", ".raf", ".nef"}) {
-                auto* checkBox = new QCheckBox(QString::fromLatin1(format), rawGroup);
-                checkBox->setChecked(true);
-                rawLayout->addWidget(checkBox);
-        }
-        fileTypesLayout->addWidget(rawGroup);
-
         auto* rasterGroup = new QGroupBox(tr("Raster Images"), fileTypesPage);
         auto* rasterLayout = new QVBoxLayout(rasterGroup);
-        for (const auto& format : {".jpg", ".jpeg", ".png"}) {
-                auto* checkBox = new QCheckBox(QString::fromLatin1(format), rasterGroup);
-                checkBox->setChecked(true);
-                rasterLayout->addWidget(checkBox);
+        std::vector<std::pair<std::string_view, NfCore::NfPhoto::PhotoFormat>> formats(
+                NfCore::NfSupportedFormats::all.begin(),
+                NfCore::NfSupportedFormats::all.end());
+        std::sort(formats.begin(), formats.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                          return lhs.first < rhs.first;
+                  });
+        for (const auto& [extensionView, format] : formats) {
+                auto* group = format == NfCore::NfPhoto::PhotoFormat::Raw
+                                      ? rawGroup
+                                      : rasterGroup;
+                auto* layout = format == NfCore::NfPhoto::PhotoFormat::Raw
+                                       ? rawLayout
+                                       : rasterLayout;
+                const auto extension = QString::fromLatin1(
+                        extensionView.data(),
+                        static_cast<qsizetype>(extensionView.size()));
+                auto* checkBox = new QCheckBox(extension, group);
+                checkBox->setChecked(
+                        m_settings.selectedFormats.contains(
+                                std::string{extensionView}));
+                layout->addWidget(checkBox);
+                m_supportedFormatCheckboxes.emplace_back(
+                        std::string{extensionView}, checkBox);
         }
+        fileTypesLayout->addWidget(rawGroup);
         fileTypesLayout->addWidget(rasterGroup);
         fileTypesLayout->addStretch();
         m_pages->addWidget(fileTypesPage);
@@ -223,41 +275,57 @@ void NfSettingsDialog::setupUI()
         mainLayout->addLayout(buttonLayout);
 }
 
-void NfSettingsDialog::setupConnections()
-{
-        QObject::connect(m_categories, &QListWidget::currentRowChanged,
-                m_pages, &QStackedWidget::setCurrentIndex);
-
-        QObject::connect(m_browseDiskCache, &QPushButton::clicked, this, [this]() {
-                const QString directory = QFileDialog::getExistingDirectory(
-                        this, tr("Select Disk Cache Folder"),
-                        m_diskCacheLocation->text());
-                if (!directory.isEmpty()) {
-                        m_diskCacheLocation->setText(directory);
-                        updateAvailableDiskSpace();
-                }
-        });
-
-        QObject::connect(m_okButton, &QPushButton::clicked, this, &QDialog::accept);
-        QObject::connect(m_cancelButton, &QPushButton::clicked, this, &QDialog::reject);
-}
-
 void NfSettingsDialog::accept()
 {
-        m_diskCacheSettings.directory =
+        m_settings.selectedFormats.clear();
+        for (const auto& [extension, checkBox] : m_supportedFormatCheckboxes) {
+                if (checkBox->isChecked())
+                        m_settings.selectedFormats.insert(extension);
+        }
+
+        m_settings.diskCacheDirectory =
                 std::filesystem::path(m_diskCacheLocation->text().toStdString());
-        m_diskCacheSettings.maxSizeBytes =
+        m_settings.diskCacheMaxSizeBytes =
                 static_cast<std::uint64_t>(m_diskCacheLimit->value())
                 * 1024ULL * 1024 * 1024;
-        m_diskCacheSettings.minimumFreeSpaceBytes =
+        m_settings.minimumFreeDiskSpaceBytes =
                 static_cast<std::uint64_t>(m_minimumFreeDiskSpace->value())
                 * 1024ULL * 1024 * 1024;
+        m_settings.thumbnailMemoryLimitBytes =
+                static_cast<std::uint64_t>(m_thumbnailMemoryLimit->value())
+                * 1024ULL * 1024;
+        m_settings.previewMemoryLimitBytes =
+                static_cast<std::uint64_t>(m_previewMemoryLimit->value())
+                * 1024ULL * 1024;
         std::string error;
-        if (!m_diskCacheSettings.save(error)) {
-                QMessageBox::warning(this, tr("Disk Cache Settings"), QString::fromStdString(error));
+        if (!m_settings.save(error)) {
+                QMessageBox::warning(this, tr("Application Settings"),
+                                     QString::fromStdString(error));
                 return;
         }
         QDialog::accept();
+}
+
+void NfSettingsDialog::updateMemoryBudgetDescriptions()
+{
+        constexpr std::uint64_t bytesPerMiB = 1024ULL * 1024;
+        m_settings.thumbnailMemoryLimitBytes =
+                static_cast<std::uint64_t>(m_thumbnailMemoryLimit->value())
+                * bytesPerMiB;
+        m_settings.previewMemoryLimitBytes =
+                static_cast<std::uint64_t>(m_previewMemoryLimit->value())
+                * bytesPerMiB;
+
+        const auto thumbnail = m_settings.thumbnailMemoryAllocation();
+        const auto preview = m_settings.previewMemoryAllocation();
+        m_thumbnailMemoryAllocation->setText(
+                tr("Allocation: ~%1 MiB for grid display, ~%2 MiB for decoded thumbnails.")
+                        .arg((thumbnail.pixmapBytes + bytesPerMiB / 2) / bytesPerMiB)
+                        .arg((thumbnail.decodedBytes + bytesPerMiB / 2) / bytesPerMiB));
+        m_previewMemoryAllocation->setText(
+                tr("Allocation: ~%1 MiB for preview display, ~%2 MiB for decoded previews.")
+                        .arg((preview.pixmapBytes + bytesPerMiB / 2) / bytesPerMiB)
+                        .arg((preview.decodedBytes + bytesPerMiB / 2) / bytesPerMiB));
 }
 
 void NfSettingsDialog::updateAvailableDiskSpace()

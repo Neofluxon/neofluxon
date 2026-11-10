@@ -29,7 +29,7 @@
 #include "NfLibraryManager.h"
 #include "NfCache.h"
 #include "NfDiskCache.h"
-#include "NfDiskCacheSettings.h"
+#include "NfSettings.h"
 #include "NfScheduler.h"
 #include "NfThreadPool.h"
 #include "NfUserTaskManager.h"
@@ -84,24 +84,37 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
         }
 
         try {
+                std::string settingsError;
+                auto setting = NfSettings::load(&settingsError);
+                if (!settingsError.empty())
+                        NF_LOG_ERROR(settingsError);
+                m_settings = setting;
+
                 auto threadAllocationManager = std::make_unique<NfThreadAllocationManager>();
-                std::string diskCacheSettingsError;
-                auto diskCacheSettings = NfDiskCacheSettings::load(&diskCacheSettingsError);
-                if (!diskCacheSettingsError.empty())
-                        NF_LOG_ERROR(diskCacheSettingsError);
-                auto diskCache = std::make_unique<NfDiskCache>(std::move(diskCacheSettings));
+
+                auto diskCache = std::make_unique<NfDiskCache>(
+                        setting.diskCacheDirectory,
+                        setting.diskCacheMaxSizeBytes,
+                        setting.minimumFreeDiskSpaceBytes);
+
+                const auto thumbnailMemory = setting.thumbnailMemoryAllocation();
+                const auto previewMemory = setting.previewMemoryAllocation();
                 auto thumbnailCache = std::make_unique<NfCache>(
-                        2 * NfCache::DEFAULT_MAX_SIZE_BYTES, diskCache.get(),
+                        static_cast<std::size_t>(thumbnailMemory.decodedBytes),
+                        diskCache.get(),
                         NfDiskCache::CacheType::Thumbnail);
                 auto previewCache = std::make_unique<NfCache>(
-                        NfCache::DEFAULT_MAX_SIZE_BYTES, diskCache.get(),
+                        static_cast<std::size_t>(previewMemory.decodedBytes),
+                        diskCache.get(),
                         NfDiskCache::CacheType::Preview);
+
                 auto foregroundScheduler = std::make_unique<NfScheduler>();
                 auto foregroundThreadPool = std::make_unique<NfThreadPool>(foregroundScheduler.get(),
                                                                            threadAllocationManager->getForegroundThreadCount());
                 auto backgroundScheduler = std::make_unique<NfScheduler>();
                 auto backgroundThreadPool = std::make_unique<NfThreadPool>(backgroundScheduler.get(),
                                                                            threadAllocationManager->getBackgroundThreadCount());
+
                 auto userTaskManager = std::make_unique<NfUserTaskManager>();
 
                 auto libraryManager = std::make_unique<NfLibraryManager>(
@@ -179,6 +192,11 @@ NfCache* NeofluxonCore::previewCache() const
 NfUserTaskManager* NeofluxonCore::userTaskManager() const
 {
         return m_userTaskManager.get();
+}
+
+const NfSettings& NeofluxonCore::settings() const
+{
+        return m_settings;
 }
 
 } // namespace NfCore

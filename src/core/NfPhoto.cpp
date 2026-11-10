@@ -22,6 +22,7 @@
  */
 
 #include "NfPhoto.h"
+#include "NfSupportedFormats.h"
 #include "utils/NfFileUtils.h"
 #include "NfPhotoMetadataExtractor.h"
 #include "NfScopedTimer.h"
@@ -89,17 +90,9 @@ NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
         auto ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-        if (ext == ".cr3"
-            || ext == ".cr2"
-            || ext == ".dng"
-            || ext == ".raf"
-            || ext == ".nef")
-                return PhotoFormat::Raw;
-
-        if (ext == ".jpg" || ext == ".jpeg")
-                return PhotoFormat::Jpeg;
-        if (ext == ".png")
-                return PhotoFormat::Png;
+        const auto supportedFormat = NfSupportedFormats::all.find(ext);
+        if (supportedFormat != NfSupportedFormats::all.end())
+                return supportedFormat->second;
 
         return PhotoFormat::Unknown;
 }

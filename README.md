@@ -50,9 +50,10 @@ The project is in early development, and features and functionality are still de
    - libpng,
    - SQLite3
    - stb
+   - inih / INIReader
    - pkg-config
 
-## Build and Install 
+## Build and Install
 
 Install the required development packages for the target platform, then configure and build:
 

@@ -28,6 +28,7 @@
 #include "NfUserTaskData.h"
 #include "library/NfLibrary.h"
 #include "NfPhoto.h"
+#include "NfSettings.h"
 #include "NfLogger.h"
 
 #include <chrono>
@@ -174,6 +175,14 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
         }
 
         NfPhotoDirectoryIterator photoIterator;
+        std::string settingsError;
+        const auto setting = NfSettings::load(&settingsError);
+        if (!settingsError.empty())
+                NF_LOG_ERROR(settingsError);
+        std::vector<std::string> selectedExtensions(
+                setting.selectedFormats.begin(), setting.selectedFormats.end());
+        photoIterator.setExtensions(selectedExtensions);
+
         if (const auto result = photoIterator.setPath(path, false); !result) {
                 NF_LOG_ERROR("failed to scan photos in folder " << path << ": "
                              << result.error().what());

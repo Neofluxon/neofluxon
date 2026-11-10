@@ -33,9 +33,25 @@
 
 #include <QTimer>
 
+#include <algorithm>
+#include <limits>
+
 using namespace NfCore;
 
 namespace NfUi {
+
+namespace {
+
+int pixmapCacheCostKiB(std::uint64_t bytes)
+{
+        constexpr std::uint64_t bytesPerKiB = 1024;
+        const auto cost = bytes / bytesPerKiB
+                          + (bytes % bytesPerKiB == 0 ? 0 : 1);
+        return static_cast<int>(std::min(
+                cost, static_cast<std::uint64_t>(std::numeric_limits<int>::max())));
+}
+
+} // namespace
 
 NfPhotoProvider::NfPhotoProvider(NeofluxonCore *core,
                                  QObject* parent)
@@ -43,8 +59,10 @@ NfPhotoProvider::NfPhotoProvider(NeofluxonCore *core,
         , m_photoLoader{core->photoLoader()}
         , m_thumbnailCache{core->thumbnailCache()}
         , m_previewCache{core->previewCache()}
-        , m_thumbnailPixmapCache{QCache<uint64_t, QPixmap>(150 * 1024 * 1024)}
-        , m_previewPixmapCache{QCache<uint64_t, QPixmap>(50 * 1024 * 1024)}
+        , m_thumbnailPixmapCache{QCache<uint64_t, QPixmap>(
+                  pixmapCacheCostKiB(core->settings().thumbnailMemoryAllocation().pixmapBytes))}
+        , m_previewPixmapCache{QCache<uint64_t, QPixmap>(
+                  pixmapCacheCostKiB(core->settings().previewMemoryAllocation().pixmapBytes))}
         , m_thumbnailPlaceholder{":/placeholder_thumbnail.svg"}
         , m_previewPlaceholder{":/placeholder_preview.svg"}
 {
@@ -81,13 +99,13 @@ QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo,
                 auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
                 cacheImage.reset();
 
-                auto size   = NfQPixmap::estimateSizeBytes(pixmap.get());
+                const auto size = NfQPixmap::estimateSizeBytes(pixmap.get());
                 pixmapImage = pixmap.release();
 
                 // Pixmap cache is called only from the GUI thread
                 m_thumbnailPixmapCache.insert(photo.id().value(),
                                               pixmapImage,
-                                              size);
+                                              pixmapCacheCostKiB(size));
 
                 return *pixmapImage;
         }
@@ -114,13 +132,13 @@ QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo,
                 auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
                 cacheImage.reset();
 
-                auto size   = NfQPixmap::estimateSizeBytes(pixmap.get());
+                const auto size = NfQPixmap::estimateSizeBytes(pixmap.get());
                 pixmapImage = pixmap.release();
 
                 // Pixmap cache is called only from the GUI thread
                 m_previewPixmapCache.insert(photo.id().value(),
                                               pixmapImage,
-                                              size);
+                                              pixmapCacheCostKiB(size));
 
                 return *pixmapImage;
         }

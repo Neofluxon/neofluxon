@@ -46,7 +46,10 @@ NfMetadataProvider::NfMetadataProvider(NeofluxonCore *core,
         , m_metadataLoader{core->metadataLoader()}
 {
         auto timer = new QTimer(this);
-        QObject::connect(timer, &QTimer::timeout, this, &NfMetadataProvider::onTimeout);
+        QObject::connect(timer,
+                         &QTimer::timeout,
+                         this,
+                         &NfMetadataProvider::onTimeout);
         timer->start(100);
 }
 

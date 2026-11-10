@@ -23,13 +23,13 @@
 #ifndef NF_DISK_CACHE_H
 #define NF_DISK_CACHE_H
 
-#include "NfDiskCacheSettings.h"
 #include "NfImage.h"
 #include "NfPhotoId.h"
 
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
+#include <filesystem>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -47,7 +47,9 @@ public:
                 Preview
         };
 
-        explicit NfDiskCache(NfDiskCacheSettings settings);
+        NfDiskCache(std::filesystem::path directory,
+                    std::uint64_t maxSizeBytes,
+                    std::uint64_t minimumFreeSpaceBytes);
         ~NfDiskCache();
         NfDiskCache(const NfDiskCache&) = delete;
         NfDiskCache& operator=(const NfDiskCache&) = delete;
@@ -83,7 +85,9 @@ private:
         std::filesystem::path entryPath(CacheType type, const NfPhotoId& id) const;
         std::filesystem::path entryPath(CacheType type, std::uint64_t id) const;
 
-        NfDiskCacheSettings m_settings;
+        std::filesystem::path m_directory;
+        std::uint64_t m_maxSizeBytes;
+        std::uint64_t m_minimumFreeSpaceBytes;
         std::mutex m_queueMutex;
         std::unordered_set<std::uint64_t> m_queuedThumbnailIds;
         std::unordered_set<std::uint64_t> m_queuedPreviewIds;

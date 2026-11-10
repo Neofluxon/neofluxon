@@ -23,6 +23,7 @@
 
 #include "NfFilesystemPhotoScanTask.h"
 #include "NfLogger.h"
+#include "NfSettings.h"
 #include "NfFileUtils.h"
 
 #include <filesystem>
@@ -33,8 +34,13 @@ namespace NfCore {
 
 NfFilesystemPhotoScanTask::NfFilesystemPhotoScanTask(const NfFilesystemPhotoSource& source)
         : m_source{source}
-        , m_photoExtentions{"cr3", "cr2", "dng", "raf", "nef", "jpg", "jpeg", "png"}
 {
+        std::string settingsError;
+        const auto setting = NfSettings::load(&settingsError);
+        if (!settingsError.empty())
+                NF_LOG_ERROR(settingsError);
+        for (const auto& extension : setting.selectedFormats)
+                m_photoExtentions.insert(extension.substr(1));
 }
 
 NfFilesystemPhotoScanTask::~NfFilesystemPhotoScanTask() = default;

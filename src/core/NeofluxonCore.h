@@ -25,6 +25,7 @@
 #define NEOFLUXON_CORE_H
 
 #include "NfApplicationPaths.h"
+#include "NfSettings.h"
 
 #include <memory>
 #include <string>
@@ -56,8 +57,10 @@ public:
         NfCache* thumbnailCache() const;
         NfCache* previewCache() const;
         NfUserTaskManager* userTaskManager() const;
+        const NfSettings& settings() const;
 
 private:
+        NfSettings m_settings{NfSettings::defaults()};
         std::unique_ptr<NfCache> m_thumbnailCache;
         std::unique_ptr<NfCache> m_previewCache;
         std::unique_ptr<NfDiskCache> m_diskCache;

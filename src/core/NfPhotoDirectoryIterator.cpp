@@ -23,6 +23,7 @@
 
 #include "NfPhotoDirectoryIterator.h"
 #include "NfPhoto.h"
+#include "NfSupportedFormats.h"
 
 #include <algorithm>
 
@@ -30,16 +31,11 @@ namespace NfCore {
 
 NfPhotoDirectoryIterator::NfPhotoDirectoryIterator()
 {
-        setExtensions({
-                        ".cr3",
-                        ".cr2",
-                        ".dng",
-                        ".raf",
-                        ".nef",
-                        ".jpg",
-                        ".jpeg",
-                        ".png"
-                });
+        std::vector<std::string> extensions;
+        extensions.reserve(NfSupportedFormats::all.size());
+        for (const auto& format : NfSupportedFormats::all)
+                extensions.emplace_back(format.first);
+        setExtensions(extensions);
 }
 
 std::expected<void, std::filesystem::filesystem_error>

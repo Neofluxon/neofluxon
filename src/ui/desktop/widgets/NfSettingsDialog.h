@@ -26,8 +26,13 @@
 
 #include <QDialog>
 
-#include "core/NfDiskCacheSettings.h"
+#include "core/NfSettings.h"
 
+#include <string>
+#include <utility>
+#include <vector>
+
+class QCheckBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -46,15 +51,17 @@ public:
 
 private:
         void setupUI();
-        void setupConnections();
+        void updateMemoryBudgetDescriptions();
         void updateAvailableDiskSpace();
         void accept() override;
 
-        NfCore::NfDiskCacheSettings m_diskCacheSettings;
+        NfCore::NfSettings m_settings;
         QListWidget* m_categories{nullptr};
         QStackedWidget* m_pages{nullptr};
         QSpinBox* m_thumbnailMemoryLimit{nullptr};
         QSpinBox* m_previewMemoryLimit{nullptr};
+        QLabel* m_thumbnailMemoryAllocation{nullptr};
+        QLabel* m_previewMemoryAllocation{nullptr};
         QSpinBox* m_diskCacheLimit{nullptr};
         QLineEdit* m_diskCacheLocation{nullptr};
         QLabel* m_availableDiskSpace{nullptr};
@@ -62,6 +69,7 @@ private:
         QPushButton* m_browseDiskCache{nullptr};
         QPushButton* m_okButton{nullptr};
         QPushButton* m_cancelButton{nullptr};
+        std::vector<std::pair<std::string, QCheckBox*>> m_supportedFormatCheckboxes;
 };
 
 } // namespace NfDesktop

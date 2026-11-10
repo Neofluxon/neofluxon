@@ -1,5 +1,5 @@
 /**
- * File name: NfDiskCacheSettings.h
+ * File name: NfSupportedFormats.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -20,25 +20,31 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NF_DISK_CACHE_SETTINGS_H
-#define NF_DISK_CACHE_SETTINGS_H
+#ifndef NF_SUPPORTED_FORMATS_H
+#define NF_SUPPORTED_FORMATS_H
 
-#include <cstdint>
-#include <filesystem>
-#include <string>
+#include "NfPhoto.h"
+
+#include <string_view>
+#include <unordered_map>
 
 namespace NfCore {
 
-struct NfDiskCacheSettings {
-        std::filesystem::path directory;
-        std::uint64_t maxSizeBytes{50ULL * 1024 * 1024 * 1024};
-        std::uint64_t minimumFreeSpaceBytes{10ULL * 1024 * 1024 * 1024};
+namespace NfSupportedFormats {
 
-        static NfDiskCacheSettings defaults();
-        static NfDiskCacheSettings load(std::string* error = nullptr);
-        bool save(std::string& error) const;
+inline const std::unordered_map<std::string_view, NfPhoto::PhotoFormat> all{
+        {".cr3", NfPhoto::PhotoFormat::Raw},
+        {".cr2", NfPhoto::PhotoFormat::Raw},
+        {".dng", NfPhoto::PhotoFormat::Raw},
+        {".raf", NfPhoto::PhotoFormat::Raw},
+        {".nef", NfPhoto::PhotoFormat::Raw},
+        {".jpg", NfPhoto::PhotoFormat::Jpeg},
+        {".jpeg", NfPhoto::PhotoFormat::Jpeg},
+        {".png", NfPhoto::PhotoFormat::Png},
 };
+
+} // namespace NfSupportedFormats
 
 } // namespace NfCore
 
-#endif // NF_DISK_CACHE_SETTINGS_H
+#endif // NF_SUPPORTED_FORMATS_H

@@ -6,6 +6,7 @@ find_package(SQLite3 REQUIRED)
 
 pkg_check_modules(JPEG_TURBO REQUIRED libturbojpeg)
 pkg_check_modules(EXIV2 REQUIRED exiv2)
+pkg_check_modules(INIREADER REQUIRED IMPORTED_TARGET INIReader)
 find_path(STB_INCLUDE_DIR stb_image_resize2.h PATH_SUFFIXES stb)
 
 if(STB_INCLUDE_DIR)
@@ -22,7 +23,7 @@ set(CORE_HEADERS
         utils/NfScopedTimer.h
         NfApplicationPaths.h
         NfDiskCache.h
-        NfDiskCacheSettings.h
+        NfSettings.h
         NfThreadAllocationManager.h
         NeofluxonCore.h
         Neofluxon.h
@@ -43,6 +44,7 @@ set(CORE_HEADERS
         NfPhotoScanner.h
         NfPhotoId.h
         NfPhoto.h
+        NfSupportedFormats.h
         NfPhotoSummary.h
         NfPhotoMetadata.h
         NfPhotoMetadataExtractor.h
@@ -83,7 +85,7 @@ set(CORE_SOURCES
         utils/NfStringUtils.cpp
         NfApplicationPaths.cpp
         NfDiskCache.cpp
-        NfDiskCacheSettings.cpp
+        NfSettings.cpp
         NfThreadAllocationManager.cpp
         NeofluxonCore.cpp
         NfCache.cpp
@@ -154,6 +156,7 @@ target_link_libraries(NfCore PRIVATE
 #        OpenMP::OpenMP_CXX
         ${JPEG_TURBO_LIBRARIES}
         ${EXIV2_LIBRARIES}
+        PkgConfig::INIREADER
         ${PNG_LIBRARIES}
         ${ZLIB_LIBRARIES}
         SQLite::SQLite3
