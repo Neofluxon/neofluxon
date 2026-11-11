@@ -24,6 +24,7 @@
 #include "NfQPixmap.h"
 #include "core/NfImage.h"
 #include "core/NfImageData.h"
+#include "core/NfLimits.h"
 
 #include <QPixmap>
 #include <QImage>
@@ -38,6 +39,21 @@ std::unique_ptr<QPixmap> NfQPixmap::convertToPixmap(const NfImage *image)
                 return nullptr;
 
         const auto* imageData = image->getData();
+        if (!imageData || imageData->size() == 0)
+                return nullptr;
+
+        const int width = image->width();
+        const int height = image->height();
+        if (width <= 0 || height <= 0)
+                return nullptr;
+
+        const auto widthPixels = static_cast<std::size_t>(width);
+        const auto heightPixels = static_cast<std::size_t>(height);
+        if (widthPixels > NfLimits::maxImageDimension
+            || heightPixels > NfLimits::maxImageDimension
+            || widthPixels > NfLimits::maxDecodedImagePixels / heightPixels)
+                return nullptr;
+
         const auto* rawPtr = reinterpret_cast<const uchar*>(imageData->data());
 
         auto pixmap = std::make_unique<QPixmap>();
@@ -45,28 +61,39 @@ std::unique_ptr<QPixmap> NfQPixmap::convertToPixmap(const NfImage *image)
 
         if (imageData->format() == NfImageData::ImageFormat::Format_JPEG
             || imageData->format() == NfImageData::ImageFormat::Format_PNG) {
-                isLoaded = pixmap->loadFromData(rawPtr, imageData->size());
+                if (imageData->size() > NfLimits::maxCompressedImageSize)
+                        return nullptr;
+                isLoaded = pixmap->loadFromData(
+                        rawPtr, static_cast<uint>(imageData->size()));
         } else {
                 QImage::Format qtFmt;
+                std::size_t bytesPerPixel = 0;
 
                 switch (imageData->format()) {
                 case NfImageData::ImageFormat::Format_RGB888:
                         qtFmt = QImage::Format_RGB888;
+                        bytesPerPixel = 3;
                         break;
 
                 case NfImageData::ImageFormat::Format_RGBA8888:
                         qtFmt = QImage::Format_RGBA8888;
+                        bytesPerPixel = 4;
                         break;
 
                 case NfImageData::ImageFormat::Format_ARGB32_Premultiplied:
                         qtFmt = QImage::Format_ARGB32_Premultiplied;
+                        bytesPerPixel = 4;
                         break;
 
                 default:
                         return nullptr;
                 }
 
-                QImage img(rawPtr, image->width(), image->height(), qtFmt);
+                const auto sourceBytesPerLine = widthPixels * bytesPerPixel;
+                if (imageData->size() < sourceBytesPerLine * heightPixels)
+                        return nullptr;
+
+                QImage img(rawPtr, width, height, qtFmt);
 
                 *pixmap = QPixmap::fromImage(img);
                 isLoaded = !pixmap->isNull();

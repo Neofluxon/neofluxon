@@ -98,6 +98,11 @@ QPixmap NfPhotoProvider::getThumbnail(const NfPhoto &photo,
         if (cacheImage) {
                 auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
                 cacheImage.reset();
+                if (!pixmap) {
+                        NF_LOG_ERROR("can't convert cached thumbnail to QPixmap: "
+                                     << photo.path());
+                        return m_thumbnailPlaceholder;
+                }
 
                 const auto size = NfQPixmap::estimateSizeBytes(pixmap.get());
                 pixmapImage = pixmap.release();
@@ -131,6 +136,11 @@ QPixmap NfPhotoProvider::getPreview(const NfPhoto &photo,
         if (cacheImage) {
                 auto pixmap = NfQPixmap::convertToPixmap(cacheImage.get());
                 cacheImage.reset();
+                if (!pixmap) {
+                        NF_LOG_ERROR("can't convert cached preview to QPixmap: "
+                                     << photo.path());
+                        return m_previewPlaceholder;
+                }
 
                 const auto size = NfQPixmap::estimateSizeBytes(pixmap.get());
                 pixmapImage = pixmap.release();
