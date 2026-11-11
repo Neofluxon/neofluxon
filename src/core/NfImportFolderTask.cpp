@@ -167,7 +167,10 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
                 return TaskStatus::Failed;
         }
 
-        m_library->addFolder(m_path);
+        if (m_library->addFolder(path) == -1) {
+                NF_LOG_ERROR("failed to add folder: " << path);
+                return TaskStatus::Failed;
+        }
 
         while (true) {
                 if (isCancelled())

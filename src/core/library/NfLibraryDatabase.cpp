@@ -458,7 +458,6 @@ int64_t NfLibraryDatabase::addFolder(const std::filesystem::path& path,
                           SQLITE_TRANSIENT);
 
         int64_t id = -1;
-
         if (sqlite3_step(stmt) == SQLITE_ROW)
                 id = sqlite3_column_int64(stmt, 0);
 
