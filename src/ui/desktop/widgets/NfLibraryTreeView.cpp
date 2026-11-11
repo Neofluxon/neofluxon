@@ -44,6 +44,7 @@ NfLibraryTreeView::NfLibraryTreeView(const NfLibraryContext& ctx,
         , m_model{model}
         , m_state{ctx.uiState()->libraryModeState()}
 {
+        setObjectName("LibraryTreeView");
         setupView();
         setupBehavior();
         setModel(m_model);
