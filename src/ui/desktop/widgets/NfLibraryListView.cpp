@@ -25,6 +25,7 @@
 #include "NfLibraryTreeModel.h"
 
 #include <QAction>
+#include <QAbstractItemModel>
 #include <QContextMenuEvent>
 #include <QMenu>
 
@@ -40,7 +41,30 @@ NfLibraryListView::NfLibraryListView(const NfLibraryContext& ctx,
         , m_model{model}
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setUniformItemSizes(true);
         setModel(m_model);
+
+        QObject::connect(m_model, &QAbstractItemModel::rowsInserted,
+                         this, [this] { updateGeometry(); });
+        QObject::connect(m_model, &QAbstractItemModel::rowsRemoved,
+                         this, [this] { updateGeometry(); });
+        QObject::connect(m_model, &QAbstractItemModel::modelReset,
+                         this, [this] { updateGeometry(); });
+}
+
+QSize NfLibraryListView::sizeHint() const
+{
+        constexpr int maxVisibleRows = 5;
+        const auto rowCount = model() ? model()->rowCount(rootIndex()) : 0;
+        const auto visibleRows = qMin(maxVisibleRows, rowCount);
+        const auto fallbackRowHeight = qMax(fontMetrics().height(),
+                                             iconSize().height()) + 4;
+        const auto rowHeight = qMax(sizeHintForRow(0), fallbackRowHeight);
+        auto hint = QListView::sizeHint();
+        hint.setHeight(visibleRows * rowHeight);
+        return hint;
 }
 
 void NfLibraryListView::contextMenuEvent(QContextMenuEvent* event)

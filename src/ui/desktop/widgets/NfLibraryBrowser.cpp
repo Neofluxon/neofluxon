@@ -132,12 +132,11 @@ void NfLibraryBrowser::setupUi()
 
         m_mainLayout->addWidget(libraryListHeader);
         m_mainLayout->addWidget(m_libraryListView);
+        m_mainLayout->addSpacing(10);
         m_mainLayout->addWidget(m_representationListView);
-        m_mainLayout->addWidget(m_libraryTreeView, 1);
+        m_mainLayout->addWidget(m_libraryTreeView);
 
-        m_mainLayout->setStretch(0, 0);
-        m_mainLayout->setStretch(1, 0);
-        m_mainLayout->setStretch(2, 1);
+        m_mainLayout->setStretch(3, 1);
 }
 
 void NfLibraryBrowser::addLibrary()

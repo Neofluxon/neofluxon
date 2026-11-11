@@ -46,6 +46,7 @@ signals:
         void removeLibraryRequested(uint64_t libraryId);
 
 protected:
+        QSize sizeHint() const override;
         void contextMenuEvent(QContextMenuEvent* event) override;
 
 private:

@@ -40,6 +40,9 @@ public:
                                       QWidget* parent = nullptr);
     ~NfRepresentationListView() override = default;
 
+protected:
+    QSize sizeHint() const override;
+
 private:
     NfUi::NfLibraryContext m_context;
     NfLibraryTreeModel* m_model;

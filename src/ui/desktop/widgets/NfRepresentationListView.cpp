@@ -34,7 +34,26 @@ NfRepresentationListView::NfRepresentationListView(const NfUi::NfLibraryContext&
         , m_model{model}
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setUniformItemSizes(true);
         setModel(model);
+}
+
+QSize NfRepresentationListView::sizeHint() const
+{
+        constexpr int visibleRows = 3;
+        constexpr int verticalPadding = 20;
+        const auto fallbackRowHeight = qMax(fontMetrics().height(),
+                                             iconSize().height()) + 4;
+        auto height = 2 * frameWidth() + 2 * verticalPadding;
+        for (int row = 0; row < visibleRows; ++row)
+                height += qMax(sizeHintForRow(row), fallbackRowHeight);
+
+        auto hint = QListView::sizeHint();
+        hint.setHeight(height);
+
+        return hint;
 }
 
 } // namespace NfDesktop
