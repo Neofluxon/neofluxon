@@ -68,6 +68,7 @@ bool readU32(std::istream& stream, std::uint32_t& value)
                         return false;
                 value |= static_cast<std::uint32_t>(static_cast<unsigned char>(byte)) << shift;
         }
+
         return true;
 }
 
@@ -81,6 +82,7 @@ bool readU64(std::istream& stream, std::uint64_t& value)
                 value |= static_cast<std::uint64_t>(
                                  static_cast<unsigned char>(byte)) << shift;
         }
+
         return true;
 }
 
@@ -120,6 +122,7 @@ NfDiskCache::~NfDiskCache()
                 std::lock_guard lock(m_queueMutex);
                 m_stopping = true;
         }
+
         m_queueCondition.notify_one();
         if (m_worker.joinable())
                 m_worker.join();

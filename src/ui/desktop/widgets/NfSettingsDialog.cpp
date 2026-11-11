@@ -319,7 +319,7 @@ void NfSettingsDialog::updateMemoryBudgetDescriptions()
         const auto thumbnail = m_settings.thumbnailMemoryAllocation();
         const auto preview = m_settings.previewMemoryAllocation();
         m_thumbnailMemoryAllocation->setText(
-                tr("Allocation: ~%1 MiB for grid display, ~%2 MiB for decoded thumbnails.")
+                tr("Allocation: ~%1 MiB for thumbnails display, ~%2 MiB for decoded thumbnails.")
                         .arg((thumbnail.pixmapBytes + bytesPerMiB / 2) / bytesPerMiB)
                         .arg((thumbnail.decodedBytes + bytesPerMiB / 2) / bytesPerMiB));
         m_previewMemoryAllocation->setText(

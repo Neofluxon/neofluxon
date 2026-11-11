@@ -163,9 +163,11 @@ void NfCache::evictUntilFits(std::size_t requiredSize)
 
                         NF_LOG_DEBUG("photo evicted: " << it->first.value());
 
-                        //if (m_diskCache)
-                        //m_diskCache->enqueue(m_cacheType, oldestId,
-                        //std::move(it->second.second));
+                        if (m_diskCache) {
+                                m_diskCache->enqueue(m_cacheType,
+                                                     oldestId,
+                                                     std::move(it->second.second));
+                        }
 
                         m_memoryCache.erase(it);
                         m_currentSizeBytes -= evictedSize;

@@ -39,10 +39,10 @@ struct NfCacheMemoryAllocation
 struct NfSettings
 {
         std::filesystem::path diskCacheDirectory;
-        std::uint64_t diskCacheMaxSizeBytes{50ULL * 1024 * 1024 * 1024};
+        std::uint64_t diskCacheMaxSizeBytes{20ULL * 1024 * 1024 * 1024};
         std::uint64_t minimumFreeDiskSpaceBytes{10ULL * 1024 * 1024 * 1024};
-        std::uint64_t thumbnailMemoryLimitBytes{2048ULL * 1024 * 1024};
-        std::uint64_t previewMemoryLimitBytes{2048ULL * 1024 * 1024};
+        std::uint64_t thumbnailMemoryLimitBytes{512ULL * 1024 * 1024};
+        std::uint64_t previewMemoryLimitBytes{1024ULL * 1024 * 1024};
         std::set<std::string> selectedFormats;
 
         static NfSettings defaults();
