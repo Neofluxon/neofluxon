@@ -64,21 +64,25 @@ int main(int argc, char **argv)
                                       QString::fromStdString(initializationError));
                 return EXIT_FAILURE;
         }
-        const auto coreInitializationTime =
-                startupTimer.elapsed() - coreInitializationStart;
+#ifndef NDEBUG
+        const auto coreInitializationTime = startupTimer.elapsed() - coreInitializationStart;
+#endif
 
         qRegisterMetaType<NfPhoto>("NfPhoto");
         qRegisterMetaType<NfPhotoId>("NfPhotoId");
         qRegisterMetaType<std::vector<NfPhoto>>("std::vector<NfPhoto>");
         qRegisterMetaType<std::vector<NfPhotoId>>("std::vector<NfPhotoId>");
 
+#ifndef NDEBUG
         const auto uiConstructionStart = startupTimer.elapsed();
+#endif
         NfUiState uiState;
         NfContext context(coreApp.get(), &uiState);
 
         NfMainWindow mainWin(&context);
         mainWin.show();
 
+#ifndef NDEBUG
         const auto uiConstructionTime = startupTimer.elapsed() - uiConstructionStart;
         QTimer::singleShot(0, &app, [&startupTimer,
                                      coreInitializationTime,
@@ -88,6 +92,7 @@ int main(int argc, char **argv)
                           << " ms, UI construction: " << uiConstructionTime
                           << " ms)" << std::endl;
         });
+#endif
 
         return app.exec();
 }
