@@ -82,7 +82,7 @@ void NfImportFolderTask::notifySubmitted()
 
 void NfImportFolderTask::notifyCanceled()
 {
-        // TODO: for now is canceled is qualified as removed too
+        // TODO: for now canceled is qualified as removed too
         // Implement cancel nofication for UI
         notifyRemoved();
 }
@@ -104,15 +104,6 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
         m_data.status = NfImportFolderTaskData::Status::Importing;
         notifyUpdated();
 
-        // Check if the folder already has been imported
-        // TODO: probably in the future we will ignore this check
-        // so we can reimport maybe new added photos in the path
-        if (m_library->folderExists(m_path)) {
-                m_data.status = NfImportFolderTaskData::Status::Completed;
-                NF_LOG_DEBUG("folder already exists, skip:" << m_path);
-                return TaskStatus::Success;
-        }
-
         NfDirectoryIterator dirIterator;
         if (const auto result = dirIterator.setPath(m_path); !result) {
                 NF_LOG_ERROR("failed to scan folder " << m_path << ": "
@@ -120,7 +111,7 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
                 return TaskStatus::Failed;
         }
 
-         // First import photos from the root directory.
+        // First import photos from the root directory.
         if (const auto status = importPhotosFromDirectory(m_path);
             status != TaskStatus::Success) {
                 return status;
@@ -144,11 +135,6 @@ NfTask::TaskStatus NfImportFolderTask::importFolder()
                 }
 
                 auto directory = *nextDirectory.value();
-                if (m_library->folderExists(directory)) {
-                        NF_LOG_DEBUG("folder already exists, skip:" << directory);
-                        continue;
-                }
-
                 if (const auto status = importPhotosFromDirectory(directory);
                     status != TaskStatus::Success)
                         return status;
@@ -166,14 +152,6 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
 {
         NF_LOG_DEBUG("import photos from directory: " << path);
 
-        // TODO: probably in the future we will check the status to see
-        // if the fail reson is that folder exist in order to allow reimport
-        // of new photos.
-        if (!m_library->addFolder(path)) {
-                NF_LOG_ERROR("Failed add folder to library:" << path);
-                return TaskStatus::Failed;
-        }
-
         NfPhotoDirectoryIterator photoIterator;
         std::string settingsError;
         const auto setting = NfSettings::load(&settingsError);
@@ -188,6 +166,8 @@ NfImportFolderTask::importPhotosFromDirectory(const std::filesystem::path& path)
                              << result.error().what());
                 return TaskStatus::Failed;
         }
+
+        m_library->addFolder(m_path);
 
         while (true) {
                 if (isCancelled())

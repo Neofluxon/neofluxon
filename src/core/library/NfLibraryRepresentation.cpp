@@ -298,8 +298,7 @@ void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord
 {
         NF_LOG_DEBUG("called");
 
-        m_tree = std::make_unique<NfLibraryTreeNode>(
-                                                     "Root",
+        m_tree = std::make_unique<NfLibraryTreeNode>("Root",
                                                      NfLibraryTreeNode::NodeType::Root);
 
         const auto* source =
@@ -339,7 +338,7 @@ void NfLibraryRepresentation::populateCanonicalTree(const NfRepresentationRecord
                                 break;
                         }
 
-                        auto next = folder.path.parent_path();
+                        auto next = parentPath.parent_path();
 
                         // Check if this is a root path
                         if (next == parentPath)
