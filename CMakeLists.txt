@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.31)
 
 project(neofluxon VERSION 0.1.0)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 set(NEOFLUXON_DISPLAY_NAME "Neofluxon")
 
 math(EXPR NEOFLUXON_VERSION_HEX
