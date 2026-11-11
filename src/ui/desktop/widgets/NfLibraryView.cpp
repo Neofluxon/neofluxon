@@ -59,7 +59,7 @@ NfLibraryView::NfLibraryView(NfLibraryContext ctx,
         //breadcrumbBar->setModel(m_model->breadcrump());
         //m_mainLayout->addWidget(breadcrumbBar);
 
-        auto* browserTopBar = new NfBrowserTopBar(m_state->browser(), this);
+        auto* browserTopBar = new NfBrowserTopBar(m_context.uiState(), this);
         browserTopBar->setFixedHeight(36);
         m_mainLayout->addWidget(browserTopBar);
 

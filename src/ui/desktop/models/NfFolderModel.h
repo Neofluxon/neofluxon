@@ -46,7 +46,7 @@ class NfFolderModel : public QObject
 public:
         explicit NfFolderModel(NfUi::NfFolderContext ctx, QObject *parent = nullptr);
         ~NfFolderModel() = default;
-        void setPath(const std::filesystem::path& path);
+        void setPath(const std::filesystem::path& path, bool recursive = true);
         NfBrowserModel* browser() const;
 
  private:

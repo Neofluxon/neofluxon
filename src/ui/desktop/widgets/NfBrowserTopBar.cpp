@@ -28,20 +28,25 @@
 #include "NfBrowserFilterBar.h"
 #include "NfSeparator.h"
 #include "NfUiBrowserState.h"
+#include "NfUiFolderModeState.h"
+#include "NfUiLibraryModeState.h"
+#include "NfUiState.h"
 
 #include <QHBoxLayout>
 #include <QActionGroup>
+#include <QIcon>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProcess>
+#include <QSize>
 #include <QToolButton>
 
 namespace NfDesktop {
 
-NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiBrowserState* state,
+NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiState* state,
                                  QWidget* parent)
         : NfStyledWidget(parent)
-        , m_state{state}
+        , m_uiState{state}
           //        , m_editor{QStringLiteral("rawtherapee")}
 {
         setObjectName("NfBrowserTopBar");
@@ -50,6 +55,19 @@ NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiBrowserState* state,
 
 void NfBrowserTopBar::setupUi()
 {
+        const auto mode = m_uiState->mode();
+        switch (mode) {
+        case NfUi::NfUiMode::Folders:
+                m_state = m_uiState->folderModeState()->browser();
+                break;
+        case NfUi::NfUiMode::Library:
+                m_state = m_uiState->libraryModeState()->browser();
+                break;
+        case NfUi::NfUiMode::Shoots:
+                Q_ASSERT(false);
+                return;
+        }
+
         auto* layout = new QHBoxLayout(this);
         layout->setContentsMargins(0, 0, 12, 0);
         layout->setSpacing(4);
@@ -61,6 +79,23 @@ void NfBrowserTopBar::setupUi()
         m_filterBar = new NfBrowserFilterBar(m_state, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);
+        if (mode == NfUi::NfUiMode::Folders) {
+                m_recursiveScanButton = new QToolButton(this);
+                m_recursiveScanButton->setObjectName("recursiveScanButton");
+                m_recursiveScanButton->setCheckable(true);
+                m_recursiveScanButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+                m_recursiveScanButton->setFixedSize(30, 30);
+                m_recursiveScanButton->setCursor(Qt::PointingHandCursor);
+                m_recursiveScanButton->setAutoRaise(true);
+                updateRecursiveScanButton(m_state->scanRecursively());
+                QObject::connect(m_recursiveScanButton, &QToolButton::toggled,
+                                 m_state,
+                                 &NfUi::NfUiBrowserState::setScanRecursively);
+                QObject::connect(m_state,
+                                 &NfUi::NfUiBrowserState::scanRecursivelyChanged,
+                                 this,
+                                 &NfBrowserTopBar::updateRecursiveScanButton);
+        }
         layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
         const auto addSeparator = [this, layout]() {
                 auto* separator = new NfSeparator(NfSeparator::Orientation::Vertical, 1, this);
@@ -72,6 +107,8 @@ void NfBrowserTopBar::setupUi()
         addSeparator();
         layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
         layout->addStretch();
+        if (m_recursiveScanButton)
+                layout->addWidget(m_recursiveScanButton, 0, Qt::AlignVCenter);
         layout->addWidget(m_filterBar, 0, Qt::AlignVCenter);
         /*m_editButton = new QToolButton(this);
         m_editButton->setObjectName("editInButton");
@@ -106,6 +143,21 @@ void NfBrowserTopBar::setupUi()
                          this, &NfBrowserTopBar::updateEditButton);
 
                          layout->addWidget(m_editButton, 0, Qt::AlignVCenter);*/
+}
+
+void NfBrowserTopBar::updateRecursiveScanButton(bool recursive)
+{
+        if (!m_recursiveScanButton)
+                return;
+
+        m_recursiveScanButton->setChecked(recursive);
+        m_recursiveScanButton->setIcon(QIcon(
+                recursive ? QStringLiteral(":/icons/folder-scan-recursive.svg")
+                          : QStringLiteral(":/icons/folder-scan-current.svg")));
+        m_recursiveScanButton->setIconSize(QSize(20, 20));
+        m_recursiveScanButton->setToolTip(
+                recursive ? tr("Disable recursive scan")
+                          : tr("Enable recursive scan"));
 }
 
 void NfBrowserTopBar::updateEditButton()

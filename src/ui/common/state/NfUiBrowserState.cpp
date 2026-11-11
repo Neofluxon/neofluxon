@@ -39,6 +39,20 @@ NfUiBrowserState::ViewMode NfUiBrowserState::viewMode() const
         return m_viewMode;
 }
 
+bool NfUiBrowserState::scanRecursively() const
+{
+        return m_scanRecursively;
+}
+
+void NfUiBrowserState::setScanRecursively(bool recursive)
+{
+        if (m_scanRecursively == recursive)
+                return;
+
+        m_scanRecursively = recursive;
+        emit scanRecursivelyChanged(m_scanRecursively);
+}
+
 void NfUiBrowserState::setViewMode(ViewMode mode)
 {
         if (m_viewMode == mode)

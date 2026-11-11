@@ -25,8 +25,10 @@
 
 namespace NfCore {
 
-NfFilesystemPhotoSource::NfFilesystemPhotoSource(const std::filesystem::path& p)
+NfFilesystemPhotoSource::NfFilesystemPhotoSource(const std::filesystem::path& p,
+                                                 bool recursive)
         : m_path{p}
+        , m_recursive{recursive}
 {
 }
 
@@ -38,6 +40,11 @@ void NfFilesystemPhotoSource::setPath(const std::filesystem::path& p)
 const std::filesystem::path& NfFilesystemPhotoSource::path() const
 {
         return m_path;
+}
+
+bool NfFilesystemPhotoSource::isRecursive() const
+{
+        return m_recursive;
 }
 
 } // NfCore

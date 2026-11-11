@@ -23,6 +23,7 @@
 
 #include "NfFolderView.h"
 #include "NfUiState.h"
+#include "NfUiBrowserState.h"
 #include "NfUiFolderModeState.h"
 #include "NfFolderModel.h"
 #include "NfBrowserModel.h"
@@ -51,7 +52,7 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(6);
 
-        auto browserTopBar = new NfBrowserTopBar(m_state->browser(), this);
+        auto browserTopBar = new NfBrowserTopBar(m_context.uiState(), this);
         m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(),
@@ -60,11 +61,22 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
 
         QObject::connect(m_state,
                          &NfUiFolderModeState::pathChanged,
-                         m_model,
-                         &NfFolderModel::setPath);
+                         this,
+                         [this](const std::filesystem::path& path) {
+                                 m_model->setPath(path,
+                                                  m_state->browser()->scanRecursively());
+                         });
+        QObject::connect(m_state->browser(),
+                         &NfUiBrowserState::scanRecursivelyChanged,
+                         this,
+                         [this](bool recursive) {
+                                 if (!m_state->path().empty())
+                                         m_model->setPath(m_state->path(), recursive);
+                         });
 
         if (!m_state->path().empty())
-                m_model->setPath(m_state->path());
+                m_model->setPath(m_state->path(),
+                                 m_state->browser()->scanRecursively());
 
         m_mainLayout->addWidget(m_browserView);
 }

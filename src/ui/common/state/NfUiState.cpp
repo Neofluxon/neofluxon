@@ -279,6 +279,16 @@ NfUiState::NfUiState(QObject* parent)
         restoreBrowserState(settings, QStringLiteral("Browser.Library"),
                             QStringLiteral("ui/library/browser"),
                             m_libraryModeState->browser());
+        const auto recursiveScanKey =
+                QStringLiteral("Browser.Folders/scanRecursively");
+        const auto recursiveScan = settings.contains(recursiveScanKey)
+                                           ? settings.value(recursiveScanKey)
+                                           : settings.value(
+                                                   QStringLiteral("Folders/scanRecursively"),
+                                                   settings.value(
+                                                           QStringLiteral("ui/folders/scanRecursively"),
+                                                           false));
+        m_folderModeState->browser()->setScanRecursively(recursiveScan.toBool());
 
         settings.beginGroup(QStringLiteral("Metadata.Sections"));
         auto metadataKeys = settings.allKeys();
@@ -296,6 +306,9 @@ NfUiState::NfUiState(QObject* parent)
         QObject::connect(this, &NfUiState::modeChanged,
                          this, &NfUiState::saveState);
         QObject::connect(m_folderModeState, &NfUiFolderModeState::pathChanged,
+                         this, &NfUiState::saveState);
+        QObject::connect(m_folderModeState->browser(),
+                         &NfUiBrowserState::scanRecursivelyChanged,
                          this, &NfUiState::saveState);
         QObject::connect(m_libraryModeState, &NfUiLibraryModeState::currentLibraryChanged,
                          this, &NfUiState::saveState);
@@ -364,12 +377,15 @@ void NfUiState::saveState()
         settings.setValue(QStringLiteral("UI/mode"), static_cast<int>(m_uiMode));
         settings.setValue(QStringLiteral("Folders/path"),
                           pathToString(m_folderModeState->path()));
+        settings.remove(QStringLiteral("Folders/scanRecursively"));
         settings.setValue(QStringLiteral("Library/currentId"),
                           QString::number(static_cast<qulonglong>(
                                   m_libraryModeState->currentLibrary())));
         saveLibraryQuery(settings, m_libraryModeState->query());
         saveBrowserState(settings, QStringLiteral("Browser.Folders"),
                          m_folderModeState->browser());
+        settings.setValue(QStringLiteral("Browser.Folders/scanRecursively"),
+                          m_folderModeState->browser()->scanRecursively());
         saveBrowserState(settings, QStringLiteral("Browser.Library"),
                          m_libraryModeState->browser());
         settings.remove(QStringLiteral("Metadata.Sections"));

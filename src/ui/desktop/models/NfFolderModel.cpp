@@ -39,9 +39,9 @@ NfFolderModel::NfFolderModel(NfFolderContext ctx, QObject *parent)
 {
 }
 
-void NfFolderModel::setPath(const std::filesystem::path& path)
+void NfFolderModel::setPath(const std::filesystem::path& path, bool recursive)
 {
-        m_browserModel->setSource(NfFilesystemPhotoSource{path});
+        m_browserModel->setSource(NfFilesystemPhotoSource{path, recursive});
 }
 
 NfBrowserModel* NfFolderModel::browser() const

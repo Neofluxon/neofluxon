@@ -32,12 +32,15 @@ class NfFilesystemPhotoSource
 {
  public:
         NfFilesystemPhotoSource() = default;
-        explicit NfFilesystemPhotoSource(const std::filesystem::path& p);
+        explicit NfFilesystemPhotoSource(const std::filesystem::path& p,
+                                         bool recursive = true);
         void setPath(const std::filesystem::path& p);
         const std::filesystem::path& path() const;
+        bool isRecursive() const;
 
  private:
         std::filesystem::path m_path;
+        bool m_recursive{true};
 };
 
 } // NfCore

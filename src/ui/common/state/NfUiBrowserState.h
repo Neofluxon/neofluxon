@@ -57,6 +57,7 @@ public:
 
         explicit NfUiBrowserState(QObject* parent = nullptr);
         ViewMode viewMode() const;
+        bool scanRecursively() const;
         void setCurrentPhoto(const NfCore::NfPhoto& photo);
         const NfCore::NfPhoto& currentPhoto() const;
         const PhotoFormatFilter& formatFilter() const;
@@ -65,12 +66,14 @@ public:
 
 signals:
         void viewModeChanged(ViewMode mode);
+        void scanRecursivelyChanged(bool recursive);
         void currentPhotoChanged(const NfCore::NfPhoto& photo);
         void formatFilterChanged(const PhotoFormatFilter& formats);
         void sortingUpdated();
 
 public slots:
         void setViewMode(ViewMode mode);
+        void setScanRecursively(bool recursive);
         void setFormatFilter(const PhotoFormatFilter& formats);
         void setSortFields(const SortFields &fields);
         void enableSortField(SortField field, bool b);
@@ -78,6 +81,7 @@ public slots:
 
 private:
         ViewMode m_viewMode;
+        bool m_scanRecursively{false};
         NfCore::NfPhoto m_photo;
         PhotoFormatFilter m_formatFilter;
         SortFields m_sortFields;

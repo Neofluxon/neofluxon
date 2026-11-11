@@ -32,6 +32,7 @@ class QToolButton;
 
 namespace NfUi {
 class NfUiBrowserState;
+class NfUiState;
 }
 
 namespace NfDesktop {
@@ -46,7 +47,7 @@ class NfBrowserTopBar : public NfStyledWidget
         Q_OBJECT
 
 public:
-        explicit NfBrowserTopBar(NfUi::NfUiBrowserState* state,
+        explicit NfBrowserTopBar(NfUi::NfUiState* state,
                                  QWidget* parent = nullptr);
         ~NfBrowserTopBar() override = default;
 
@@ -54,12 +55,15 @@ private:
         void setupUi();
         void updateEditButton();
         void openCurrentPhoto();
+        void updateRecursiveScanButton(bool recursive);
 
         //        NfBrowserBreadcrumbBar* m_breadcrumbBar{nullptr};
-        NfUi::NfUiBrowserState* m_state;
+        NfUi::NfUiState* m_uiState;
+        NfUi::NfUiBrowserState* m_state{nullptr};
         NfBrowserViewModeBar* m_viewModeBar{nullptr};
         NfBrowserSortBar* m_sortBar{nullptr};
         NfBrowserFilterBar* m_filterBar{nullptr};
+        QToolButton* m_recursiveScanButton{nullptr};
         //QToolButton* m_editButton{nullptr};
 };
 

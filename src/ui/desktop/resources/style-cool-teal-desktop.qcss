@@ -566,6 +566,22 @@ NfDesktop--NfBrowserTopBar {
     border: none;
 }
 
+NfDesktop--NfBrowserTopBar QToolButton#recursiveScanButton {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+NfDesktop--NfBrowserTopBar QToolButton#recursiveScanButton:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+NfDesktop--NfBrowserTopBar QToolButton#recursiveScanButton:checked {
+    background-color: #323546;
+    border-color: #3a3e50;
+}
+
 #BrowserControlSeparator {
     background-color: #323546;
     border: none;

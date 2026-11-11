@@ -50,6 +50,7 @@ NfPhotoScanner::createTask(const NfFilesystemPhotoSource& source)
         NF_LOG_DEBUG("called");
         std::scoped_lock lock(m_mutex);
         auto task = std::make_unique<NfFilesystemPhotoScanTask>(source);
+        task->setRecursive(source.isRecursive());
         task->setGenerationId(m_generationId);
         task->setPhotoFoundCallback([this](NfPhoto photo, uint64_t genId) {
                 std::scoped_lock lock(m_mutex);
