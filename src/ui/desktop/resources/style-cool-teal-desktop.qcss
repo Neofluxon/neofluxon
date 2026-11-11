@@ -150,16 +150,14 @@ QScrollBar::sub-page:horizontal {
 
 /* Top bar and panels */
 
-#NfTopBar, #NfPanel, #NfMainMenu {
+#NfTopBar, #NfPanel, #NfMainMenu, QStatusBar#NfStatusBar {
     background-color: #242632;
     border: 1px solid #323546;
     border-radius: 4px;
 }
 
 QStatusBar#NfStatusBar {
-    background-color: #242632;
-    color: #aeb5c0;
-    border: none;
+    margin-top: 4px;
 }
 
 QStatusBar#NfStatusBar::item {
