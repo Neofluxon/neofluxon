@@ -23,6 +23,7 @@
 
 #include "NfCollapsibleSection.h"
 
+#include <QIcon>
 #include <QToolButton>
 #include <QLabel>
 #include <QFrame>
@@ -48,8 +49,9 @@ NfCollapsibleSection::NfCollapsibleSection(const QString& title,
                 m_toggleButton->setText(title);
                 m_toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
                 m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+                m_toggleButton->setIconSize(QSize(12, 12));
+                m_toggleButton->setIcon(QIcon(QStringLiteral(":/icons/chevron-right.svg")));
                 m_toggleButton->setChecked(false);
-                m_toggleButton->setArrowType(Qt::RightArrow);
                 m_mainLayout->addWidget(m_toggleButton);
                 QObject::connect(m_toggleButton,
                                  &QToolButton::toggled,
@@ -112,7 +114,9 @@ void NfCollapsibleSection::toggle(bool checked)
         if (!m_collapsible)
                 return;
 
-        m_toggleButton->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
+        m_toggleButton->setIcon(QIcon(checked
+                                      ? QStringLiteral(":/icons/chevron-down.svg")
+                                      : QStringLiteral(":/icons/chevron-right.svg")));
         m_contentFrame->setVisible(checked);
         emit expandedChanged(checked);
 }

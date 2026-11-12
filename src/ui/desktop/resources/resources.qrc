@@ -6,6 +6,8 @@
   <file>logo.svg</file>
   <file alias="icons/neofluxon.png">../../../../packaging/icons/256x256/neofluxon.png</file>
   <file>icons/plus.svg</file>
+  <file>icons/chevron-right.svg</file>
+  <file>icons/chevron-down.svg</file>
   <file>icons/nav-shoots.svg</file>
   <file>icons/nav-folders.svg</file>
   <file>icons/nav-library.svg</file>
