@@ -4,7 +4,7 @@ set(CMAKE_AUTOMOC ON)
 
 set(UI_RESOURCES resources/resources.qrc)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Svg Widgets)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(Qt6 REQUIRED COMPONENTS DBus)
 endif()
