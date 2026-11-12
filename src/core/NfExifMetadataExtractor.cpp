@@ -32,16 +32,239 @@
 
 #include <charconv>
 #include <chrono>
+#include <cstdio>
 #include <ctime>
-#include <fstream>
 #include <iomanip>
 #include <initializer_list>
+#include <limits>
+#include <memory>
 #include <sstream>
-#include <vector>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <io.h>
+#include <windows.h>
+#endif
 
 namespace NfCore {
 
 namespace {
+
+#ifdef _WIN32
+// TODO: remove this when Exiv to will
+// add support for Unicode paths for Windows
+class WindowsFileIo final : public Exiv2::BasicIo {
+ public:
+        explicit WindowsFileIo(const std::filesystem::path& path)
+                : m_filePath{path}
+                , m_path{NfFileUtils::pathToUtf8(path)}
+        {
+        }
+
+        ~WindowsFileIo() override
+        {
+                close();
+        }
+
+        int open() override
+        {
+                close();
+
+                m_error = false;
+                m_file = _wfopen(m_filePath.c_str(), L"rb");
+                if (!m_file) {
+                        m_error = true;
+                        return 1;
+                }
+
+                if (_fseeki64(m_file, 0, SEEK_END) != 0) {
+                        close();
+                        m_error = true;
+                        return 1;
+                }
+
+                const auto fileSize = _ftelli64(m_file);
+                if (fileSize < 0 || _fseeki64(m_file, 0, SEEK_SET) != 0) {
+                        close();
+                        m_error = true;
+                        return 1;
+                }
+
+                m_size = static_cast<std::uint64_t>(fileSize);
+
+                return 0;
+        }
+
+        int close() override
+        {
+                int result = munmap();
+                if (m_file) {
+                        result |= std::fclose(m_file);
+                        m_file = nullptr;
+                }
+                m_size = 0;
+
+                return result;
+        }
+
+        size_t write(const Exiv2::byte*, size_t) override
+        {
+                return 0;
+        }
+
+        size_t write(Exiv2::BasicIo&) override
+        {
+                return 0;
+        }
+
+        int putb(Exiv2::byte) override
+        {
+                return EOF;
+        }
+
+        Exiv2::DataBuf read(size_t count) override
+        {
+                Exiv2::DataBuf data(count);
+                data.resize(read(data.data(), count));
+                return data;
+        }
+
+        size_t read(Exiv2::byte* buffer, size_t count) override
+        {
+                if (!m_file || count == 0)
+                        return 0;
+                const auto bytesRead = std::fread(buffer, 1, count, m_file);
+                if (bytesRead != count && std::ferror(m_file))
+                        m_error = true;
+
+                return bytesRead;
+        }
+
+        int getb() override
+        {
+                return m_file ? std::fgetc(m_file) : EOF;
+        }
+
+        void transfer(Exiv2::BasicIo&) override
+        {
+                throw Exiv2::Error(Exiv2::ErrorCode::kerTransferFailed, m_path);
+        }
+
+        int seek(int64_t offset, Position position) override
+        {
+                if (!m_file)
+                        return 1;
+
+                int origin = SEEK_SET;
+                if (position == cur)
+                        origin = SEEK_CUR;
+                else if (position == end)
+                        origin = SEEK_END;
+
+                return _fseeki64(m_file, offset, origin);
+        }
+
+        Exiv2::byte* mmap(bool isWriteable = false) override
+        {
+                if (!m_file || isWriteable || m_size == 0)
+                        throw Exiv2::Error(Exiv2::ErrorCode::kerFailedToMapFileForReadWrite,
+                                           m_path);
+
+                if (m_mappedView)
+                        return static_cast<Exiv2::byte*>(m_mappedView);
+
+                const auto fileHandle = reinterpret_cast<HANDLE>(
+                        _get_osfhandle(_fileno(m_file)));
+                m_mapping = CreateFileMappingW(fileHandle,
+                                               nullptr,
+                                               PAGE_READONLY,
+                                               0, 0, nullptr);
+                if (!m_mapping)
+                        throw Exiv2::Error(Exiv2::ErrorCode::kerFailedToMapFileForReadWrite,
+                                           m_path);
+
+                m_mappedView = MapViewOfFile(m_mapping, FILE_MAP_READ, 0, 0, 0);
+                if (!m_mappedView) {
+                        CloseHandle(m_mapping);
+                        m_mapping = nullptr;
+                        throw Exiv2::Error(
+                                Exiv2::ErrorCode::kerFailedToMapFileForReadWrite,
+                                m_path);
+                }
+
+                return static_cast<Exiv2::byte*>(m_mappedView);
+        }
+
+        int munmap() override
+        {
+                int result = 0;
+                if (m_mappedView) {
+                        if (!UnmapViewOfFile(m_mappedView))
+                                result = 1;
+                        m_mappedView = nullptr;
+                }
+                if (m_mapping) {
+                        if (!CloseHandle(m_mapping))
+                                result = 1;
+                        m_mapping = nullptr;
+                }
+
+                return result;
+        }
+
+        [[nodiscard]] size_t tell() const override
+        {
+                if (!m_file)
+                        return std::numeric_limits<size_t>::max();
+                const auto position = _ftelli64(m_file);
+                return position < 0
+                        ? std::numeric_limits<size_t>::max()
+                        : static_cast<size_t>(position);
+        }
+
+        [[nodiscard]] size_t size() const override
+        {
+                return m_file
+                        ? static_cast<size_t>(m_size)
+                        : std::numeric_limits<size_t>::max();
+        }
+
+        [[nodiscard]] bool isopen() const override
+        {
+                return m_file != nullptr;
+        }
+
+        [[nodiscard]] int error() const override
+        {
+                return m_error || (m_file && std::ferror(m_file));
+        }
+
+        [[nodiscard]] bool eof() const override
+        {
+                return !m_file || std::feof(m_file);
+        }
+
+        [[nodiscard]] const std::string& path() const noexcept override
+        {
+                return m_path;
+        }
+
+        void populateFakeData() override
+        {
+        }
+
+ private:
+        std::filesystem::path m_filePath;
+        std::string m_path;
+        std::FILE* m_file{};
+        std::uint64_t m_size{};
+        HANDLE m_mapping{};
+        void* m_mappedView{};
+        bool m_error{};
+};
+#endif
 
 const char* formatName(NfPhoto::PhotoFormat format)
 {
@@ -141,7 +364,6 @@ std::string firstNonEmpty(std::initializer_list<std::string> values)
 }
 
 struct OpenedImage {
-        std::vector<Exiv2::byte> data;
         Exiv2::Image::UniquePtr image;
         std::string error;
 };
@@ -150,38 +372,23 @@ OpenedImage openImage(const std::filesystem::path& path)
 {
         OpenedImage result;
 #ifdef _WIN32
-        // TODO: Remove the in-memory path once Exiv2 supports opening Unicode Windows paths.
-        std::ifstream file(path, std::ios::binary);
-        if (!file.is_open()) {
+        auto io = std::make_unique<WindowsFileIo>(path);
+        if (io->open() != 0) {
                 result.error = "can't open image file";
                 return result;
         }
 
-        file.seekg(0, std::ios::end);
-        const auto end = file.tellg();
-        if (end <= std::streampos{0}) {
+        const auto fileSize = io->size();
+        if (fileSize == 0 || fileSize == std::numeric_limits<size_t>::max()) {
                 result.error = "image file is empty or can't be sized";
                 return result;
         }
-
-        const auto fileSize = static_cast<std::streamoff>(end);
-        if (static_cast<std::uintmax_t>(fileSize)
-            > NfLimits::maxCompressedImageSize) {
+        if (fileSize > NfLimits::maxCompressedImageSize) {
                 result.error = "maximum compressed image size exceeded";
                 return result;
         }
 
-        result.data.resize(static_cast<std::size_t>(fileSize));
-        file.seekg(0, std::ios::beg);
-        if (!file.read(reinterpret_cast<char*>(result.data.data()),
-                       static_cast<std::streamsize>(result.data.size()))) {
-                result.error = "can't read image file";
-                result.data.clear();
-                return result;
-        }
-
-        result.image = Exiv2::ImageFactory::open(result.data.data(),
-                                                result.data.size());
+        result.image = Exiv2::ImageFactory::open(std::move(io));
 #else
         result.image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
 #endif
