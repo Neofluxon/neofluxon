@@ -22,6 +22,7 @@
  */
 
 #include "NfExifMetadataExtractor.h"
+#include "NfLimits.h"
 #include "NfLogger.h"
 #include "utils/NfFileUtils.h"
 #include "utils/NfTimeUtils.h"
@@ -32,9 +33,11 @@
 #include <charconv>
 #include <chrono>
 #include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <initializer_list>
 #include <sstream>
+#include <vector>
 
 namespace NfCore {
 
@@ -137,6 +140,56 @@ std::string firstNonEmpty(std::initializer_list<std::string> values)
         return {};
 }
 
+struct OpenedImage {
+        std::vector<Exiv2::byte> data;
+        Exiv2::Image::UniquePtr image;
+        std::string error;
+};
+
+OpenedImage openImage(const std::filesystem::path& path)
+{
+        OpenedImage result;
+#ifdef _WIN32
+        // TODO: Remove the in-memory path once Exiv2 supports opening Unicode Windows paths.
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+                result.error = "can't open image file";
+                return result;
+        }
+
+        file.seekg(0, std::ios::end);
+        const auto end = file.tellg();
+        if (end <= std::streampos{0}) {
+                result.error = "image file is empty or can't be sized";
+                return result;
+        }
+
+        const auto fileSize = static_cast<std::streamoff>(end);
+        if (static_cast<std::uintmax_t>(fileSize)
+            > NfLimits::maxCompressedImageSize) {
+                result.error = "maximum compressed image size exceeded";
+                return result;
+        }
+
+        result.data.resize(static_cast<std::size_t>(fileSize));
+        file.seekg(0, std::ios::beg);
+        if (!file.read(reinterpret_cast<char*>(result.data.data()),
+                       static_cast<std::streamsize>(result.data.size()))) {
+                result.error = "can't read image file";
+                result.data.clear();
+                return result;
+        }
+
+        result.image = Exiv2::ImageFactory::open(result.data.data(),
+                                                result.data.size());
+#else
+        result.image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
+#endif
+        if (!result.image && result.error.empty())
+                result.error = "can't open image with Exiv2";
+        return result;
+}
+
 } // namespace
 
 NfExifMetadataExtractor::NfExifMetadataExtractor(const NfPhoto& photo)
@@ -152,20 +205,20 @@ std::optional<NfPhotoMetadata> NfExifMetadataExtractor::metadata() const
         NF_LOG_DEBUG("read " << formatText << " metadata: " << path);
 
         try {
-                auto image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
-                if (!image) {
-                        NF_LOG_ERROR("can't open image with Exiv2: " << path);
+                auto openedImage = openImage(path);
+                if (!openedImage.image) {
+                        NF_LOG_ERROR(openedImage.error << ": " << path);
                         return std::nullopt;
                 }
 
-                image->readMetadata();
-                const auto& exif = image->exifData();
-                const auto& xmp = image->xmpData();
-                const auto& iptc = image->iptcData();
+                openedImage.image->readMetadata();
+                const auto& exif = openedImage.image->exifData();
+                const auto& xmp = openedImage.image->xmpData();
+                const auto& iptc = openedImage.image->iptcData();
 
                 NfPhotoMetadata metadata;
-                metadata.width = static_cast<int>(image->pixelWidth());
-                metadata.height = static_cast<int>(image->pixelHeight());
+                metadata.width = static_cast<int>(openedImage.image->pixelWidth());
+                metadata.height = static_cast<int>(openedImage.image->pixelHeight());
                 metadata.format = formatText;
 
                 if (const auto fileSize = m_photo.sizeOnDisk())
@@ -260,14 +313,15 @@ std::optional<int> NfExifMetadataExtractor::orientation() const
 {
         const auto& path = m_photo.path();
         try {
-                auto image = Exiv2::ImageFactory::open(NfFileUtils::pathToUtf8(path));
-                if (!image) {
-                        NF_LOG_ERROR("can't open image with Exiv2: " << path);
+                auto openedImage = openImage(path);
+                if (!openedImage.image) {
+                        NF_LOG_ERROR(openedImage.error << ": " << path);
                         return std::nullopt;
                 }
 
-                image->readMetadata();
-                return exifInteger(image->exifData(), "Exif.Image.Orientation", 1);
+                openedImage.image->readMetadata();
+                return exifInteger(openedImage.image->exifData(),
+                                   "Exif.Image.Orientation", 1);
         }
         catch (const Exiv2::Error& error) {
                 NF_LOG_ERROR("can't read image orientation from " << path
