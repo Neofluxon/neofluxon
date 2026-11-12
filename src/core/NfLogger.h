@@ -69,6 +69,7 @@ class NfLogger {
         std::mutex m_mutex;
         std::condition_variable_any m_cv;
         std::vector<LogMessage> m_queue;
+        std::atomic<bool> m_stopped{false};
 };
 
 } // namespace NfCore

@@ -58,6 +58,7 @@ NfLogger::NfLogger()
 NfLogger::~NfLogger()
 {
         m_thread.request_stop();
+        m_stopped.store(true, std::memory_order_relaxed);
         m_cv.notify_one();
 }
 
@@ -82,6 +83,15 @@ void NfLogger::process(std::stop_token stoken)
                 }
 
                 for (const auto& [level, message] : localQueue) {
+                        if (m_stopped.load(std::memory_order_relaxed)) {
+                                /**
+                                 * Stop logging the messages
+                                 * for cases when the queue is too long
+                                 * and there shutdown of the app is happening.
+                                 */
+                                break;
+                        }
+
                         std::string_view dbLabel = "INFO ";
                         switch (level) {
                         case LogLevel::Debug:   dbLabel = "DEBUG"; break;

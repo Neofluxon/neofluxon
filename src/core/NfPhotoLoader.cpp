@@ -45,6 +45,7 @@ NfPhotoLoader::NfPhotoLoader(NfPhotoLoaderContext ctx)
 
 NfPhotoLoader::~NfPhotoLoader()
 {
+        m_photoScanner.reset();
         NF_LOG_DEBUG("called");
 }
 
