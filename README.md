@@ -1,16 +1,25 @@
 # Neofluxon
 
-Neofluxon is a [Free Software](https://www.gnu.org/philosophy/free-sw.html) desktop application
-for browsing, organizing, and managing photos through a non-destructive workflow, with support
-for RAW and raster image formats, filesystem browsing, and multiple photo libraries.
+Neofluxon is a [Free Software](https://www.gnu.org/philosophy/free-sw.html) desktop
+application for browsing photos in folders and organizing photo libraries.
 
-The project is in early development, and features and functionality are still developed.
+Neofluxon currently supports RAW, JPEG, and PNG image files.
+It does not modify original photos or change the existing
+folder structure on the filesystem.
+
+The project is in early development, and features
+and functionality are still developed.
 
 **Current release:** 0.1.0
 
 **License:** GNU General Public License, Version 3
 
 **Website:** [https://neofluxon.com](https://neofluxon.com)
+
+## Supported platforms
+
+- GNU/Linux
+- Windows
 
 ![Neofluxon desktop application](packaging/screenshot.png)
 
@@ -76,5 +85,7 @@ Neofluxon is written in C++ with Qt. Its core is implemented in C++,
 
 ## License
 
-Neofluxon is free software, released under the GNU General Public License,
-version 3 or (at your option) any later version. See [LICENSE](LICENSE).
+Neofluxon is [Free Software](https://www.gnu.org/philosophy/free-sw.html),
+released under the [GNU General Public License, version 3 or (at your option)
+any later version](https://www.gnu.org/licenses/gpl-3.0.html). See
+[LICENSE](LICENSE).
