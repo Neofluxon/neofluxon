@@ -3,6 +3,8 @@
 Neofluxon is a [Free Software](https://www.gnu.org/philosophy/free-sw.html) desktop
 application for browsing photos in folders and organizing photo libraries.
 
+![Neofluxon desktop application](packaging/screenshot.png)
+
 Neofluxon currently supports RAW, JPEG, and PNG image files.
 It does not modify original photos or change the existing
 folder structure on the filesystem.
@@ -20,8 +22,6 @@ and functionality are still developed.
 
 - GNU/Linux
 - Windows
-
-![Neofluxon desktop application](packaging/screenshot.png)
 
 ## Current features
 
