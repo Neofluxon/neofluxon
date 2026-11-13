@@ -1,0 +1,364 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in,headheight=22pt,headsep=20pt,footskip=30pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\definecolor{NFPrimary}{HTML}{242632}
+\definecolor{NFAccent}{HTML}{3DDCFF}
+\definecolor{NFLink}{HTML}{007F95}
+\definecolor{NFInk}{HTML}{242632}
+\definecolor{NFMuted}{HTML}{656B78}
+\definecolor{NFLight}{HTML}{F1F4F7}
+
+\hypersetup{
+  pdftitle={Neofluxon User Guide},
+  pdfauthor={Iurie Nistor},
+  colorlinks=true,
+  linkcolor=NFLink,
+  urlcolor=NFLink
+}
+
+\title{Neofluxon User Guide}
+\author{Iurie Nistor}
+\date{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\bfseries\color{NFPrimary}NEOFLUXON}
+\fancyhead[R]{\small\sffamily\color{NFMuted}USER GUIDE}
+\fancyfoot[C]{\small\sffamily\color{NFMuted}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{NFAccent}\leaders\hrule height \headrulewidth\hfill}}
+
+\setlength{\leftmargini}{1.6em}
+\setlength{\leftmarginii}{1.8em}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\makeatletter
+\begin{titlepage}
+\thispagestyle{empty}
+\color{NFInk}
+\vspace*{1.2cm}
+\noindent\textcolor{NFAccent}{\rule{3.2cm}{3pt}}
+
+\vspace{1.4cm}
+\begin{flushleft}
+{\sffamily\bfseries\fontsize{32}{38}\selectfont\color{NFPrimary}\@title\par}
+\vspace{0.5cm}
+{\sffamily\Large\color{NFMuted}Author: \@author\par}
+\end{flushleft}
+
+\vspace{1.3cm}
+\noindent\colorbox{NFLight}{%
+  \parbox{\dimexpr\textwidth-2\fboxsep\relax}{%
+    \vspace{0.35cm}
+    \textbf{Software version:} @NEOFLUXON_DOC_VERSION@ \par
+    \vspace{0.25cm}
+    \textbf{License:} This work, including all images it uses, is released under
+    the CC0 1.0 Universal (CC0 1.0) Public Domain Dedication. \par
+    \vspace{0.25cm}
+    \textbf{Website:} \url{https://neofluxon.com}
+    \vspace{0.35cm}
+  }}
+\vfill
+\noindent\textcolor{NFAccent}{\rule{\textwidth}{1pt}}
+\end{titlepage}
+\makeatother
+
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{0}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+\subsection{What Is Neofluxon?}
+
+Neofluxon is a \href{https://www.gnu.org/philosophy/free-sw.html}{Free
+Software} desktop application for browsing photos in folders and organizing
+photo libraries. It is licensed under the
+\href{https://www.gnu.org/licenses/gpl-3.0.html}{GNU General Public License,
+version 3 or later} and is available for
+\href{https://www.gnu.org/gnu/linux-and-gnu.html}{GNU/Linux} and Windows.
+
+Neofluxon currently supports RAW, JPEG, and PNG image files. It does not
+modify original photos or change the existing folder structure on the
+filesystem.
+
+\subsection{How Neofluxon Works}
+
+Neofluxon provides two ways to browse photos:
+\begin{itemize}
+  \item \textbf{Folder Mode} displays photos directly from their existing
+        filesystem folders. It does not require a library or an import.
+  \item \textbf{Library Mode} displays photos recorded in a library. A
+        library stores catalog information about folders and photos; it
+        does not copy or move the original files.
+\end{itemize}
+
+\section{Working with Neofluxon}
+
+\subsection{The Main Window}
+
+The main window is organized into three main areas:
+\begin{itemize}
+  \item \textbf{Left panel:} provides navigation. Its contents depend on
+        whether Folder Mode or Library Mode is active.
+  \item \textbf{Central browser:} displays photos from the current folder or
+        selected library location.
+  \item \textbf{Right panel:} displays metadata for the selected photo.
+\end{itemize}
+
+The left and right panels can be resized or collapsed.
+
+\subsection{Switching Between Folder Mode and Library Mode}
+
+Select \textbf{Folders} or \textbf{Library} from the Main Menu in the left panel to switch between browsing modes.
+
+In Folder Mode, select a folder in the source panel to display its photos in the central browser.
+
+In Library Mode, select a library and then choose one of its representations to browse its contents.
+The currently selected library is always displayed in the top bar.
+
+\subsection{Keyboard Navigation}
+
+When the central browser is focused, use the arrow keys to navigate photos:
+\textbf{Left} and \textbf{Right} move to the previous or next photo, while
+\textbf{Up} and \textbf{Down} move between rows in Grid mode. Press
+\textbf{Home} or \textbf{End} to move to the first or last thumbnail, or
+\textbf{Page Up} and \textbf{Page Down} to move by a page in Grid mode.
+
+\subsection{Selecting and Viewing Photos}
+
+Select a photo thumbnail in the central browser to display its metadata in the right
+panel. Double-click a thumbnail to open browser Preview Mode. In Preview Mode, select
+another thumbnail in the filmstrip to view a different photo.
+
+\section{Browsing Photos in Folders}
+
+\subsection{Finding a Folder}
+
+The Folder Mode source panel provides three ways to locate a directory.
+
+\subsubsection{Folder Tree}
+
+Expand the folder tree to navigate the filesystem. Double-click a folder to
+show its contents in the central browser.
+
+\subsubsection{Places}
+
+\textbf{Places} is a list of standard locations provided by the operating
+system. Selecting a place opens it in the folder tree.
+
+\subsubsection{Storage}
+
+\textbf{Storage} is list of available drives or volumes. Selecting a
+storage location opens it in the folder tree. Currently, there is need to restart
+the applicaiton for changes to connected storage devices
+to be reflected in the list.
+
+\subsection{Browsing a Folder}
+
+Select a folder in the source panel to show its photos in the
+central browser. The enabled file types in Settings determine which files
+are show.
+
+\subsection{Recursive and Non-Recursive Browsing}
+
+With recursive scanning disabled, Neofluxon lists photos in the selected
+folder only. When recursive-scan is enabled the browser will include
+photos in subfolders.
+
+The recursive scan control is located in the browser's
+top bar and is available only in Folder Mode.
+
+\section{Working with Libraries}
+
+Neofluxon supports multiple libraries in the same application instance.
+The user can switch between libraries at runtime, but only one library
+can be selected at a time. The currently selected library is
+shown in the application's top bar.
+
+A library consists of three representations: \textbf{Datetime}, \textbf{Folders}, and \textbf{Equipment}.
+It keeps a catalog of folders and photos so they can be browsed
+using different representations.
+
+Importing a folder adds its supported photos to the selected library.
+Neofluxon does not copy or move the source files.
+
+\subsection{Creating and Selecting a Library}
+
+The library list appears in the left panel when Library Mode is active.
+Select a library to make it current.
+
+Use the plus button beside \textbf{Libraries} to create a library and enter
+its name.
+
+\subsection{Importing Photo Folders}
+
+To add a folder to a library, select the library, switch to
+\textbf{Folders} in the main menu, and locate the folder. Select the plus button displayed
+when the pointer is over its row. The folder's supported photos are added to
+the library catalog; the original files remain in their existing locations.
+
+The status bar displays background activity, including folder imports.
+During an import, it reports the numbers of discovered, imported, and failed
+photos. Completed are removed from the active-task list.
+
+\subsection{Library Representations}
+
+After selecting a library, choose a representation to browse its contents.
+
+\subsubsection{Date and Time}
+
+This representation groups photos by the \textbf{date taken} recorded in their metadata.
+
+\subsubsection{Folder}
+
+This representation shows the folders and subfolders added to the library.
+
+\subsubsection{Equipment}
+
+This representation groups photos by camera or lens information when that
+information is available.
+
+\subsection{Navigating Library Contents}
+
+The library contents tree shows entries for the selected representation.
+Select a date, folder, camera, or lens entry to display its photos in the
+central browser.
+
+\subsection{Managing Libraries}
+
+Right-click a library to rename or delete it. Deleting a library removes its
+catalog entries and folders that are not shared with another library.
+It does not delete the source photo files or folders on the filesystem.
+
+\section{Browsing and Viewing Photos}
+
+The central browser displays photos from the current folder or selected
+library location. It provides Grid Mode and Preview Mode, along with controls
+for sorting and filtering.
+
+\subsection{Grid Mode}
+
+Grid Mode displays photo thumbnails. Select a thumbnail to select a photo;
+double-click it to open Preview Mode.
+
+\subsection{Preview Mode and Filmstrip}
+
+Preview Mode displays a larger view of the selected photo and a filmstrip
+containing other photos. Select another thumbnail in the filmstrip to change
+the preview. Use the Grid view control to return to Grid Mode.
+
+\subsection{Sorting Photos}
+
+Use the sort menu to choose one of the available sort fields:
+\begin{itemize}
+  \item Name
+  \item Date Taken
+  \item File Size
+\end{itemize}
+
+Use the arrow control to change the sort direction.
+
+\subsection{Filtering Photos}
+
+Use the filter menu to show selected photo formats. RAW, JPEG, and PNG
+formats can be selected, including multiple formats at the same time. Choose
+\textbf{Clear format filters} to remove the format filters.
+
+\section{Viewing Photo Information}
+
+Select a photo in the central browser to display its available metadata in
+the right panel.
+
+\subsection{Metadata Categories}
+
+The metadata panel contains collapsible sections:
+\begin{itemize}
+  \item \textbf{Image:} name, path, size, format, and dimensions.
+  \item \textbf{Capture:} date taken, camera, lens, and exposure values.
+  \item \textbf{Location:} GPS information, when present. Double-clicking a
+        location opens the system file manager and selects the photo.
+  \item \textbf{Organization:} rating, tags, collections, and project.
+  \item \textbf{Description:} title, description, author, copyright, and
+        keywords.
+  \item \textbf{Technical:} bit depth, color space, orientation, and other
+        file properties.
+\end{itemize}
+
+The information shown depends on the metadata available in each photo.
+
+\section{Application Settings}
+
+Open Settings using the button at the right side of the application top bar.
+
+\subsection{File Types}
+
+The \textbf{File Types} page controls which supported image formats are
+enabled. Enabled formats determine which photos are included when browsing
+folders or importing them into a library.
+
+\subsection{Performance}
+
+The \textbf{Performance} page contains controls for thumbnail and preview
+memory limits, the disk-cache location and size, and the minimum free space
+to keep on the cache drive.
+
+\section{Appendix}
+
+\subsection{Supported Image Formats}
+
+Neofluxon recognizes the following file extensions:
+\begin{itemize}
+  \item \textbf{RAW:} Canon CR2 (\texttt{.cr2}) and CR3 (\texttt{.cr3}),
+        Adobe DNG (\texttt{.dng}), Nikon NEF (\texttt{.nef}), and Fujifilm
+        RAF (\texttt{.raf}).
+  \item \textbf{Raster:} JPEG (\texttt{.jpg}, \texttt{.jpeg}) and PNG
+        (\texttt{.png}).
+\end{itemize}
+
+\subsection{Cache Overview}
+
+Neofluxon uses caches to retain thumbnail and preview data for reuse:
+\begin{itemize}
+  \item \textbf{Display cache} stores ready-to-display thumbnail pixmaps so
+        the browser can render them.
+  \item \textbf{Memory caches} hold decoded thumbnail and preview images in
+        memory while the application is running.
+  \item \textbf{Disk cache} stores regenerable thumbnail and preview data
+        between application sessions.
+\end{itemize}
+
+\subsection{Building and Installing from Source}
+
+To build Neofluxon from source, install CMake 3.31 or newer, a C++26
+compiler, Qt 6, and the development dependencies listed in the repository
+README. Configure, build, and install with:
+\begin{verbatim}
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+cmake --install build
+\end{verbatim}
+
+To build the guide PDF as part of the application build, enable documentation
+generation during configuration:
+\begin{verbatim}
+cmake -S . -B build -DNEOFLUXON_DOCUMENTATION=ON
+\end{verbatim}
+
+Documentation generation requires \texttt{pdflatex}. The resulting PDF is
+installed in the platform's documentation directory.
+
+\end{document}

@@ -6,6 +6,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
+option(NEOFLUXON_DOCUMENTATION "Build and install the LaTeX user guide" OFF)
+
 set(NEOFLUXON_DISPLAY_NAME "Neofluxon")
 
 math(EXPR NEOFLUXON_VERSION_HEX
@@ -44,3 +46,25 @@ if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
 endif()
 
 add_subdirectory(src)
+
+if(NEOFLUXON_DOCUMENTATION)
+    add_subdirectory(doc)
+endif()
+
+message(STATUS "------------ Neofluxon Build Summary ------------")
+message(STATUS "Version: ${PROJECT_VERSION}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Debug enabled: yes")
+else()
+    message(STATUS "Debug enabled: no")
+endif()
+if(NEOFLUXON_DOCUMENTATION)
+    message(STATUS "Documentation: yes")
+else()
+    message(STATUS "Documentation: no")
+endif()
+message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "Target platform: ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})")
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "--------------------------------------------------")
