@@ -6,7 +6,7 @@ for RAW and raster image formats, filesystem browsing, and multiple photo librar
 
 The project is in early development, and features and functionality are still developed.
 
-**Current release:** 0.1.0 (not released yet)
+**Current release:** 0.1.0
 
 **License:** GNU General Public License, Version 3
 
