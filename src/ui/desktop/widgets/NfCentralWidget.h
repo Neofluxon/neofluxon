@@ -24,13 +24,11 @@
 #ifndef NF_CENTRAL_WIDGET_H
 #define NF_CENTRAL_WIDGET_H
 
+#include "NfDesktopContext.h"
+
 #include <QWidget>
 
 class QVBoxLayout;
-
-namespace NfUi {
-struct NfContext;
-}
 
 using namespace NfUi;
 
@@ -41,7 +39,8 @@ class NfCentralWidget : public QWidget
         Q_OBJECT
 
  public:
-        explicit NfCentralWidget(NfContext* ctx, QWidget* parent = nullptr);
+        explicit NfCentralWidget(NfDesktopContext context,
+                                 QWidget* parent = nullptr);
 
  protected slots:
         void showShootsView();
@@ -52,7 +51,8 @@ class NfCentralWidget : public QWidget
  private:
         void setCurrentView(QWidget* view);
 
-        NfContext *m_context;
+        NfDesktopContext m_desktopContext;
+        NfUi::NfContext *m_context;
         QVBoxLayout* m_layout;
         QWidget* m_currentView;
 };

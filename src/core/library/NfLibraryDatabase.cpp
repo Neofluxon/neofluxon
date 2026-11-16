@@ -545,10 +545,10 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
 NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
 {
         auto images = NfImageRecords{};
-        if (!m_db || query.libraryId <= 0 || query.searchText.empty())
+        if (!m_db || query.libraryId <= 0)
                 return images;
 
-        constexpr auto sql = R"(
+        auto sql = std::string{R"(
             SELECT
                 i.file_name,
                 i.file_size,
@@ -564,27 +564,99 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                 FROM library_folders AS lf
                 WHERE lf.folder_id = i.folder_id
                 AND lf.library_id = ?)
+        )"};
+        auto parameters = std::vector<std::string>{};
+        if (!query.searchText.empty()) {
+                sql += R"(
             AND (
                 i.file_name LIKE ? COLLATE NOCASE
                 OR f.path LIKE ? COLLATE NOCASE
                 OR c.maker LIKE ? COLLATE NOCASE
                 OR c.model LIKE ? COLLATE NOCASE
                 OR l.name LIKE ? COLLATE NOCASE)
-            ORDER BY f.path, i.file_name COLLATE NOCASE;
         )";
+                const auto searchPattern = '%' + query.searchText + '%';
+                for (int parameter = 0; parameter < 5; ++parameter)
+                        parameters.push_back(searchPattern);
+        }
+
+        using SearchField = NfLibrarySearchField;
+        using SearchOperator = NfLibrarySearchOperator;
+        for (const auto& criterion : query.criteria) {
+                if (criterion.value.empty())
+                        continue;
+
+                switch (criterion.field) {
+                case SearchField::Camera:
+                        if (criterion.op == SearchOperator::Is) {
+                                sql += " AND (c.maker || ' ' || c.model = ? COLLATE NOCASE)";
+                                parameters.push_back(criterion.value);
+                        } else if (criterion.op == SearchOperator::Contains) {
+                                sql += " AND (c.maker || ' ' || c.model LIKE ? COLLATE NOCASE)";
+                                const auto pattern = '%' + criterion.value + '%';
+                                parameters.push_back(pattern);
+                        }
+                        break;
+                case SearchField::DateTaken:
+                        if (criterion.op == SearchOperator::Is) {
+                                sql += " AND date(i.datetime_taken, 'unixepoch') = date(?)";
+                                parameters.push_back(criterion.value);
+                        } else if (criterion.op == SearchOperator::Before) {
+                                sql += " AND date(i.datetime_taken, 'unixepoch') < date(?)";
+                                parameters.push_back(criterion.value);
+                        } else if (criterion.op == SearchOperator::After) {
+                                sql += " AND date(i.datetime_taken, 'unixepoch') > date(?)";
+                                parameters.push_back(criterion.value);
+                        } else if (criterion.op == SearchOperator::Between
+                                   && !criterion.secondValue.empty()) {
+                                sql += " AND date(i.datetime_taken, 'unixepoch')"
+                                       " BETWEEN date(?) AND date(?)";
+                                parameters.push_back(criterion.value);
+                                parameters.push_back(criterion.secondValue);
+                        }
+                        break;
+                case SearchField::Lens:
+                        if (criterion.op == SearchOperator::Is) {
+                                sql += " AND l.name = ? COLLATE NOCASE";
+                                parameters.push_back(criterion.value);
+                        } else if (criterion.op == SearchOperator::Contains) {
+                                sql += " AND l.name LIKE ? COLLATE NOCASE";
+                                parameters.push_back('%' + criterion.value + '%');
+                        }
+                        break;
+                case SearchField::FileFormat:
+                        if (criterion.op == SearchOperator::Is) {
+                                sql += " AND i.format = CASE upper(?)"
+                                       " WHEN 'JPEG' THEN 1 WHEN 'RAW' THEN 2"
+                                       " WHEN 'PNG' THEN 3 ELSE 0 END";
+                                parameters.push_back(criterion.value);
+                        }
+                        break;
+                case SearchField::Folder:
+                        if (criterion.op == SearchOperator::Is) {
+                                sql += " AND f.path = ? COLLATE NOCASE";
+                                parameters.push_back(criterion.value);
+                        } else if (criterion.op == SearchOperator::Contains) {
+                                sql += " AND f.path LIKE ? COLLATE NOCASE";
+                                parameters.push_back('%' + criterion.value + '%');
+                        }
+                        break;
+                }
+        }
+        sql += " ORDER BY f.path, i.file_name COLLATE NOCASE;";
 
         sqlite3_stmt* stmt = nullptr;
-        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
                 NF_LOG_ERROR("can't prepare image search query: " << sqlite3_errmsg(m_db));
                 return images;
         }
 
-        const auto searchPattern = '%' + query.searchText + '%';
-        sqlite3_bind_int64(stmt, 1, query.libraryId);
-        for (int parameter = 2; parameter <= 6; ++parameter) {
+        auto parameter = 1;
+        sqlite3_bind_int64(stmt, parameter++, query.libraryId);
+        for (const auto& value : parameters) {
                 sqlite3_bind_text(stmt,
-                                  parameter,
-                                  searchPattern.c_str(),
+                                  parameter++,
+                                  value.c_str(),
                                   -1,
                                   SQLITE_TRANSIENT);
         }

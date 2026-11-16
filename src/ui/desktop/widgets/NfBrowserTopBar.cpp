@@ -45,9 +45,11 @@
 namespace NfDesktop {
 
 NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiState* state,
+                                 NfLibraryTreeModel* libraryTreeModel,
                                  QWidget* parent)
         : NfStyledWidget(parent)
         , m_uiState{state}
+        , m_libraryTreeModel{libraryTreeModel}
           //        , m_editor{QStringLiteral("rawtherapee")}
 {
         setObjectName("NfBrowserTopBar");
@@ -77,7 +79,7 @@ void NfBrowserTopBar::setupUi()
         m_viewModeBar = new NfBrowserViewModeBar(this);
         m_viewModeBar->setState(m_state);
         m_sortBar = new NfBrowserSortBar(m_state, this);
-        m_searchBar = new NfSearchBar(m_uiState, this);
+        m_searchBar = new NfSearchBar(m_uiState, m_libraryTreeModel, this);
         m_filterBar = new NfBrowserFilterBar(m_state, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);

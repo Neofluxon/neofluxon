@@ -5,6 +5,61 @@ QWidget {
     font-size: 13px;
 }
 
+QFrame#SearchCriteriaWidget {
+    background-color: #20222e;
+    border: 1px solid #404452;
+    border-radius: 8px;
+}
+
+QLabel#SearchCriteriaHeading {
+    background: transparent;
+    color: #e6eaf2;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QComboBox#SearchCriterionOperator,
+QComboBox#SearchCriterionInput,
+QDateEdit {
+    background-color: #242632;
+    border: 1px solid #404452;
+    border-radius: 4px;
+    color: #e6eaf2;
+    padding: 6px 8px;
+    min-height: 18px;
+}
+
+QComboBox#SearchCriterionOperator,
+QDateEdit {
+    min-height: 18px;
+}
+
+QComboBox#SearchCriterionInput QAbstractItemView,
+QComboBox#SearchCriterionOperator QAbstractItemView {
+    background-color: #20222e;
+    color: #e6eaf2;
+    selection-background-color: #323546;
+    border: 1px solid #404452;
+}
+
+QLabel#SearchCriterionName {
+    background: transparent;
+    color: #cbd2df;
+}
+
+QPushButton#ClearSearchCriteriaButton,
+QPushButton#SubmitSearchCriteriaButton {
+    border: 1px solid #404452;
+    border-radius: 4px;
+    padding: 6px 14px;
+}
+
+QPushButton#SubmitSearchCriteriaButton {
+    background-color: #38bdf8;
+    color: #0b0d12;
+    font-weight: bold;
+}
+
 QMenu#LibraryContextMenu {
     background-color: #1e1f28;
     color: #aeb5c0;

@@ -1,4 +1,5 @@
 set(DESKTOP_HEADERS
+   ${CMAKE_CURRENT_SOURCE_DIR}/NfDesktopContext.h
    ${CMAKE_CURRENT_SOURCE_DIR}/NfApplication.h
    ${CMAKE_CURRENT_SOURCE_DIR}/NfMainWindow.h
 )

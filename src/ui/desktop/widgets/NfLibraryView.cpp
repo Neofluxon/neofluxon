@@ -40,12 +40,13 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryView::NfLibraryView(NfLibraryContext ctx,
+NfLibraryView::NfLibraryView(NfDesktopContext context,
                              QWidget* parent)
         : QWidget(parent)
-        , m_context{ctx}
+        , m_desktopContext{context}
+        , m_context{context.uiContext()}
         , m_state{m_context.uiState()->libraryModeState()}
-        , m_model{new NfLibraryModel(std::move(ctx), this)}
+        , m_model{new NfLibraryModel(m_context, this)}
         , m_mainLayout{nullptr}
         , m_browserView{nullptr}
 {
@@ -59,7 +60,9 @@ NfLibraryView::NfLibraryView(NfLibraryContext ctx,
         //breadcrumbBar->setModel(m_model->breadcrump());
         //m_mainLayout->addWidget(breadcrumbBar);
 
-        auto* browserTopBar = new NfBrowserTopBar(m_context.uiState(), this);
+        auto* browserTopBar = new NfBrowserTopBar(m_context.uiState(),
+                                                  m_desktopContext.libraryTreeModel(),
+                                                  this);
         browserTopBar->setFixedHeight(36);
         m_mainLayout->addWidget(browserTopBar);
 

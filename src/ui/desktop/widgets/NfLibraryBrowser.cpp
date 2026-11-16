@@ -41,12 +41,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryBrowser::NfLibraryBrowser(NfLibraryContext ctx,
+NfLibraryBrowser::NfLibraryBrowser(NfDesktopContext context,
                                    QWidget *parent)
     : QWidget(parent)
-    , m_context{std::move(ctx)}
+    , m_context{context.uiContext()}
     , m_state{m_context.uiState()->libraryModeState()}
-    , m_model{new NfLibraryTreeModel(m_context, this)}
+    , m_model{context.libraryTreeModel()}
 {
         setupUi();
 }

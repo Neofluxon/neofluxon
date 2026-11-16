@@ -216,6 +216,28 @@ int NfLibraryTreeModel::libraryRow(uint64_t libraryId) const
         return -1;
 }
 
+QStringList NfLibraryTreeModel::equipmentValues(
+        uint64_t libraryId,
+        NfEquipmentQuery::Kind kind) const
+{
+        auto values = QStringList{};
+        const auto row = libraryRow(libraryId);
+        if (row < 0)
+                return values;
+
+        const auto collect = [&values, kind](const auto& self,
+                                             const NfLibraryTreeItem* item) -> void {
+                const auto itemValue = item->value();
+                if (const auto* equipment = std::get_if<NfEquipmentQuery>(&itemValue);
+                    equipment && equipment->kind == kind)
+                        values.append(item->name());
+                for (int child = 0; child < item->childCount(); ++child)
+                        self(self, item->child(child));
+        };
+        collect(collect, m_root->child(row));
+        return values;
+}
+
 void NfLibraryTreeModel::updateTree()
 {
         m_library->requestLibraryTree();

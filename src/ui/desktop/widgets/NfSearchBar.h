@@ -25,6 +25,9 @@
 #define NF_SEARCHBAR_H
 
 #include "NfStyledWidget.h"
+#include "core/library/NfLibraryQuery.h"
+
+#include <vector>
 
 class QLineEdit;
 
@@ -34,12 +37,15 @@ class NfUiState;
 
 namespace NfDesktop {
 
+class NfLibraryTreeModel;
+
 class NfSearchBar : public NfStyledWidget
 {
         Q_OBJECT
 
 public:
         explicit NfSearchBar(NfUi::NfUiState *state,
+                             NfLibraryTreeModel* libraryTreeModel,
                              QWidget* parent = nullptr);
         ~NfSearchBar() override = default;
 
@@ -48,7 +54,9 @@ protected slots:
 
 private:
         NfUi::NfUiState *m_state;
+        NfLibraryTreeModel* m_libraryTreeModel;
         QLineEdit* m_searchTextInput{nullptr};
+        std::vector<NfCore::NfLibrarySearchCriterion> m_searchCriteria;
 };
 
 } // namespace NfDesktop

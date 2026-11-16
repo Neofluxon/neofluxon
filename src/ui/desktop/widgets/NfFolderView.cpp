@@ -52,7 +52,7 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(6);
 
-        auto browserTopBar = new NfBrowserTopBar(m_context.uiState(), this);
+        auto browserTopBar = new NfBrowserTopBar(m_context.uiState(), nullptr, this);
         m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(),

@@ -31,8 +31,33 @@
 #include <cstdint>
 #include <string>
 #include <variant>
+#include <vector>
 
 namespace NfCore {
+
+enum class NfLibrarySearchField {
+        Camera,
+        DateTaken,
+        Lens,
+        FileFormat,
+        Folder
+};
+
+enum class NfLibrarySearchOperator {
+        Is,
+        Contains,
+        Before,
+        After,
+        Between
+};
+
+struct NfLibrarySearchCriterion {
+        NfLibrarySearchField field;
+        NfLibrarySearchOperator op;
+        std::string value;
+        std::string secondValue;
+        bool operator==(const NfLibrarySearchCriterion&) const = default;
+};
 
 struct NfLibraryQuery {
         using QueryValue = NfLibraryTreeNode::NodeValue;
@@ -40,6 +65,7 @@ struct NfLibraryQuery {
         NfLibraryRepresentation::RepresentationType representationType{};
         QueryValue queryValue;
         std::string searchText;
+        std::vector<NfLibrarySearchCriterion> criteria;
         bool operator==(const NfLibraryQuery&) const = default;
 };
 

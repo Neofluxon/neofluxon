@@ -31,6 +31,7 @@ set(WIDGETS_HEADERS
     NfBrowserFilterBar.h
     NfBrowserViewModeBar.h
     NfSearchBar.h
+    NfSearchCriteriaWidget.h
     # NfBreadcrumbView.h
     NfImageMetadataPanel.h
     NfMetadataItemDelegate.h
@@ -79,6 +80,7 @@ set(WIDGETS_SOURCES
     NfBrowserFilterBar.cpp
     NfBrowserViewModeBar.cpp
     NfSearchBar.cpp
+    NfSearchCriteriaWidget.cpp
  #   NfBreadcrumbView.cpp
     NfImageMetadataPanel.cpp
     NfMetadataItemDelegate.cpp
@@ -100,6 +102,7 @@ add_library(${PROJECT_NAME}::DesktopWidgets ALIAS NfDesktopWidgets)
 target_include_directories(NfDesktopWidgets PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Dependencies

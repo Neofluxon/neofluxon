@@ -24,6 +24,7 @@
 #ifndef NF_LIBRARY_BROWSER_H
 #define NF_LIBRARY_BROWSER_H
 
+#include "NfDesktopContext.h"
 #include "NfLibraryContext.h"
 
 #include <QWidget>
@@ -47,7 +48,7 @@ class NfLibraryBrowser : public QWidget
         Q_OBJECT
 
 public:
-        explicit NfLibraryBrowser(NfUi::NfLibraryContext ctx,
+        explicit NfLibraryBrowser(NfDesktopContext context,
                                   QWidget *parent = nullptr);
 
 protected slots:

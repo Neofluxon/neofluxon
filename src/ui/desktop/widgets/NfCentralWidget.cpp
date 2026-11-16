@@ -33,9 +33,10 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfCentralWidget::NfCentralWidget(NfContext *ctx, QWidget* parent)
+NfCentralWidget::NfCentralWidget(NfDesktopContext context, QWidget* parent)
         : QWidget(parent)
-        , m_context{ctx}
+        , m_desktopContext{context}
+        , m_context{context.uiContext()}
         , m_currentView{nullptr}
         , m_layout{new QVBoxLayout(this)}
 {
@@ -64,7 +65,7 @@ void NfCentralWidget::showFolderView()
 
 void NfCentralWidget::showLibraryView()
 {
-        setCurrentView(new NfLibraryView(NfLibraryContext(m_context), this));
+        setCurrentView(new NfLibraryView(m_desktopContext, this));
 }
 
 void NfCentralWidget::setCurrentView(QWidget* view)

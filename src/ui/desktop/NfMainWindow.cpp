@@ -22,6 +22,7 @@
  */
 
 #include "NfMainWindow.h"
+#include "NfDesktopContext.h"
 #include "NfContext.h"
 #include "NfTopBar.h"
 #include "NfLeftPanel.h"
@@ -31,6 +32,8 @@
 #include "NfLibraryAdapter.h"
 #include "NfMetadataProvider.h"
 #include "NfUserTasksWidget.h"
+#include "NfLibraryContext.h"
+#include "NfLibraryTreeModel.h"
 #include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
 
@@ -59,6 +62,9 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
 
         m_context->library = new NfLibraryAdapter(m_context->core()->libraryManger(), this);
         m_context->metadataProvider = new NfMetadataProvider(m_context->core(), this);
+        auto* libraryTreeModel =
+                new NfLibraryTreeModel(NfLibraryContext(m_context), this);
+        const auto desktopContext = NfDesktopContext(m_context, libraryTreeModel);
 
         resize(1400, 800);
         setGeometry(200, 200, 1400, 800);
@@ -81,10 +87,10 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         m_splitter->setChildrenCollapsible(false);
 
         // Resizable, has minimum width, and is collapsible
-        auto leftPanel = new NfLeftPanel(m_context, this);
+        auto leftPanel = new NfLeftPanel(desktopContext, this);
         leftPanel->setMinimumWidth(220);
         m_splitter->addWidget(leftPanel);
-        m_splitter->addWidget(new NfCentralWidget(m_context, this));
+        m_splitter->addWidget(new NfCentralWidget(desktopContext, this));
 
         // Resizable, has minimum and minmum width, and is collapsible
         auto rightPanel = new NfRightPanel(m_context, this);

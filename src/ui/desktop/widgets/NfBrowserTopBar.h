@@ -38,6 +38,7 @@ class NfUiState;
 namespace NfDesktop {
 
         //class NfBrowserBreadcrumbBar;
+class NfLibraryTreeModel;
 class NfBrowserViewModeBar;
 class NfBrowserSortBar;
 class NfBrowserFilterBar;
@@ -49,6 +50,7 @@ class NfBrowserTopBar : public NfStyledWidget
 
 public:
         explicit NfBrowserTopBar(NfUi::NfUiState* state,
+                                 NfLibraryTreeModel* libraryTreeModel,
                                  QWidget* parent = nullptr);
         ~NfBrowserTopBar() override = default;
 
@@ -60,6 +62,7 @@ private:
 
         //        NfBrowserBreadcrumbBar* m_breadcrumbBar{nullptr};
         NfUi::NfUiState* m_uiState;
+        NfLibraryTreeModel* m_libraryTreeModel;
         NfUi::NfUiBrowserState* m_state{nullptr};
         NfBrowserViewModeBar* m_viewModeBar{nullptr};
         NfBrowserSortBar* m_sortBar{nullptr};

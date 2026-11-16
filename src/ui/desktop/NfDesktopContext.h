@@ -1,0 +1,55 @@
+/**
+ * File name: NfDesktopContext.h
+ * Project: Neofluxon (a photography workflow software)
+ *
+ * Copyright (C) 2026 Iurie Nistor
+ *
+ * This file is part of Neofluxon.
+ *
+ * Neofluxon is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
+
+#ifndef NF_DESKTOP_CONTEXT_H
+#define NF_DESKTOP_CONTEXT_H
+
+namespace NfUi {
+struct NfContext;
+}
+
+namespace NfDesktop {
+
+class NfLibraryTreeModel;
+
+class NfDesktopContext
+{
+public:
+        NfDesktopContext(NfUi::NfContext* uiContext,
+                         NfLibraryTreeModel* libraryTreeModel)
+                : m_uiContext{uiContext}
+                , m_libraryTreeModel{libraryTreeModel}
+        {
+        }
+
+        NfUi::NfContext* uiContext() const { return m_uiContext; }
+        NfLibraryTreeModel* libraryTreeModel() const { return m_libraryTreeModel; }
+
+private:
+        NfUi::NfContext* m_uiContext;
+        NfLibraryTreeModel* m_libraryTreeModel;
+};
+
+} // namespace NfDesktop
+
+#endif // NF_DESKTOP_CONTEXT_H
