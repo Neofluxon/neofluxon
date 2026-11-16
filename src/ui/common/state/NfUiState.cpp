@@ -305,15 +305,22 @@ NfUiState::NfUiState(QObject* parent)
 
         QObject::connect(this, &NfUiState::modeChanged,
                          this, &NfUiState::saveState);
-        QObject::connect(m_folderModeState, &NfUiFolderModeState::pathChanged,
-                         this, &NfUiState::saveState);
+        QObject::connect(m_folderModeState,
+                         &NfUiFolderModeState::pathChanged,
+                         this,
+                         &NfUiState::saveState);
         QObject::connect(m_folderModeState->browser(),
                          &NfUiBrowserState::scanRecursivelyChanged,
-                         this, &NfUiState::saveState);
-        QObject::connect(m_libraryModeState, &NfUiLibraryModeState::currentLibraryChanged,
-                         this, &NfUiState::saveState);
-        QObject::connect(m_libraryModeState, &NfUiLibraryModeState::queryChanged,
-                         this, &NfUiState::saveState);
+                         this,
+                         &NfUiState::saveState);
+        QObject::connect(m_libraryModeState,
+                         &NfUiLibraryModeState::currentLibraryChanged,
+                         this,
+                         &NfUiState::saveState);
+        QObject::connect(m_libraryModeState,
+                         &NfUiLibraryModeState::queryChanged,
+                         this,
+                         &NfUiState::saveState);
         QObject::connect(m_folderModeState->browser(), &NfUiBrowserState::viewModeChanged,
                          this, &NfUiState::saveState);
         QObject::connect(m_libraryModeState->browser(), &NfUiBrowserState::viewModeChanged,

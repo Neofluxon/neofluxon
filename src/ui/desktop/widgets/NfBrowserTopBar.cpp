@@ -25,6 +25,7 @@
 //#include "NfBrowserBreadcrumbBar.h"
 #include "NfBrowserViewModeBar.h"
 #include "NfBrowserSortBar.h"
+#include "NfSearchBar.h"
 #include "NfBrowserFilterBar.h"
 #include "NfSeparator.h"
 #include "NfUiBrowserState.h"
@@ -76,6 +77,7 @@ void NfBrowserTopBar::setupUi()
         m_viewModeBar = new NfBrowserViewModeBar(this);
         m_viewModeBar->setState(m_state);
         m_sortBar = new NfBrowserSortBar(m_state, this);
+        m_searchBar = new NfSearchBar(m_uiState, this);
         m_filterBar = new NfBrowserFilterBar(m_state, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);
@@ -96,7 +98,7 @@ void NfBrowserTopBar::setupUi()
                                  this,
                                  &NfBrowserTopBar::updateRecursiveScanButton);
         }
-        layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
+
         const auto addSeparator = [this, layout]() {
                 auto* separator = new NfSeparator(NfSeparator::Orientation::Vertical, 1, this);
                 separator->setAttribute(Qt::WA_StyledBackground, true);
@@ -104,11 +106,17 @@ void NfBrowserTopBar::setupUi()
                 separator->setObjectName("BrowserControlSeparator");
                 layout->addWidget(separator, 0, Qt::AlignVCenter);
         };
-        addSeparator();
-        layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
-        layout->addStretch();
+
         if (m_recursiveScanButton)
                 layout->addWidget(m_recursiveScanButton, 0, Qt::AlignVCenter);
+
+        addSeparator();
+        layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
+        addSeparator();
+        layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
+
+        layout->addStretch();
+        layout->addWidget(m_searchBar, 0, Qt::AlignVCenter);
         layout->addWidget(m_filterBar, 0, Qt::AlignVCenter);
         /*m_editButton = new QToolButton(this);
         m_editButton->setObjectName("editInButton");

@@ -96,6 +96,7 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
 
                 if (const auto *pathId = std::get_if<int64_t>(&query.queryValue))
                         return queryPhotosByPathId(*pathId);
+                else
                 break;
         case RepresentationType::DateTime:
                 NF_LOG_DEBUG("Representation: DateTime");
@@ -113,8 +114,11 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
                 break;
         case RepresentationType::None:
         default:
-                break;
-                NF_LOG_DEBUG("Representation: None");
+                {
+                        NF_LOG_DEBUG("Representation: None. Query photos by other criera");
+                        const auto imageRecords = m_database->getImages(query);
+                        return imageRecordsToPhotos(imageRecords);
+                }
         }
 
         return {};

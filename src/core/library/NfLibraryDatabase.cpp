@@ -25,6 +25,7 @@
 #include "NfSourceRecords.h"
 #include "NfLibraryRepresentation.h"
 #include "NfLogger.h"
+#include "NfLibraryQuery.h"
 
 #include <iostream>
 
@@ -539,6 +540,90 @@ int64_t NfLibraryDatabase::addImage(int64_t folderId,
         sqlite3_finalize(stmt);
 
         return resultId;
+}
+
+NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
+{
+        auto images = NfImageRecords{};
+        if (!m_db || query.libraryId <= 0 || query.searchText.empty())
+                return images;
+
+        constexpr auto sql = R"(
+            SELECT
+                i.file_name,
+                i.file_size,
+                i.format,
+                i.datetime_taken,
+                f.path
+            FROM images AS i
+            JOIN folders AS f ON f.id = i.folder_id
+            LEFT JOIN cameras AS c ON c.id = i.camera_id
+            LEFT JOIN lenses AS l ON l.id = i.lens_id
+            WHERE EXISTS (
+                SELECT 1
+                FROM library_folders AS lf
+                WHERE lf.folder_id = i.folder_id
+                AND lf.library_id = ?)
+            AND (
+                i.file_name LIKE ? COLLATE NOCASE
+                OR f.path LIKE ? COLLATE NOCASE
+                OR c.maker LIKE ? COLLATE NOCASE
+                OR c.model LIKE ? COLLATE NOCASE
+                OR l.name LIKE ? COLLATE NOCASE)
+            ORDER BY f.path, i.file_name COLLATE NOCASE;
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+                NF_LOG_ERROR("can't prepare image search query: " << sqlite3_errmsg(m_db));
+                return images;
+        }
+
+        const auto searchPattern = '%' + query.searchText + '%';
+        sqlite3_bind_int64(stmt, 1, query.libraryId);
+        for (int parameter = 2; parameter <= 6; ++parameter) {
+                sqlite3_bind_text(stmt,
+                                  parameter,
+                                  searchPattern.c_str(),
+                                  -1,
+                                  SQLITE_TRANSIENT);
+        }
+
+        int result = SQLITE_OK;
+        while ((result = sqlite3_step(stmt)) == SQLITE_ROW) {
+                const auto* fileName = reinterpret_cast<const char*>(
+                        sqlite3_column_text(stmt, 0));
+                const auto fileSize = static_cast<std::uintmax_t>(
+                        sqlite3_column_int64(stmt, 1));
+                const auto format = static_cast<NfPhoto::PhotoFormat>(
+                        sqlite3_column_int(stmt, 2));
+                const auto dateTaken = sqlite3_column_type(stmt, 3) == SQLITE_NULL
+                        ? std::chrono::system_clock::time_point{}
+                        : std::chrono::system_clock::time_point{
+                                std::chrono::seconds{sqlite3_column_int64(stmt, 3)}
+                        };
+                const auto* folderPath = reinterpret_cast<const char*>(
+                        sqlite3_column_text(stmt, 4));
+
+                images.push_back({
+                        .path = folderPath && fileName
+                                ? std::filesystem::path(folderPath) / fileName
+                                : std::filesystem::path{},
+                        .name = fileName ? fileName : "",
+                        .sizeOnDisk = fileSize,
+                        .format = format,
+                        .dateTaken = dateTaken
+                });
+        }
+
+        if (result != SQLITE_DONE) {
+                NF_LOG_ERROR("can't execute image search query: "
+                             << sqlite3_errmsg(m_db));
+        }
+
+        sqlite3_finalize(stmt);
+
+        return images;
 }
 
 NfImageRecords

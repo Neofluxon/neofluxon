@@ -23,6 +23,8 @@
 
 #include "NfLibraryModel.h"
 #include "NfContext.h"
+#include "NfUiState.h"
+#include "NfUiLibraryModeState.h"
 #include "NfBrowserModel.h"
 #include "core/library/NfLibraryQuery.h"
 #include "core/library/NfLibraryPhotoSource.h"
@@ -37,6 +39,10 @@ NfLibraryModel::NfLibraryModel(NfLibraryContext ctx, QObject *parent)
         , m_context{std::move(ctx)}
         , m_browserModel{new NfBrowserModel(m_context.prent(), this)}
 {
+        QObject::connect(m_context.uiState()->libraryModeState(),
+                         &NfUiLibraryModeState::queryChanged,
+                         this,
+                         &NfLibraryModel::setQuery);
 }
 
 void NfLibraryModel::setQuery(const NfLibraryQuery &query)

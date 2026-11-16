@@ -130,31 +130,31 @@ std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
 {
         using RepresentationType = NfLibraryRepresentation::RepresentationType;
 
-       std::vector<NfPhoto> result;
-       auto repType = query.representationType;
+        std::vector<NfPhoto> result;
+        auto repType = query.representationType;
 
-       switch (repType) {
-       case RepresentationType::DateTime:
-       case RepresentationType::Canonical:
-       case RepresentationType::Equipment:
-       case RepresentationType::Collections:
+        switch (repType) {
+        case RepresentationType::DateTime:
+        case RepresentationType::Canonical:
+        case RepresentationType::Equipment:
+        case RepresentationType::Collections:
                 break;
-       default:
-               repType = RepresentationType::Canonical;
-               break;
-       }
+        default:
+                repType = RepresentationType::Canonical;
+                break;
+        }
 
-       NF_LOG_DEBUG("library id: " << m_id);
-       NF_LOG_DEBUG("repType: " << static_cast<int>(repType));
+        NF_LOG_DEBUG("library id: " << m_id);
+        NF_LOG_DEBUG("repType: " << static_cast<int>(repType));
 
-       auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id, repType);
-       auto photos = rep->queryPhotos(query);
+        auto rep = std::make_unique<NfLibraryRepresentation>(m_db, m_id, repType);
+        auto photos = rep->queryPhotos(query);
 
-       result.insert(result.end(),
-                     std::make_move_iterator(photos.begin()),
-                     std::make_move_iterator(photos.end()));
+        result.insert(result.end(),
+                      std::make_move_iterator(photos.begin()),
+                      std::make_move_iterator(photos.end()));
 
-       return result;
+        return result;
 }
 
 bool NfLibrary::folderExists(std::filesystem::path &folder) const

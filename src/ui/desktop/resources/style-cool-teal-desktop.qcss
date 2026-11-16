@@ -556,9 +556,39 @@ NfDesktop--NfBreadcrumbView QToolButton:focus {
 
 /* Container resets */
 NfDesktop--NfBrowserSortBar,
-NfDesktop--NfBrowserFilterBar {
+NfDesktop--NfBrowserFilterBar,
+NfDesktop--NfSearchBar {
     background: transparent;
     border: none;
+}
+
+NfDesktop--NfSearchBar QLineEdit#SearchTextInput {
+    background: transparent;
+    color: #e6eaf2;
+    border: none;
+    padding: 0 2px;
+    selection-background-color: #323546;
+}
+
+NfDesktop--NfSearchBar {
+    background-color: #20222e;
+    border: 1px solid #323546;
+    border-radius: 6px;
+}
+
+NfDesktop--NfSearchBar QLineEdit#SearchTextInput::placeholder {
+    color: #7f8798;
+}
+
+NfDesktop--NfSearchBar QToolButton#SearchCriteriaButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+NfDesktop--NfSearchBar QToolButton#SearchCriteriaButton:hover {
+    background-color: #323546;
 }
 
 NfDesktop--NfBrowserTopBar {

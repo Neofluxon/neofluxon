@@ -41,6 +41,7 @@ namespace NfDesktop {
 class NfBrowserViewModeBar;
 class NfBrowserSortBar;
 class NfBrowserFilterBar;
+class NfSearchBar;
 
 class NfBrowserTopBar : public NfStyledWidget
 {
@@ -62,6 +63,7 @@ private:
         NfUi::NfUiBrowserState* m_state{nullptr};
         NfBrowserViewModeBar* m_viewModeBar{nullptr};
         NfBrowserSortBar* m_sortBar{nullptr};
+        NfSearchBar* m_searchBar{nullptr};
         NfBrowserFilterBar* m_filterBar{nullptr};
         QToolButton* m_recursiveScanButton{nullptr};
         //QToolButton* m_editButton{nullptr};

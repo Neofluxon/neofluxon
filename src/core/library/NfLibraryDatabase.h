@@ -54,6 +54,7 @@ namespace NfCore {
 class NfRepresentationRecord;
 class NfSourceRecord;
 class NfLibraryEntry;
+class NfLibraryQuery;
 
 class NfLibraryDatabase {
 public:
@@ -103,6 +104,7 @@ public:
                          int64_t timestamp,
                          int64_t cameraId,
                          int64_t lensId);
+        NfImageRecords getImages(const NfLibraryQuery &query) const;
         NfImageRecords getImagesByFolderId(int64_t folderId,
                                            int64_t libraryId) const;
         NfImageRecords getImagesByDate(const NfDateRange& dateRange,

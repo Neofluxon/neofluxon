@@ -30,6 +30,7 @@ set(WIDGETS_HEADERS
     NfBrowserSortBar.h
     NfBrowserFilterBar.h
     NfBrowserViewModeBar.h
+    NfSearchBar.h
     # NfBreadcrumbView.h
     NfImageMetadataPanel.h
     NfMetadataItemDelegate.h
@@ -77,6 +78,7 @@ set(WIDGETS_SOURCES
     NfBrowserSortBar.cpp
     NfBrowserFilterBar.cpp
     NfBrowserViewModeBar.cpp
+    NfSearchBar.cpp
  #   NfBreadcrumbView.cpp
     NfImageMetadataPanel.cpp
     NfMetadataItemDelegate.cpp

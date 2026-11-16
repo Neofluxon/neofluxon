@@ -39,6 +39,7 @@ struct NfLibraryQuery {
         int64_t libraryId = -1;
         NfLibraryRepresentation::RepresentationType representationType{};
         QueryValue queryValue;
+        std::string searchText;
         bool operator==(const NfLibraryQuery&) const = default;
 };
 
