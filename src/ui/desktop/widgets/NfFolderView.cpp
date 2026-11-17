@@ -38,10 +38,10 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfFolderView::NfFolderView(NfFolderContext ctx,
+NfFolderView::NfFolderView(NfDesktopContext ctx,
                            QWidget* parent)
         : QWidget(parent)
-        , m_context{ctx}
+        , m_context{std::move(ctx)}
         , m_state{m_context.uiState()->folderModeState()}
         , m_model{new NfFolderModel(std::move(ctx), this)}
         , m_mainLayout{nullptr}
@@ -52,7 +52,7 @@ NfFolderView::NfFolderView(NfFolderContext ctx,
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(6);
 
-        auto browserTopBar = new NfBrowserTopBar(m_context.uiState(), nullptr, this);
+        auto browserTopBar = new NfBrowserTopBar(m_context, nullptr, this);
         m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(),

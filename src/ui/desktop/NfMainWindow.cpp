@@ -22,7 +22,6 @@
  */
 
 #include "NfMainWindow.h"
-#include "NfDesktopContext.h"
 #include "NfContext.h"
 #include "NfTopBar.h"
 #include "NfLeftPanel.h"
@@ -51,7 +50,7 @@ namespace NfDesktop {
 
 NfMainWindow::NfMainWindow(NfContext *ctx)
         : QMainWindow()
-        , m_context{ctx}
+        , m_context{NfDesktopContext(ctx)}
         , m_splitter{new QSplitter(Qt::Horizontal)}
 {
         setWindowTitle(QStringLiteral("%1").arg(QGuiApplication::applicationDisplayName()));
@@ -60,11 +59,11 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         statusBar()->addPermanentWidget(new NfUserTasksWidget(m_context->core()->userTaskManager(),
                                                               this));
 
-        m_context->library = new NfLibraryAdapter(m_context->core()->libraryManger(), this);
-        m_context->metadataProvider = new NfMetadataProvider(m_context->core(), this);
-        auto* libraryTreeModel =
-                new NfLibraryTreeModel(NfLibraryContext(m_context), this);
-        const auto desktopContext = NfDesktopContext(m_context, libraryTreeModel);
+        auto* uiContext = m_context.uiContext();
+        uiContext->library = new NfLibraryAdapter(uiContext->libraryManger(), this);
+        uiContext->metadataProvider = new NfMetadataProvider(uiContext->core(), this);
+        m_context.libraryTreeModel = new NfLibraryTreeModel(NfLibraryContext(uiContext),
+                                                            this);
 
         resize(1400, 800);
         setGeometry(200, 200, 1400, 800);
@@ -87,10 +86,10 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         m_splitter->setChildrenCollapsible(false);
 
         // Resizable, has minimum width, and is collapsible
-        auto leftPanel = new NfLeftPanel(desktopContext, this);
+        auto leftPanel = new NfLeftPanel(m_context, this);
         leftPanel->setMinimumWidth(220);
         m_splitter->addWidget(leftPanel);
-        m_splitter->addWidget(new NfCentralWidget(desktopContext, this));
+        m_splitter->addWidget(new NfCentralWidget(m_context, this));
 
         // Resizable, has minimum and minmum width, and is collapsible
         auto rightPanel = new NfRightPanel(m_context, this);

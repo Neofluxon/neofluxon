@@ -26,6 +26,7 @@
 
 namespace NfUi {
 struct NfContext;
+class NfUiState;
 }
 
 namespace NfDesktop {
@@ -42,10 +43,11 @@ struct NfDesktopContext
 public:
         NfUi::NfContext* uiContext;
         NfLibraryTreeModel* libraryTreeModel;
+        NfUi::NfUiState* uiState() const { return uiContext->uiState; }
 
         NfDesktopContext(NfUi::NfContext* uiContext)
-                : m_uiContext{uiContext}
-                , m_libraryTreeModel{nullptr}
+                : uiContext{uiContext}
+                , libraryTreeModel{nullptr}
         {
         }
 };

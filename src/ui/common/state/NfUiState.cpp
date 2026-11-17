@@ -335,6 +335,20 @@ NfUiState::NfUiState(QObject* parent)
                          this, &NfUiState::saveState);
 }
 
+NfBrowserState* NfUiState::browserState() const
+{
+        switch (mode()) {
+        case NfUi::NfUiMode::Folders:
+                return folderModeState()->browser();
+        case NfUi::NfUiMode::Library:
+                return libraryModeState()->browser();
+        case NfUi::NfUiMode::Shoots:
+        default:
+                Q_ASSERT(false);
+                return nullptr;
+        }
+}
+
 NfUiShootsModeState* NfUiState::shootsModeState() const
 {
         return m_shootsModeState;

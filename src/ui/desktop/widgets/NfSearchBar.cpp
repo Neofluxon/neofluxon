@@ -22,6 +22,7 @@
  */
 
 #include "NfSearchBar.h"
+#include "NfDesktopContext.h"
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
@@ -32,8 +33,6 @@
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLineEdit>
-#include <QScreen>
-#include <QStringList>
 #include <QToolButton>
 
 using namespace NfUi;
@@ -41,12 +40,10 @@ using namespace NfCore;
 
 namespace NfDesktop {
 
-NfSearchBar::NfSearchBar(NfUiState *state,
-                         NfLibraryTreeModel* libraryTreeModel,
+NfSearchBar::NfSearchBar(NfDesktopContext &ctx,
                          QWidget* parent)
         : NfStyledWidget(parent)
-        , m_state{state}
-        , m_libraryTreeModel{libraryTreeModel}
+        , m_state{ctx.uiState()}
 {
         setObjectName("NfSearchBar");
         setFixedWidth(220);
@@ -80,78 +77,12 @@ NfSearchBar::NfSearchBar(NfUiState *state,
 
         QObject::connect(criteriaButton,
                          &QToolButton::clicked,
-                         this, [this, criteriaButton]() {
-                                 const auto currentLibrary =
-                                         m_state->libraryModeState()->currentLibrary();
-                                 const auto cameras = m_libraryTreeModel
-                                         ? m_libraryTreeModel->equipmentValues(
-                                                   currentLibrary,
-                                                   NfEquipmentQuery::Kind::Camera)
-                                         : QStringList{};
-                                 const auto lenses = m_libraryTreeModel
-                                         ? m_libraryTreeModel->equipmentValues(
-                                                   currentLibrary,
-                                                   NfEquipmentQuery::Kind::Lens)
-                                         : QStringList{};
-                                 auto popup = new NfSearchCriteriaWidget(cameras,
-                                                                         lenses,
-                                                                         this);
-                                 popup->setAttribute(Qt::WA_DeleteOnClose);
-                                 if (m_libraryTreeModel) {
-                                         QObject::connect(
-                                                 m_libraryTreeModel,
-                                                 &NfLibraryTreeModel::treeLoaded,
-                                                 popup,
-                                                 [this, popup, currentLibrary]() {
-                                                         popup->setEquipmentValues(
-                                                                 m_libraryTreeModel->equipmentValues(
-                                                                         currentLibrary,
-                                                                         NfEquipmentQuery::Kind::Camera),
-                                                                 m_libraryTreeModel->equipmentValues(
-                                                                         currentLibrary,
-                                                                         NfEquipmentQuery::Kind::Lens));
-                                                 });
-                                 }
-                                 QObject::connect(
-                                         popup,
-                                         &NfSearchCriteriaWidget::searchRequested,
-                                         this,
-                                         [this, popup]() {
-                                                 m_searchCriteria = popup->criteria();
-                                                 onSearchRequested();
-                                         });
-                                 popup->setWindowFlags(Qt::Popup);
-                                 popup->adjustSize();
+                         this,
+                         &NfSearchBar::onShowCriteriaPopup);
+}
 
-                                 auto* hostWindow = window();
-                                 auto bounds = QRect(
-                                         hostWindow->mapToGlobal(QPoint(0, 0)),
-                                         hostWindow->size());
-                                 if (auto* screen = hostWindow->screen())
-                                         bounds = bounds.intersected(
-                                                 screen->availableGeometry());
-
-                                 popup->setMaximumSize(bounds.size());
-                                 popup->resize(qMin(popup->width(), bounds.width()),
-                                               qMin(popup->height(), bounds.height()));
-
-                                 const auto anchorTop =
-                                         mapToGlobal(QPoint(0, 0));
-                                 const auto anchorRight =
-                                         mapToGlobal(QPoint(width(), 0)).x();
-                                 auto x = anchorRight - popup->width();
-                                 auto y = anchorTop.y() + height();
-                                 if (y + popup->height() > bounds.bottom() + 1)
-                                         y = anchorTop.y() - popup->height();
-                                 x = qBound(bounds.left(),
-                                            x,
-                                            bounds.right() - popup->width() + 1);
-                                 y = qBound(bounds.top(),
-                                            y,
-                                            bounds.bottom() - popup->height() + 1);
-                                 popup->move(x, y);
-                                 popup->show();
-                         });
+void NfSearchBar::onShowCriteriaPopup()
+{
 }
 
 void NfSearchBar::onSearchRequested()

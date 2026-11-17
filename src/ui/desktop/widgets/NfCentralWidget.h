@@ -51,8 +51,7 @@ class NfCentralWidget : public QWidget
  private:
         void setCurrentView(QWidget* view);
 
-        NfDesktopContext m_desktopContext;
-        NfUi::NfContext *m_context;
+        NfDesktopContext m_context;
         QVBoxLayout* m_layout;
         QWidget* m_currentView;
 };

@@ -24,8 +24,6 @@
 #ifndef NF_BROWSER_TOPBAR_H
 #define NF_BROWSER_TOPBAR_H
 
-#include "NfStyledWidget.h"
-
 #include <QString>
 
 class QToolButton;
@@ -37,8 +35,8 @@ class NfUiState;
 
 namespace NfDesktop {
 
-        //class NfBrowserBreadcrumbBar;
-class NfLibraryTreeModel;
+class NfDesktopContext;
+//class NfBrowserBreadcrumbBar;
 class NfBrowserViewModeBar;
 class NfBrowserSortBar;
 class NfBrowserFilterBar;
@@ -49,8 +47,7 @@ class NfBrowserTopBar : public NfStyledWidget
         Q_OBJECT
 
 public:
-        explicit NfBrowserTopBar(NfUi::NfUiState* state,
-                                 NfLibraryTreeModel* libraryTreeModel,
+        explicit NfBrowserTopBar(NfDesktopContext &ctx,
                                  QWidget* parent = nullptr);
         ~NfBrowserTopBar() override = default;
 
@@ -61,6 +58,7 @@ private:
         void updateRecursiveScanButton(bool recursive);
 
         //        NfBrowserBreadcrumbBar* m_breadcrumbBar{nullptr};
+        NfDesktopContext& m_context;
         NfUi::NfUiState* m_uiState;
         NfLibraryTreeModel* m_libraryTreeModel;
         NfUi::NfUiBrowserState* m_state{nullptr};

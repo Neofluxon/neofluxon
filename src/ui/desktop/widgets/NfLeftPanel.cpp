@@ -43,8 +43,7 @@ namespace NfDesktop {
 
 NfLeftPanel::NfLeftPanel(NfDesktopContext context, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
-        , m_desktopContext{context}
-        , m_context{context.uiContext()}
+        , m_context{std::move(context)}
         , m_sourceBrowser{new NfSourceBrowser(this)}
         , m_libraryBrowser{nullptr}
         , m_stack{new QStackedWidget(this)}
@@ -52,7 +51,6 @@ NfLeftPanel::NfLeftPanel(NfDesktopContext context, QWidget *parent)
         auto panelLayout = new QVBoxLayout(this);
         panelLayout->setSpacing(2);
 
-        // Main menu
         auto mainMenu = new NfMainMenu(this);
         panelLayout->addWidget(mainMenu);
 
@@ -64,23 +62,20 @@ NfLeftPanel::NfLeftPanel(NfDesktopContext context, QWidget *parent)
         panelLayout->addSpacing(12);
 
         m_stack->addWidget(m_sourceBrowser);
-
         panelLayout->addWidget(m_stack);
-
-        //panelLayout->addStretch();
         setLayout(panelLayout);
 
         QObject::connect(mainMenu, &NfMainMenu::shootsClicked, [this]() {
-                m_context->uiState->setMode(NfUiMode::Shoots);
+                m_context.uiState()->setMode(NfUiMode::Shoots);
         });
         QObject::connect(mainMenu, &NfMainMenu::foldersClicked, [this]() {
-                m_context->uiState->setMode(NfUiMode::Folders);
+                m_context.uiState()->setMode(NfUiMode::Folders);
         });
         QObject::connect(mainMenu, &NfMainMenu::libraryClicked, [this]() {
-                m_context->uiState->setMode(NfUiMode::Library);
+                m_context.uiState()->setMode(NfUiMode::Library);
         });
         QObject::connect(mainMenu, &NfMainMenu::libraryClicked, [this]() {
-                m_context->uiState->setMode(NfUiMode::Library);
+                m_context.uiState()->setMode(NfUiMode::Library);
         });
 
         auto updateMode = [this, mainMenu](NfUiMode mode) {
@@ -101,20 +96,20 @@ NfLeftPanel::NfLeftPanel(NfDesktopContext context, QWidget *parent)
                 }
         };
 
-        QObject::connect(m_context->uiState,
+        QObject::connect(m_context.uiState(),
                          &NfUiState::modeChanged,
                          updateMode);
 
         QObject::connect(m_sourceBrowser,
                          &NfSourceBrowser::folderSelected,
-                         m_context->uiState->folderModeState(),
+                         m_context.uiState()->folderModeState(),
                          &NfUiFolderModeState::setPath);
         QObject::connect(m_sourceBrowser,
                          &NfSourceBrowser::importRequested,
                          this,
                          &NfLeftPanel::showImportWidget);
 
-        updateMode(m_context->uiState->mode());
+        updateMode(m_context.uiState()->mode());
 }
 
 void NfLeftPanel::showPathBrowser()
@@ -125,9 +120,9 @@ void NfLeftPanel::showPathBrowser()
 void NfLeftPanel::showLibraryBrowser()
 {
         NF_LOG_INFO("showlibrary");
+
         if (!m_libraryBrowser) {
-                m_libraryBrowser =
-                        new NfLibraryBrowser(m_desktopContext, this);
+                m_libraryBrowser = new NfLibraryBrowser(m_desktopContext, this);
                 m_stack->addWidget(m_libraryBrowser);
         }
 
@@ -137,10 +132,10 @@ void NfLeftPanel::showLibraryBrowser()
 
 void NfLeftPanel::showImportWidget(const std::filesystem::path &path)
 {
-        if (m_context->library)
-                m_context->library->importPath(
-                        path,
-                        m_context->uiState->libraryModeState()->currentLibrary());
+        if (m_context->library) {
+                auto* state = m_context.uiState()->libraryModeState();
+                m_context->library->importPath(path, state->currentLibrary());
+        }
 }
 
 } // namespace NfDesktop

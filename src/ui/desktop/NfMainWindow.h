@@ -24,6 +24,8 @@
 #ifndef NF_MAINWINDOW_H
 #define NF_MAINWINDOW_H
 
+#include "NfDesktopContext.h"
+
 #include <QMainWindow>
 
 class QSplitter;
@@ -45,7 +47,7 @@ public:
         ~NfMainWindow();
 
 private:
-        NfContext *m_context;
+        NfDesktopContext m_context;
         QSplitter *m_splitter;
 };
 

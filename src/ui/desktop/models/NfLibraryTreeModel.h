@@ -25,9 +25,7 @@
 #define NF_LIBRARY_TREE_MODEL_H
 
 #include <QAbstractItemModel>
-#include <QStringList>
 
-#include "core/library/NfEquipmentQuery.h"
 #include "core/library/NfLibraryTreeTask.h"
 
 #include <cstdint>
@@ -72,8 +70,6 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         bool addLibrary(const QString &name);
         bool updateLibraryName(uint64_t libraryId, const QString& name);
         bool removeLibrary(uint64_t libraryId);
-        QStringList equipmentValues(uint64_t libraryId,
-                                    NfCore::NfEquipmentQuery::Kind kind) const;
 
 protected slots:
         void onTreeUpdated(const NfCore::NfLibraryTreeSnapshot& snapshot);

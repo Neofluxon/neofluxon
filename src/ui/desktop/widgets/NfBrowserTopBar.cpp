@@ -22,6 +22,7 @@
  */
 
 #include "NfBrowserTopBar.h"
+#include "NfDesktopContext.h"
 //#include "NfBrowserBreadcrumbBar.h"
 #include "NfBrowserViewModeBar.h"
 #include "NfBrowserSortBar.h"
@@ -44,13 +45,12 @@
 
 namespace NfDesktop {
 
-NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiState* state,
-                                 NfLibraryTreeModel* libraryTreeModel,
+NfBrowserTopBar::NfBrowserTopBar(NfDesktopContext &ctx,
                                  QWidget* parent)
         : NfStyledWidget(parent)
-        , m_uiState{state}
-        , m_libraryTreeModel{libraryTreeModel}
-          //        , m_editor{QStringLiteral("rawtherapee")}
+        , m_context{ctx}
+        , m_state{ctx.uiState()->browserState()}
+         //        , m_editor{QStringLiteral("rawtherapee")}
 {
         setObjectName("NfBrowserTopBar");
         setupUi();
@@ -58,19 +58,6 @@ NfBrowserTopBar::NfBrowserTopBar(NfUi::NfUiState* state,
 
 void NfBrowserTopBar::setupUi()
 {
-        const auto mode = m_uiState->mode();
-        switch (mode) {
-        case NfUi::NfUiMode::Folders:
-                m_state = m_uiState->folderModeState()->browser();
-                break;
-        case NfUi::NfUiMode::Library:
-                m_state = m_uiState->libraryModeState()->browser();
-                break;
-        case NfUi::NfUiMode::Shoots:
-                Q_ASSERT(false);
-                return;
-        }
-
         auto* layout = new QHBoxLayout(this);
         layout->setContentsMargins(0, 0, 12, 0);
         layout->setSpacing(4);
@@ -79,7 +66,7 @@ void NfBrowserTopBar::setupUi()
         m_viewModeBar = new NfBrowserViewModeBar(this);
         m_viewModeBar->setState(m_state);
         m_sortBar = new NfBrowserSortBar(m_state, this);
-        m_searchBar = new NfSearchBar(m_uiState, m_libraryTreeModel, this);
+        m_searchBar = new NfSearchBar(m_context, this);
         m_filterBar = new NfBrowserFilterBar(m_state, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);

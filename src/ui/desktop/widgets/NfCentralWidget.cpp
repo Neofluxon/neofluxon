@@ -35,8 +35,7 @@ namespace NfDesktop {
 
 NfCentralWidget::NfCentralWidget(NfDesktopContext context, QWidget* parent)
         : QWidget(parent)
-        , m_desktopContext{context}
-        , m_context{context.uiContext()}
+        , m_context{std::move(context)}
         , m_currentView{nullptr}
         , m_layout{new QVBoxLayout(this)}
 {
@@ -45,7 +44,7 @@ NfCentralWidget::NfCentralWidget(NfDesktopContext context, QWidget* parent)
         m_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(m_layout);
 
-        QObject::connect(m_context->uiState,
+        QObject::connect(m_context.uiState(),
                          &NfUiState::modeChanged,
                          this,
                          &NfCentralWidget::updateView);
@@ -60,12 +59,12 @@ void NfCentralWidget::showShootsView()
 
 void NfCentralWidget::showFolderView()
 {
-        setCurrentView(new NfFolderView(NfFolderContext(m_context), this));
+        setCurrentView(new NfFolderView(m_context, this));
 }
 
 void NfCentralWidget::showLibraryView()
 {
-        setCurrentView(new NfLibraryView(m_desktopContext, this));
+        setCurrentView(new NfLibraryView(m_context, this));
 }
 
 void NfCentralWidget::setCurrentView(QWidget* view)
@@ -85,8 +84,7 @@ void NfCentralWidget::setCurrentView(QWidget* view)
 
 void NfCentralWidget::updateView()
 {
-        auto mode = m_context->uiState->mode();
-
+        auto mode = m_context.uiState()->mode();
         switch (mode) {
         case NfUiMode::Shoots:
                 showShootsView();

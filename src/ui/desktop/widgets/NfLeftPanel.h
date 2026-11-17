@@ -41,7 +41,8 @@ class NfLeftPanel : public NfPanel {
   Q_OBJECT
 
 public:
-        explicit NfLeftPanel(NfDesktopContext context, QWidget *parent = nullptr);
+        explicit NfLeftPanel(NfDesktopContext context,
+                             QWidget *parent = nullptr);
         virtual ~NfLeftPanel() = default;
 
 protected slots:
@@ -51,7 +52,6 @@ protected slots:
 
 private:
         NfDesktopContext m_desktopContext;
-        NfUi::NfContext *m_context;
         NfSourceBrowser* m_sourceBrowser;
         NfLibraryBrowser* m_libraryBrowser;
         QStackedWidget* m_stack;

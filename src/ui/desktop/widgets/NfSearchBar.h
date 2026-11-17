@@ -37,24 +37,23 @@ class NfUiState;
 
 namespace NfDesktop {
 
-class NfLibraryTreeModel;
+class NfDesktopContext;
 
 class NfSearchBar : public NfStyledWidget
 {
         Q_OBJECT
 
 public:
-        explicit NfSearchBar(NfUi::NfUiState *state,
-                             NfLibraryTreeModel* libraryTreeModel,
+        explicit NfSearchBar(NfDesktopContext &ctx,
                              QWidget* parent = nullptr);
         ~NfSearchBar() override = default;
 
 protected slots:
         void onSearchRequested();
+        void onShowCriteriaPopup();
 
 private:
         NfUi::NfUiState *m_state;
-        NfLibraryTreeModel* m_libraryTreeModel;
         QLineEdit* m_searchTextInput{nullptr};
         std::vector<NfCore::NfLibrarySearchCriterion> m_searchCriteria;
 };
