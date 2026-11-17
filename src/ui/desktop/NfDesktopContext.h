@@ -32,22 +32,22 @@ namespace NfDesktop {
 
 class NfLibraryTreeModel;
 
-class NfDesktopContext
+/**
+ * NfDesktopContext is a scoped context
+ * in the NfDesktop namespace, i.e. to hold also the data specific
+ * to the dsktop specific part of the applicaiton.
+ */
+struct NfDesktopContext
 {
 public:
-        NfDesktopContext(NfUi::NfContext* uiContext,
-                         NfLibraryTreeModel* libraryTreeModel)
+        NfUi::NfContext* uiContext;
+        NfLibraryTreeModel* libraryTreeModel;
+
+        NfDesktopContext(NfUi::NfContext* uiContext)
                 : m_uiContext{uiContext}
-                , m_libraryTreeModel{libraryTreeModel}
+                , m_libraryTreeModel{nullptr}
         {
         }
-
-        NfUi::NfContext* uiContext() const { return m_uiContext; }
-        NfLibraryTreeModel* libraryTreeModel() const { return m_libraryTreeModel; }
-
-private:
-        NfUi::NfContext* m_uiContext;
-        NfLibraryTreeModel* m_libraryTreeModel;
 };
 
 } // namespace NfDesktop
