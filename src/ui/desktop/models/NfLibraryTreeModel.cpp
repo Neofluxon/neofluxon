@@ -204,6 +204,68 @@ bool NfLibraryTreeModel::removeLibrary(uint64_t libraryId)
         return true;
 }
 
+QModelIndex NfLibraryTreeModel::libraryIndexById(uint64_t libraryId) const
+{
+        const auto row = libraryRow(libraryId);
+        return row >= 0 ? index(row, 0) : QModelIndex{};
+}
+
+NfLibraryTreeModel::EquipmentOptions
+NfLibraryTreeModel::equipmentOptions(uint64_t libraryId) const
+{
+        auto options = EquipmentOptions{};
+        const auto row = libraryRow(libraryId);
+        if (row < 0)
+                return options;
+
+        const auto* libraryItem = m_root->child(row);
+
+        // Find the equpment repsentation node.
+        NfLibraryTreeItem *equipmentRootNode{};
+        for (int row = 0; row < libraryItem->childCount(); row++) {
+                const auto* item = libraryItem->child(row);
+                if (item->type() != NfLibraryTreeItem::NodeType::Representation)
+                        continue;
+
+                const auto value = item->value();
+                const auto* type = std::get_if<int>(&value);
+                if (type && static_cast<NfLibraryTreeItem::RepresentationType>(*type)
+                    == NfLibraryTreeItem::RepresentationType::Equipment) {
+                        equipmentRootNode = item;
+                        break;
+                }
+        }
+
+        if (!equipmentRootNode)
+                return {};
+
+        // Find the cameras root node
+        for (int row = 0; row < equipmentRootNode->childCount(); row++) {
+                const auto* category = representation->child(categoryRow);
+                        for (int equipmentRow = 0;
+                             equipmentRow < category->childCount();
+                             ++equipmentRow) {
+                                const auto* item = category->child(equipmentRow);
+                                const auto itemValue = item->value();
+                                if (const auto* equipment =
+                                            std::get_if<NfEquipmentQuery>(&itemValue)) {
+                                        switch (equipment->kind) {
+                                        case NfEquipmentQuery::Kind::Camera:
+                                                options.cameraNames.append(item->name());
+                                                break;
+                                        case NfEquipmentQuery::Kind::Lens:
+                                                options.lensNames.append(item->name());
+                                                break;
+                                        }
+                                }
+                        }
+                }
+                break;
+        }
+
+        return options;
+}
+
 int NfLibraryTreeModel::libraryRow(uint64_t libraryId) const
 {
         for (int row = 0; row < m_root->childCount(); ++row) {

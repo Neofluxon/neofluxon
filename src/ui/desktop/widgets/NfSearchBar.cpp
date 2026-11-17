@@ -33,6 +33,7 @@
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLineEdit>
+#include <QStringList>
 #include <QToolButton>
 
 using namespace NfUi;
@@ -44,6 +45,7 @@ NfSearchBar::NfSearchBar(NfDesktopContext &ctx,
                          QWidget* parent)
         : NfStyledWidget(parent)
         , m_state{ctx.uiState()}
+        , m_libraryTreeModel{ctx.libraryTreeModel}
 {
         setObjectName("NfSearchBar");
         setFixedWidth(220);
@@ -66,16 +68,16 @@ NfSearchBar::NfSearchBar(NfDesktopContext &ctx,
                          this,
                          &NfSearchBar::onSearchRequested);
 
-        auto criteriaButton = new QToolButton(this);
-        criteriaButton->setObjectName("SearchCriteriaButton");
-        criteriaButton->setToolTip(tr("Select search criteria"));
-        criteriaButton->setFixedSize(24, 24);
-        criteriaButton->setIcon(QIcon(":/icons/chevron-down.svg"));
-        criteriaButton->setIconSize(QSize(16, 16));
-        criteriaButton->setAutoRaise(true);
-        layout->addWidget(criteriaButton);
+        m_criteriaButton = new QToolButton(this);
+        m_criteriaButton->setObjectName("SearchCriteriaButton");
+        m_criteriaButton->setToolTip(tr("Select search criteria"));
+        m_criteriaButton->setFixedSize(24, 24);
+        m_criteriaButton->setIcon(QIcon(":/icons/chevron-down.svg"));
+        m_criteriaButton->setIconSize(QSize(16, 16));
+        m_criteriaButton->setAutoRaise(true);
+        layout->addWidget(m_criteriaButton);
 
-        QObject::connect(criteriaButton,
+        QObject::connect(m_criteriaButton,
                          &QToolButton::clicked,
                          this,
                          &NfSearchBar::onShowCriteriaPopup);
@@ -83,6 +85,41 @@ NfSearchBar::NfSearchBar(NfDesktopContext &ctx,
 
 void NfSearchBar::onShowCriteriaPopup()
 {
+        auto cameraValues = QStringList{};
+        auto lensValues = QStringList{};
+
+        if (m_libraryTreeModel && m_state) {
+                if (auto* libraryState = m_state->libraryModeState()) {
+                        const auto options = m_libraryTreeModel->equipmentOptions(
+                                libraryState->currentLibrary());
+                        cameraValues = options.cameraNames;
+                        lensValues = options.lensNames;
+                }
+        }
+
+        if (!m_criteriaPopup) {
+                m_criteriaPopup = new NfSearchCriteriaWidget(cameraValues,
+                                                             lensValues,
+                                                             this);
+                m_criteriaPopup->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+                QObject::connect(m_criteriaPopup,
+                                 &NfSearchCriteriaWidget::searchRequested,
+                                 this,
+                                 [this]() {
+                                         m_searchCriteria = m_criteriaPopup->criteria();
+                                         onSearchRequested();
+                                 });
+        } else {
+                m_criteriaPopup->setEquipmentValues(cameraValues, lensValues);
+        }
+
+        m_criteriaPopup->adjustSize();
+        const auto buttonBottomLeft = m_criteriaButton->mapToGlobal(
+                QPoint(0, m_criteriaButton->height()));
+        m_criteriaPopup->move(buttonBottomLeft.x() + m_criteriaButton->width()
+                                      - m_criteriaPopup->width(),
+                              buttonBottomLeft.y());
+        m_criteriaPopup->show();
 }
 
 void NfSearchBar::onSearchRequested()

@@ -28,6 +28,8 @@
 
 #include "core/library/NfLibraryTreeTask.h"
 
+#include <QStringList>
+
 #include <cstdint>
 #include <memory>
 
@@ -54,6 +56,11 @@ class NfLibraryTreeModel : public QAbstractItemModel {
                 LibraryIdRole = Qt::UserRole + 1
         };
 
+        struct EquipmentOptions {
+                QStringList cameraNames;
+                QStringList lensNames;
+        };
+
         explicit NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx,
                                     QObject* parent = nullptr);
         ~NfLibraryTreeModel() override;
@@ -70,6 +77,8 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         bool addLibrary(const QString &name);
         bool updateLibraryName(uint64_t libraryId, const QString& name);
         bool removeLibrary(uint64_t libraryId);
+        QModelIndex libraryIndexById(uint64_t libraryId) const;
+        EquipmentOptions equipmentOptions(uint64_t libraryId) const;
 
 protected slots:
         void onTreeUpdated(const NfCore::NfLibraryTreeSnapshot& snapshot);
