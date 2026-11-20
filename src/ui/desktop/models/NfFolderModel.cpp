@@ -23,7 +23,7 @@
 
 #include "NfFolderModel.h"
 #include "NfContext.h"
-#include "NfFolderContext.h"
+#include "NfDesktopContext.h"
 #include "NfBrowserModel.h"
 #include "core/NfFilesystemPhotoSource.h"
 
@@ -31,10 +31,9 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfFolderModel::NfFolderModel(NfFolderContext ctx, QObject *parent)
+NfFolderModel::NfFolderModel(const NfDesktopContext& ctx, QObject *parent)
         : QObject(parent)
-        , m_context{std::move(ctx)}
-        , m_browserModel{new NfBrowserModel(m_context.prent(), this)}
+        , m_browserModel{new NfBrowserModel(ctx.uiContext, this)}
           //        , m_breadcrumModel{new NfBreadcrumpModel(this)}
 {
 }

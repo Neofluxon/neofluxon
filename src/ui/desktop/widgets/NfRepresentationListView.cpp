@@ -22,22 +22,21 @@
  */
 
 #include "NfRepresentationListView.h"
+#include "NfDesktopContext.h"
 #include "NfLibraryTreeModel.h"
 
 namespace NfDesktop {
 
-NfRepresentationListView::NfRepresentationListView(const NfUi::NfLibraryContext& ctx,
-                                                   NfLibraryTreeModel* model,
+NfRepresentationListView::NfRepresentationListView(const NfDesktopContext& ctx,
                                                    QWidget* parent)
         : QListView(parent)
-        , m_context{ctx}
-        , m_model{model}
+        , m_model{ctx.libraryTreeModel}
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         setUniformItemSizes(true);
-        setModel(model);
+        setModel(m_model);
 }
 
 QSize NfRepresentationListView::sizeHint() const

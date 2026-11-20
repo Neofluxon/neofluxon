@@ -28,7 +28,6 @@
 #include "NfUiState.h"
 
 namespace NfUi {
-class NfContext;
 class NfUiBrowserState;
 }
 
@@ -37,13 +36,14 @@ class QToolButton;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfBrowserViewModeBar;
 
 class NfTopBar : public NfStyledWidget {
         Q_OBJECT
 
 public:
-        explicit NfTopBar(NfUi::NfContext* ctx, QWidget *parent = nullptr);
+        explicit NfTopBar(const NfDesktopContext& ctx, QWidget *parent = nullptr);
         virtual ~NfTopBar() = default;
 
 protected:
@@ -58,7 +58,7 @@ private:
         void showBrowserViewModeBar(NfUi::NfUiBrowserState* state);
         void updateLibraryName(uint64_t libraryId);
 
-        NfUi::NfContext* m_context;
+        const NfDesktopContext& m_context;
         NfBrowserViewModeBar *m_browserViewModeBar{nullptr};
         QLabel* m_libraryName{nullptr};
 };

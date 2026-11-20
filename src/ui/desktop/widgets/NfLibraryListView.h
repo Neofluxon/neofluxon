@@ -24,20 +24,18 @@
 #ifndef NF_LIBRARY_LIST_VIEW_H
 #define NF_LIBRARY_LIST_VIEW_H
 
-#include "NfLibraryContext.h"
-
 #include <QListView>
 #include <cstdint>
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfLibraryTreeModel;
 
 class NfLibraryListView : public QListView {
         Q_OBJECT
 public:
-        explicit NfLibraryListView(const NfUi::NfLibraryContext& ctx,
-                                   NfLibraryTreeModel* model,
+        explicit NfLibraryListView(const NfDesktopContext& ctx,
                                    QWidget* parent = nullptr);
         ~NfLibraryListView() override = default;
 
@@ -50,7 +48,6 @@ protected:
         void contextMenuEvent(QContextMenuEvent* event) override;
 
 private:
-        NfUi::NfLibraryContext m_context;
         NfLibraryTreeModel* m_model;
 };
 

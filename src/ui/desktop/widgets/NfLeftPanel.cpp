@@ -23,7 +23,7 @@
 
 #include "NfLeftPanel.h"
 #include "NfContext.h"
-#include "NfLibraryContext.h"
+#include "NfDesktopContext.h"
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
@@ -41,9 +41,9 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLeftPanel::NfLeftPanel(NfDesktopContext context, QWidget *parent)
+NfLeftPanel::NfLeftPanel(const NfDesktopContext& context, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignLeft)
-        , m_context{std::move(context)}
+        , m_context{context}
         , m_sourceBrowser{new NfSourceBrowser(this)}
         , m_libraryBrowser{nullptr}
         , m_stack{new QStackedWidget(this)}
@@ -122,7 +122,7 @@ void NfLeftPanel::showLibraryBrowser()
         NF_LOG_INFO("showlibrary");
 
         if (!m_libraryBrowser) {
-                m_libraryBrowser = new NfLibraryBrowser(m_desktopContext, this);
+                m_libraryBrowser = new NfLibraryBrowser(m_context, this);
                 m_stack->addWidget(m_libraryBrowser);
         }
 
@@ -132,9 +132,10 @@ void NfLeftPanel::showLibraryBrowser()
 
 void NfLeftPanel::showImportWidget(const std::filesystem::path &path)
 {
-        if (m_context->library) {
+        auto* library =  m_context.library();
+        if (library) {
                 auto* state = m_context.uiState()->libraryModeState();
-                m_context->library->importPath(path, state->currentLibrary());
+                library->importPath(path, state->currentLibrary());
         }
 }
 

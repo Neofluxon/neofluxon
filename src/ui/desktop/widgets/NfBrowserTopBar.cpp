@@ -45,11 +45,12 @@
 
 namespace NfDesktop {
 
-NfBrowserTopBar::NfBrowserTopBar(NfDesktopContext &ctx,
+NfBrowserTopBar::NfBrowserTopBar(const NfDesktopContext &ctx,
                                  QWidget* parent)
         : NfStyledWidget(parent)
         , m_context{ctx}
-        , m_state{ctx.uiState()->browserState()}
+        , m_state{m_context.uiState()}
+        , m_browserState{m_context.uiState()->browserState()}
          //        , m_editor{QStringLiteral("rawtherapee")}
 {
         setObjectName("NfBrowserTopBar");
@@ -64,13 +65,13 @@ void NfBrowserTopBar::setupUi()
 
         //        m_breadcrumbBar = new NfBrowserBreadcrumbBar(this);
         m_viewModeBar = new NfBrowserViewModeBar(this);
-        m_viewModeBar->setState(m_state);
-        m_sortBar = new NfBrowserSortBar(m_state, this);
+        m_viewModeBar->setState(m_browserState);
+        m_sortBar = new NfBrowserSortBar(m_browserState, this);
         m_searchBar = new NfSearchBar(m_context, this);
-        m_filterBar = new NfBrowserFilterBar(m_state, this);
+        m_filterBar = new NfBrowserFilterBar(m_browserState, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);
-        if (mode == NfUi::NfUiMode::Folders) {
+        if (m_state->mode() == NfUi::NfUiMode::Folders) {
                 m_recursiveScanButton = new QToolButton(this);
                 m_recursiveScanButton->setObjectName("recursiveScanButton");
                 m_recursiveScanButton->setCheckable(true);
@@ -78,11 +79,11 @@ void NfBrowserTopBar::setupUi()
                 m_recursiveScanButton->setFixedSize(30, 30);
                 m_recursiveScanButton->setCursor(Qt::PointingHandCursor);
                 m_recursiveScanButton->setAutoRaise(true);
-                updateRecursiveScanButton(m_state->scanRecursively());
+                updateRecursiveScanButton(m_browserState->scanRecursively());
                 QObject::connect(m_recursiveScanButton, &QToolButton::toggled,
-                                 m_state,
+                                 m_browserState,
                                  &NfUi::NfUiBrowserState::setScanRecursively);
-                QObject::connect(m_state,
+                QObject::connect(m_browserState,
                                  &NfUi::NfUiBrowserState::scanRecursivelyChanged,
                                  this,
                                  &NfBrowserTopBar::updateRecursiveScanButton);

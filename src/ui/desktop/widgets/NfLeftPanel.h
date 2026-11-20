@@ -24,7 +24,6 @@
 #ifndef NF_LEFT_PANEL_H
 #define NF_LEFT_PANEL_H
 
-#include "NfDesktopContext.h"
 #include "NfPanel.h"
 
 #include <filesystem>
@@ -33,6 +32,7 @@ class QStackedWidget;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfSourceBrowser;
 class NfLibraryTreeView;
 class NfLibraryBrowser;
@@ -41,7 +41,7 @@ class NfLeftPanel : public NfPanel {
   Q_OBJECT
 
 public:
-        explicit NfLeftPanel(NfDesktopContext context,
+        explicit NfLeftPanel(const NfDesktopContext& context,
                              QWidget *parent = nullptr);
         virtual ~NfLeftPanel() = default;
 
@@ -51,7 +51,7 @@ protected slots:
         void showImportWidget(const std::filesystem::path &path);
 
 private:
-        NfDesktopContext m_desktopContext;
+        const NfDesktopContext& m_context;
         NfSourceBrowser* m_sourceBrowser;
         NfLibraryBrowser* m_libraryBrowser;
         QStackedWidget* m_stack;

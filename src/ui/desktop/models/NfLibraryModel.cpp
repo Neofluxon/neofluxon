@@ -23,6 +23,7 @@
 
 #include "NfLibraryModel.h"
 #include "NfContext.h"
+#include "NfDesktopContext.h"
 #include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfBrowserModel.h"
@@ -34,10 +35,10 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryModel::NfLibraryModel(NfLibraryContext ctx, QObject *parent)
+NfLibraryModel::NfLibraryModel(const NfDesktopContext& ctx, QObject *parent)
         : QObject(parent)
-        , m_context{std::move(ctx)}
-        , m_browserModel{new NfBrowserModel(m_context.prent(), this)}
+        , m_context{ctx}
+        , m_browserModel{new NfBrowserModel(m_context.uiContext, this)}
 {
         QObject::connect(m_context.uiState()->libraryModeState(),
                          &NfUiLibraryModeState::queryChanged,

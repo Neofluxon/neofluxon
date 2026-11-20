@@ -24,7 +24,7 @@
 #ifndef NF_LIBRARY_MODEL_H
 #define NF_LIBRARY_MODEL_H
 
-#include "NfLibraryContext.h"
+#include "NfDesktopContext.h"
 
 #include <QObject>
 
@@ -34,6 +34,7 @@ class NfLibraryQuery;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfBrowserModel;
 
 class NfLibraryModel : public QObject
@@ -41,13 +42,13 @@ class NfLibraryModel : public QObject
         Q_OBJECT
 
 public:
-        explicit NfLibraryModel(NfUi::NfLibraryContext ctx, QObject *parent = nullptr);
+        explicit NfLibraryModel(const NfDesktopContext& ctx, QObject *parent = nullptr);
         ~NfLibraryModel() = default;
         void setQuery(const NfCore::NfLibraryQuery &query);
         NfBrowserModel* browser() const;
 
  private:
-        NfUi::NfLibraryContext m_context;
+        const NfDesktopContext& m_context;
         NfBrowserModel *m_browserModel;
 };
 

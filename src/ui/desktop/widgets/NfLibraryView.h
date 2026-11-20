@@ -25,7 +25,6 @@
 #define NF_LIBRARY_VIEW_H
 
 #include "NfDesktopContext.h"
-#include "NfLibraryContext.h"
 
 #include <QWidget>
 
@@ -37,6 +36,7 @@ namespace NfUi {
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfLibraryModel;
 class NfBrowserView;
 
@@ -45,12 +45,10 @@ class NfLibraryView : public QWidget
         Q_OBJECT
 
  public:
-        explicit NfLibraryView(NfDesktopContext context,
+        explicit NfLibraryView(const NfDesktopContext& ctx,
                                QWidget* parent = nullptr);
 
 private:
-        NfDesktopContext m_desktopContext;
-        NfUi::NfLibraryContext m_context;
         NfUi::NfUiLibraryModeState *m_state;
         NfLibraryModel* m_model;
         QVBoxLayout* m_mainLayout;

@@ -27,20 +27,19 @@
 #include <QTreeView>
 
 namespace NfUi {
-class NfLibraryContext;
 class NfUiLibraryModeState;
 }
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfLibraryTreeModel;
 
 class NfLibraryTreeView : public QTreeView {
     Q_OBJECT
 
  public:
-        explicit NfLibraryTreeView(const NfUi::NfLibraryContext &ctx,
-                                   NfLibraryTreeModel* model,
+        explicit NfLibraryTreeView(const NfDesktopContext &ctx,
                                    QWidget* parent = nullptr);
         ~NfLibraryTreeView() override = default;
 

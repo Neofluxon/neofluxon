@@ -40,12 +40,12 @@ class NfLibraryTreeNode;
 }
 
 namespace NfUi {
-class NfLibraryContext;
 class NfLibraryAdapter;
 }
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfLibraryTreeItem;
 
 class NfLibraryTreeModel : public QAbstractItemModel {
@@ -56,12 +56,12 @@ class NfLibraryTreeModel : public QAbstractItemModel {
                 LibraryIdRole = Qt::UserRole + 1
         };
 
-        struct EquipmentOptions {
+        struct Equipment {
                 QStringList cameraNames;
                 QStringList lensNames;
         };
 
-        explicit NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx,
+        explicit NfLibraryTreeModel(const NfDesktopContext& ctx,
                                     QObject* parent = nullptr);
         ~NfLibraryTreeModel() override;
 
@@ -78,7 +78,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         bool updateLibraryName(uint64_t libraryId, const QString& name);
         bool removeLibrary(uint64_t libraryId);
         QModelIndex libraryIndexById(uint64_t libraryId) const;
-        EquipmentOptions equipmentOptions(uint64_t libraryId) const;
+        Equipment getEquipment(uint64_t libraryId) const;
 
 protected slots:
         void onTreeUpdated(const NfCore::NfLibraryTreeSnapshot& snapshot);

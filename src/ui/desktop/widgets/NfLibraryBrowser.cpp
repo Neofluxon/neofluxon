@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryBrowser.h"
+#include "NfDesktopContext.h"
 #include "NfLibraryTreeModel.h"
 #include "NfLibraryListHeader.h"
 #include "NfNewLibraryDialog.h"
@@ -41,12 +42,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryBrowser::NfLibraryBrowser(NfDesktopContext context,
+NfLibraryBrowser::NfLibraryBrowser(const NfDesktopContext& context,
                                    QWidget *parent)
     : QWidget(parent)
-    , m_context{context.uiContext()}
+    , m_context{context}
     , m_state{m_context.uiState()->libraryModeState()}
-    , m_model{context.libraryTreeModel()}
+    , m_model{m_context.libraryTreeModel}
 {
         setupUi();
 }
@@ -63,9 +64,9 @@ void NfLibraryBrowser::setupUi()
                          this,
                          &NfLibraryBrowser::addLibrary);
 
-        m_libraryListView = new NfLibraryListView(m_context, m_model, this);
-        m_representationListView = new NfRepresentationListView(m_context, m_model, this);
-        m_libraryTreeView = new NfLibraryTreeView(m_context, m_model, this);
+        m_libraryListView = new NfLibraryListView(m_context, this);
+        m_representationListView = new NfRepresentationListView(m_context, this);
+        m_libraryTreeView = new NfLibraryTreeView(m_context, this);
 
         QObject::connect(m_libraryListView,
                          &NfLibraryListView::renameLibraryRequested,

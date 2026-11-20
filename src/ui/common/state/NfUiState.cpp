@@ -335,7 +335,7 @@ NfUiState::NfUiState(QObject* parent)
                          this, &NfUiState::saveState);
 }
 
-NfBrowserState* NfUiState::browserState() const
+NfUiBrowserState* NfUiState::browserState() const
 {
         switch (mode()) {
         case NfUi::NfUiMode::Folders:

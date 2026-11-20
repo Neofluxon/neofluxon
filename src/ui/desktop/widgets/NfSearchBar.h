@@ -47,7 +47,7 @@ class NfSearchBar : public NfStyledWidget
         Q_OBJECT
 
 public:
-        explicit NfSearchBar(NfDesktopContext &ctx,
+        explicit NfSearchBar(const NfDesktopContext &ctx,
                              QWidget* parent = nullptr);
         ~NfSearchBar() override = default;
 

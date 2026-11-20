@@ -24,8 +24,6 @@
 #ifndef NF_FOLDER_MODEL_H
 #define NF_FOLDER_MODEL_H
 
-#include "NfFolderContext.h"
-
 #include <QObject>
 
 #include <filesystem>
@@ -36,6 +34,7 @@ class NfBrowserModel;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfBrowserModel;
 class NfBreadcrumpModel;
 
@@ -44,13 +43,12 @@ class NfFolderModel : public QObject
         Q_OBJECT
 
 public:
-        explicit NfFolderModel(NfUi::NfFolderContext ctx, QObject *parent = nullptr);
+        explicit NfFolderModel(const NfDesktopContext& ctx, QObject *parent = nullptr);
         ~NfFolderModel() = default;
         void setPath(const std::filesystem::path& path, bool recursive = true);
         NfBrowserModel* browser() const;
 
  private:
-        NfUi::NfFolderContext m_context;
         NfBrowserModel *m_browserModel;
         NfBreadcrumpModel *m_breadcrumModel;
 };

@@ -22,9 +22,9 @@
  */
 
 #include "NfLibraryTreeModel.h"
+#include "NfDesktopContext.h"
 #include "NfLibraryTreeItem.h"
 #include "NfLibraryTreeSnapshot.h"
-#include "NfLibraryContext.h"
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibrary.h"
 #include "core/NfLogger.h"
@@ -38,7 +38,7 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryTreeModel::NfLibraryTreeModel(const NfUi::NfLibraryContext& ctx, QObject* parent)
+NfLibraryTreeModel::NfLibraryTreeModel(const NfDesktopContext& ctx, QObject* parent)
         : QAbstractItemModel(parent)
         , m_library{ctx.library()}
 {
@@ -210,60 +210,69 @@ QModelIndex NfLibraryTreeModel::libraryIndexById(uint64_t libraryId) const
         return row >= 0 ? index(row, 0) : QModelIndex{};
 }
 
-NfLibraryTreeModel::EquipmentOptions
-NfLibraryTreeModel::equipmentOptions(uint64_t libraryId) const
+NfLibraryTreeModel::Equipment
+NfLibraryTreeModel::getEquipment(uint64_t libraryId) const
 {
-        auto options = EquipmentOptions{};
+        using NodeType = NfLibraryTreeItem::NodeType;
+        using RepresentationType = NfLibraryTreeItem::RepresentationType;
+
         const auto row = libraryRow(libraryId);
         if (row < 0)
-                return options;
+                return {};
 
         const auto* libraryItem = m_root->child(row);
 
-        // Find the equpment repsentation node.
-        NfLibraryTreeItem *equipmentRootNode{};
+        // Find the equipment repsentation node.
+        const NfLibraryTreeItem *equipmentItem{};
         for (int row = 0; row < libraryItem->childCount(); row++) {
                 const auto* item = libraryItem->child(row);
-                if (item->type() != NfLibraryTreeItem::NodeType::Representation)
+                if (item->type() != NodeType::Representation)
                         continue;
 
                 const auto value = item->value();
                 const auto* type = std::get_if<int>(&value);
-                if (type && static_cast<NfLibraryTreeItem::RepresentationType>(*type)
-                    == NfLibraryTreeItem::RepresentationType::Equipment) {
-                        equipmentRootNode = item;
+                if (type && static_cast<RepresentationType>(*type)
+                    == RepresentationType::Equipment) {
+                        equipmentItem = item;
                         break;
                 }
         }
 
-        if (!equipmentRootNode)
+        if (!equipmentItem)
                 return {};
 
-        // Find the cameras root node
-        for (int row = 0; row < equipmentRootNode->childCount(); row++) {
-                const auto* category = representation->child(categoryRow);
-                        for (int equipmentRow = 0;
-                             equipmentRow < category->childCount();
-                             ++equipmentRow) {
-                                const auto* item = category->child(equipmentRow);
-                                const auto itemValue = item->value();
-                                if (const auto* equipment =
-                                            std::get_if<NfEquipmentQuery>(&itemValue)) {
-                                        switch (equipment->kind) {
-                                        case NfEquipmentQuery::Kind::Camera:
-                                                options.cameraNames.append(item->name());
-                                                break;
-                                        case NfEquipmentQuery::Kind::Lens:
-                                                options.lensNames.append(item->name());
-                                                break;
-                                        }
+        // Get equipment category item
+
+        // Load the children of category root item
+        Equipment equipmentList;
+        auto loadEquipment = [&equipmentList](const NfLibraryTreeItem* categoryItem) {
+                for (int row = 0; row < categoryItem->childCount(); row++) {
+                        const auto* item = categoryItem->child(row);
+                        const auto itemValue = item->value();
+                        if (const auto* equipment = std::get_if<NfEquipmentQuery>(&itemValue)) {
+                                switch (equipment->kind) {
+                                case NfEquipmentQuery::Kind::Camera:
+                                        equipmentList.cameraNames.append(item->name());
+                                        break;
+                                case NfEquipmentQuery::Kind::Lens:
+                                        equipmentList.lensNames.append(item->name());
+                                        break;
                                 }
                         }
                 }
-                break;
+        };
+
+        // Loop over the equipment category items
+        // (two items: Cameras and Lense root nodes)
+        // In the core we have types defined for these two root nodes,
+        // in the UI they are just NodeType::Node
+        for (int row = 0; row < equipmentItem->childCount(); row++) {
+                const auto* item = equipmentItem->child(row);
+                if (item)
+                        loadEquipment(item);
         }
 
-        return options;
+        return equipmentList;
 }
 
 int NfLibraryTreeModel::libraryRow(uint64_t libraryId) const
@@ -317,8 +326,9 @@ NfLibraryTreeItem* NfLibraryTreeModel::itemFromIndex(const QModelIndex& index) c
 
 void NfLibraryTreeModel::addLibrarySnapshot(const NfLibrarySnapshot& library)
 {
+        using NodeType = NfLibraryTreeItem::NodeType;
         auto name = QString::fromUtf8(library.name.c_str());
-        auto nodeType = NfLibraryTreeItem::NodeType::Library;
+        auto nodeType = NodeType::Library;
         auto libraryItem = std::make_unique<NfLibraryTreeItem>(name,
                                                                nodeType,
                                                                m_root.get());
@@ -344,17 +354,7 @@ void NfLibraryTreeModel::populateChildNodes(const std::vector<NfLibraryTreeNodeS
                 auto node = std::make_unique<NfLibraryTreeItem>(name,
                                                                 nodeType,
                                                                 parentItem);
-                auto value = child.value;
-                if (child.type == NfLibraryTreeNode::NodeType::Camera
-                    || child.type == NfLibraryTreeNode::NodeType::Lens) {
-                        if (const auto* id = std::get_if<int64_t>(&value)) {
-                                const auto kind = child.type == NfLibraryTreeNode::NodeType::Camera
-                                        ? NfEquipmentQuery::Kind::Camera
-                                        : NfEquipmentQuery::Kind::Lens;
-                                value = NfEquipmentQuery{kind, *id};
-                        }
-                }
-                node->setValue(value);
+                node->setValue(child.value);
                 if (!child.children.empty())
                         populateChildNodes(child.children, node.get());
 

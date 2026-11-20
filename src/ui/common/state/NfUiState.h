@@ -37,7 +37,7 @@ enum class NfUiMode
         Library
 };
 
-class NfBrowserState;
+class NfUiBrowserState;
 class NfUiShootsModeState;
 class NfUiFolderModeState;
 class NfUiLibraryModeState;
@@ -48,7 +48,7 @@ class NfUiState : public QObject
 
 public:
         explicit NfUiState(QObject* parent = nullptr);
-        NfBrowserState* browserState() const;
+        NfUiBrowserState* browserState() const;
         NfUiShootsModeState* shootsModeState() const;
         NfUiFolderModeState* folderModeState() const;
         NfUiLibraryModeState* libraryModeState() const;

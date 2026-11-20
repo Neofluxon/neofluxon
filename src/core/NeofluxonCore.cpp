@@ -174,7 +174,7 @@ NfPhotoMetadataLoader* NeofluxonCore::metadataLoader() const
         return m_metadataLoader.get();
 }
 
-NfLibraryManager* NeofluxonCore::libraryManger() const
+NfLibraryManager* NeofluxonCore::libraryManager() const
 {
         return m_libraryManager.get();
 }

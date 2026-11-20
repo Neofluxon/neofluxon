@@ -31,7 +31,6 @@
 #include "NfLibraryAdapter.h"
 #include "NfMetadataProvider.h"
 #include "NfUserTasksWidget.h"
-#include "NfLibraryContext.h"
 #include "NfLibraryTreeModel.h"
 #include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
@@ -53,17 +52,16 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         , m_context{NfDesktopContext(ctx)}
         , m_splitter{new QSplitter(Qt::Horizontal)}
 {
+        auto* uiContext = m_context.uiContext;
         setWindowTitle(QStringLiteral("%1").arg(QGuiApplication::applicationDisplayName()));
         statusBar()->setObjectName(QStringLiteral("NfStatusBar"));
         statusBar()->setSizeGripEnabled(false);
-        statusBar()->addPermanentWidget(new NfUserTasksWidget(m_context->core()->userTaskManager(),
+        statusBar()->addPermanentWidget(new NfUserTasksWidget(uiContext->core()->userTaskManager(),
                                                               this));
 
-        auto* uiContext = m_context.uiContext();
-        uiContext->library = new NfLibraryAdapter(uiContext->libraryManger(), this);
+        uiContext->library = new NfLibraryAdapter(uiContext->core()->libraryManager(), this);
         uiContext->metadataProvider = new NfMetadataProvider(uiContext->core(), this);
-        m_context.libraryTreeModel = new NfLibraryTreeModel(NfLibraryContext(uiContext),
-                                                            this);
+        m_context.libraryTreeModel = new NfLibraryTreeModel(m_context, this);
 
         resize(1400, 800);
         setGeometry(200, 200, 1400, 800);

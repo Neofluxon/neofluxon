@@ -22,11 +22,11 @@
  */
 
 #include "NfImageMetadataPanel.h"
+#include "NfDesktopContext.h"
 #include "NfScrollStack.h"
 #include "NfCollapsibleSection.h"
 #include "NfPhotoMetadataModel.h"
 #include "NfMetadataSectionWidget.h"
-#include "NfContext.h"
 #include "NfUiState.h"
 
 #include <QVBoxLayout>
@@ -37,11 +37,11 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfImageMetadataPanel::NfImageMetadataPanel(NfContext *ctx,
+NfImageMetadataPanel::NfImageMetadataPanel(const NfDesktopContext &ctx,
                                            QWidget* parent)
         : QWidget(parent)
         , m_context{ctx}
-        , m_model{new NfPhotoMetadataModel(m_context, this)}
+        , m_model{new NfPhotoMetadataModel(m_context.uiContext, this)}
         , m_scrollStack{new NfScrollStack(this)}
 {
         setObjectName(QStringLiteral("NfImageMetadataPanel"));
@@ -62,11 +62,11 @@ void NfImageMetadataPanel::setupUi()
                                        const QSet<QString>& allowedKeys) {
                 auto* section = new NfCollapsibleSection(title);
                 section->setObjectName(QStringLiteral("MetadataSection"));
-                section->setExpanded(m_context->uiState->metadataSectionExpanded(key));
+                section->setExpanded(m_context.uiState()->metadataSectionExpanded(key));
                 QObject::connect(section,
                                  &NfCollapsibleSection::expandedChanged,
-                                 m_context->uiState,
-                                 [state = m_context->uiState, key](bool expanded) {
+                                 m_context.uiState(),
+                                 [state = m_context.uiState(), key](bool expanded) {
                                          state->setMetadataSectionExpanded(key, expanded);
                                  });
                 section->setContent(new NfMetadataSectionWidget(m_model, allowedKeys));

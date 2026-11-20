@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryListView.h"
+#include "NfDesktopContext.h"
 #include "NfLibraryTreeModel.h"
 
 #include <QAction>
@@ -33,12 +34,10 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryListView::NfLibraryListView(const NfLibraryContext& ctx,
-                                     NfLibraryTreeModel* model,
+NfLibraryListView::NfLibraryListView(const NfDesktopContext& ctx,
                                      QWidget* parent)
         : QListView(parent)
-        , m_context{ctx}
-        , m_model{model}
+        , m_model{ctx.libraryTreeModel}
 {
         setEditTriggers(QAbstractItemView::NoEditTriggers);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);

@@ -22,8 +22,8 @@
  */
 
 #include "NfTopBar.h"
+#include "NfDesktopContext.h"
 #include "NfBrowserViewModeBar.h"
-#include "NfContext.h"
 #include "NfSettingsDialog.h"
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibrary.h"
@@ -42,7 +42,7 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
+NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
 	: NfStyledWidget(parent)
         , m_context{ctx}
 {
@@ -99,19 +99,19 @@ NfTopBar::NfTopBar(NfContext* ctx, QWidget *parent)
         //topBarLayout->addWidget(m_browserViewModeBar, 0, Qt::AlignLeft);
         //topBarLayout->addStretch(1);
 
-        QObject::connect(m_context->uiState,
+        QObject::connect(m_context.uiState(),
                          &NfUiState::modeChanged,
                          this,
                          &NfTopBar::onModeChanged);
 
-        auto libraryState = m_context->uiState->libraryModeState();
+        auto libraryState = m_context.uiState()->libraryModeState();
         QObject::connect(libraryState,
                          &NfUiLibraryModeState::currentLibraryChanged,
                          this,
                          &NfTopBar::updateLibraryName);
         updateLibraryName(libraryState->currentLibrary());
 
-        onModeChanged(m_context->uiState->mode());
+        onModeChanged(m_context.uiState()->mode());
 }
 
 void NfTopBar::onModeChanged(NfUiMode mode)
@@ -133,19 +133,19 @@ void NfTopBar::onModeChanged(NfUiMode mode)
 
 void NfTopBar::showShootsControls()
 {
-        //auto state = m_context->uiState->shootsModeState()->browser();
+        //auto state = m_context.uiState->shootsModeState()->browser();
         //showBrowserViewModeBar(state);
 }
 
 void NfTopBar::showFolderControls()
 {
-        auto state = m_context->uiState->folderModeState()->browser();
+        auto state = m_context.uiState()->folderModeState()->browser();
         showBrowserViewModeBar(state);
 }
 
 void NfTopBar::showLibraryControls()
 {
-        auto state = m_context->uiState->libraryModeState()->browser();
+        auto state = m_context.uiState()->libraryModeState()->browser();
         showBrowserViewModeBar(state);
 }
 
@@ -157,7 +157,7 @@ void NfTopBar::showBrowserViewModeBar(NfUiBrowserState* state)
 
 void NfTopBar::updateLibraryName(uint64_t libraryId)
 {
-        const auto library = m_context->library->getLibrary(libraryId);
+        const auto library = m_context.library()->getLibrary(libraryId);
         m_libraryName->setText(library
                                ? QString::fromStdString(library->name())
                                : QString{});

@@ -28,23 +28,19 @@
 
 class QStackedWidget;
 
-namespace NfUi {
-struct NfContext;
-}
-
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfImageMetadataPanel;
 
 class NfRightPanel : public NfPanel {
   Q_OBJECT
 
 public:
-        explicit NfRightPanel(NfUi::NfContext *ctx, QWidget *parent = nullptr);
+        explicit NfRightPanel(const NfDesktopContext &ctx, QWidget *parent = nullptr);
         virtual ~NfRightPanel() = default;
 
 private:
-        NfUi::NfContext *m_context;
         QStackedWidget* m_stack;
         NfImageMetadataPanel* m_imageMetadata;
 };

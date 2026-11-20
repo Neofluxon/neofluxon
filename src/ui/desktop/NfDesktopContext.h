@@ -24,9 +24,11 @@
 #ifndef NF_DESKTOP_CONTEXT_H
 #define NF_DESKTOP_CONTEXT_H
 
+#include "NfContext.h"
+
 namespace NfUi {
-struct NfContext;
 class NfUiState;
+class NfLibraryAdapter;
 }
 
 namespace NfDesktop {
@@ -41,9 +43,11 @@ class NfLibraryTreeModel;
 struct NfDesktopContext
 {
 public:
+        NfUi::NfUiState* uiState() const { return uiContext->uiState; }
+        NfUi::NfLibraryAdapter* library() const { return uiContext->library; }
+
         NfUi::NfContext* uiContext;
         NfLibraryTreeModel* libraryTreeModel;
-        NfUi::NfUiState* uiState() const { return uiContext->uiState; }
 
         NfDesktopContext(NfUi::NfContext* uiContext)
                 : uiContext{uiContext}

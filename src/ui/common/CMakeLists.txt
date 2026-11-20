@@ -1,8 +1,6 @@
 set(COMMON_HEADERS
     NfQPixmap.h
     context/NfContext.h
-    context/NfFolderContext.h
-    context/NfLibraryContext.h
     state/NfUiBrowserState.h
     state/NfUiFolderModeState.h
     state/NfUiLibraryModeState.h
@@ -21,7 +19,6 @@ set(COMMON_SOURCES
     state/NfUiLibraryModeState.cpp
     state/NfUiShootsModeState.cpp
     state/NfUiState.cpp
-    context/NfLibraryContext.cpp
     NfPhotoProvider.cpp
     NfLibraryAdapter.cpp
     NfUserTasksAdapter.cpp

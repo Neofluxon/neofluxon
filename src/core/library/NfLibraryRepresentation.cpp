@@ -144,7 +144,7 @@ std::vector<NfPhoto>
 NfLibraryRepresentation::queryPhotosByEquipment(const NfEquipmentQuery& equipment) const
 {
         const NfImageRecords imageRecords = m_database->getImagesByEquipment(equipment,
-                                                                   m_libraryId);
+                                                                             m_libraryId);
         return imageRecordsToPhotos(imageRecords);
 }
 
@@ -264,7 +264,8 @@ void NfLibraryRepresentation::loadCamerasTree(NfLibraryTreeNode *parent,
                 auto childNode = findOrCreateChild(parent,
                                                    name,
                                                    NfLibraryTreeNode::NodeType::Camera);
-                childNode->setValue(camera.id);
+                childNode->setValue(NfEquipmentQuery{NfEquipmentQuery::Kind::Camera,
+                                                     camera.id} );
         }
 }
 
@@ -275,7 +276,8 @@ void NfLibraryRepresentation::loadLensesTree(NfLibraryTreeNode *parent,
                 auto childNode = findOrCreateChild(parent,
                                                    lens.name,
                                                    NfLibraryTreeNode::NodeType::Lens);
-                childNode->setValue(lens.id);
+                childNode->setValue(NfEquipmentQuery{NfEquipmentQuery::Kind::Lens,
+                                                     lens.id} );
         }
 }
 

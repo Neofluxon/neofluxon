@@ -22,6 +22,7 @@
  */
 
 #include "NfFolderView.h"
+#include "NfDesktopContext.h"
 #include "NfUiState.h"
 #include "NfUiBrowserState.h"
 #include "NfUiFolderModeState.h"
@@ -38,12 +39,12 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfFolderView::NfFolderView(NfDesktopContext ctx,
+NfFolderView::NfFolderView(const NfDesktopContext& ctx,
                            QWidget* parent)
         : QWidget(parent)
-        , m_context{std::move(ctx)}
+        , m_context{ctx}
         , m_state{m_context.uiState()->folderModeState()}
-        , m_model{new NfFolderModel(std::move(ctx), this)}
+        , m_model{new NfFolderModel(m_context, this)}
         , m_mainLayout{nullptr}
         , m_browserView{nullptr}
 {
@@ -52,7 +53,7 @@ NfFolderView::NfFolderView(NfDesktopContext ctx,
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(6);
 
-        auto browserTopBar = new NfBrowserTopBar(m_context, nullptr, this);
+        auto browserTopBar = new NfBrowserTopBar(m_context, this);
         m_mainLayout->addWidget(browserTopBar);
 
         m_browserView = new NfBrowserView(m_state->browser(),

@@ -53,7 +53,7 @@ public:
         [[nodiscard]] bool initialize(std::string& errorMessage);
         NfPhotoLoader* photoLoader() const;
         NfPhotoMetadataLoader* metadataLoader() const;
-        NfLibraryManager* libraryManger() const;
+        NfLibraryManager* libraryManager() const;
         NfCache* thumbnailCache() const;
         NfCache* previewCache() const;
         NfUserTaskManager* userTaskManager() const;

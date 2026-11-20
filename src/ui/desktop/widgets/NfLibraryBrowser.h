@@ -24,9 +24,6 @@
 #ifndef NF_LIBRARY_BROWSER_H
 #define NF_LIBRARY_BROWSER_H
 
-#include "NfDesktopContext.h"
-#include "NfLibraryContext.h"
-
 #include <QWidget>
 #include <cstdint>
 
@@ -38,6 +35,7 @@ class NfUiLibraryModeState;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfLibraryTreeModel;
 class NfLibraryListView;
 class NfRepresentationListView;
@@ -48,7 +46,7 @@ class NfLibraryBrowser : public QWidget
         Q_OBJECT
 
 public:
-        explicit NfLibraryBrowser(NfDesktopContext context,
+        explicit NfLibraryBrowser(const NfDesktopContext& context,
                                   QWidget *parent = nullptr);
 
 protected slots:
@@ -60,7 +58,7 @@ private:
         void setupUi();
 
 private:
-        NfUi::NfLibraryContext m_context;
+        const NfDesktopContext& m_context;
         NfUi::NfUiLibraryModeState *m_state;
         NfLibraryTreeModel *m_model;
         QVBoxLayout *m_mainLayout{nullptr};

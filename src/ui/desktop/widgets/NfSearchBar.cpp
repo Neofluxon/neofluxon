@@ -41,7 +41,7 @@ using namespace NfCore;
 
 namespace NfDesktop {
 
-NfSearchBar::NfSearchBar(NfDesktopContext &ctx,
+NfSearchBar::NfSearchBar(const NfDesktopContext &ctx,
                          QWidget* parent)
         : NfStyledWidget(parent)
         , m_state{ctx.uiState()}
@@ -90,7 +90,7 @@ void NfSearchBar::onShowCriteriaPopup()
 
         if (m_libraryTreeModel && m_state) {
                 if (auto* libraryState = m_state->libraryModeState()) {
-                        const auto options = m_libraryTreeModel->equipmentOptions(
+                        const auto options = m_libraryTreeModel->getEquipment(
                                 libraryState->currentLibrary());
                         cameraValues = options.cameraNames;
                         lensValues = options.lensNames;

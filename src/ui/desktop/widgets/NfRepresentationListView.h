@@ -24,28 +24,25 @@
 #ifndef NF_REPRESENTATION_LIST_VIEW_H
 #define NF_REPRESENTATION_LIST_VIEW_H
 
-#include "NfLibraryContext.h"
-
 #include <QListView>
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfLibraryTreeModel;
 
 class NfRepresentationListView : public QListView {
-    Q_OBJECT
+        Q_OBJECT
 public:
-    explicit NfRepresentationListView(const NfUi::NfLibraryContext& ctx,
-                                      NfLibraryTreeModel* model,
-                                      QWidget* parent = nullptr);
-    ~NfRepresentationListView() override = default;
+        explicit NfRepresentationListView(const NfDesktopContext& ctx,
+                                          QWidget* parent = nullptr);
+        ~NfRepresentationListView() override = default;
 
 protected:
-    QSize sizeHint() const override;
+        QSize sizeHint() const override;
 
 private:
-    NfUi::NfLibraryContext m_context;
-    NfLibraryTreeModel* m_model;
+        NfLibraryTreeModel* m_model;
 };
 
 } // namespace NfDesktop

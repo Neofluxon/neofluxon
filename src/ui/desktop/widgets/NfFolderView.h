@@ -24,8 +24,6 @@
 #ifndef NF_FOLDER_VIEW_H
 #define NF_FOLDER_VIEW_H
 
-#include "NfDesktopContext.h"
-
 #include <QWidget>
 
 class QVBoxLayout;
@@ -36,6 +34,7 @@ class NfUiFolderModeState;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
 class NfFolderModel;
 class NfBrowserView;
 
@@ -44,11 +43,11 @@ class NfFolderView : public QWidget
         Q_OBJECT
 
  public:
-        explicit NfFolderView(NfDesktopContext ctx,
+        explicit NfFolderView(const NfDesktopContext &ctx,
                               QWidget* parent = nullptr);
 
 private:
-        NfDesktopContext m_context;
+        const NfDesktopContext& m_context;
         NfUi::NfUiFolderModeState *m_state;
         NfFolderModel* m_model;
         QVBoxLayout* m_mainLayout;

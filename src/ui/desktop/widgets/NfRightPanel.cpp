@@ -22,7 +22,7 @@
  */
 
 #include "NfRightPanel.h"
-#include "NfContext.h"
+#include "NfDesktopContext.h"
 #include "NfUiState.h"
 #include "NfImageMetadataPanel.h"
 #include "core/NfLogger.h"
@@ -34,10 +34,9 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfRightPanel::NfRightPanel(NfContext *ctx, QWidget *parent)
+NfRightPanel::NfRightPanel(const NfDesktopContext &ctx, QWidget *parent)
         : NfPanel(parent, NfPanel::PanelPosition::AlignRight)
-        , m_context{ctx}
-        , m_imageMetadata{new NfImageMetadataPanel(m_context, this)}
+        , m_imageMetadata{new NfImageMetadataPanel(ctx, this)}
         , m_stack{new QStackedWidget(this)}
 {
         auto panelLayout = new QVBoxLayout(this);

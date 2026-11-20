@@ -22,6 +22,7 @@
  */
 
 #include "NfLibraryView.h"
+#include "NfDesktopContext.h"
 #include "NfUiState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfLibraryModel.h"
@@ -40,13 +41,11 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfLibraryView::NfLibraryView(NfDesktopContext context,
+NfLibraryView::NfLibraryView(const NfDesktopContext &ctx,
                              QWidget* parent)
         : QWidget(parent)
-        , m_desktopContext{context}
-        , m_context{context.uiContext()}
-        , m_state{m_context.uiState()->libraryModeState()}
-        , m_model{new NfLibraryModel(m_context, this)}
+        , m_state{ctx.uiState()->libraryModeState()}
+        , m_model{new NfLibraryModel(ctx, this)}
         , m_mainLayout{nullptr}
         , m_browserView{nullptr}
 {
@@ -60,13 +59,13 @@ NfLibraryView::NfLibraryView(NfDesktopContext context,
         //breadcrumbBar->setModel(m_model->breadcrump());
         //m_mainLayout->addWidget(breadcrumbBar);
 
-        auto* browserTopBar = new NfBrowserTopBar(m_context.uiState(),
-                                                  m_desktopContext.libraryTreeModel(),
-                                                  this);
+        auto* browserTopBar = new NfBrowserTopBar(ctx, this);
         browserTopBar->setFixedHeight(36);
         m_mainLayout->addWidget(browserTopBar);
 
-        m_browserView = new NfBrowserView(m_state->browser(), m_model->browser(), this);
+        m_browserView = new NfBrowserView(m_state->browser(),
+                                          m_model->browser(),
+                                          this);
         m_model->setQuery(m_state->query());
 
         m_mainLayout->addWidget(m_browserView);
