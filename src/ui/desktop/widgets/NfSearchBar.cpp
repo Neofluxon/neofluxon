@@ -85,40 +85,36 @@ NfSearchBar::NfSearchBar(const NfDesktopContext &ctx,
 
 void NfSearchBar::onShowCriteriaPopup()
 {
-        auto cameraValues = QStringList{};
-        auto lensValues = QStringList{};
+        if (!m_libraryTreeModel)
+                return;
 
-        if (m_libraryTreeModel && m_state) {
-                if (auto* libraryState = m_state->libraryModeState()) {
-                        const auto options = m_libraryTreeModel->getEquipment(
-                                libraryState->currentLibrary());
-                        cameraValues = options.cameraNames;
-                        lensValues = options.lensNames;
-                }
-        }
+        const auto* libraryState = m_state->libraryModeState();
+        const auto id = libraryState->currentLibrary();
+        QStringList cameras;
+        QStringList lenses;
+        const auto equipment = m_libraryTreeModel->getEquipment(id);
+        cameras  = equipment.cameraNames;
+        lenses   = equipment.lensNames;
 
-        if (!m_criteriaPopup) {
-                m_criteriaPopup = new NfSearchCriteriaWidget(cameraValues,
-                                                             lensValues,
-                                                             this);
-                m_criteriaPopup->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
-                QObject::connect(m_criteriaPopup,
-                                 &NfSearchCriteriaWidget::searchRequested,
-                                 this,
-                                 [this]() {
-                                         m_searchCriteria = m_criteriaPopup->criteria();
-                                         onSearchRequested();
-                                 });
-        } else {
-                m_criteriaPopup->setEquipmentValues(cameraValues, lensValues);
-        }
+        m_criteriaPopup = new NfSearchCriteriaWidget(cameras,
+                                                     lenses,
+                                                     this);
+        m_criteriaPopup->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+        QObject::connect(m_criteriaPopup,
+                         &NfSearchCriteriaWidget::searchRequested,
+                         this,
+                         [this]() {
+                                 m_searchCriteria = m_criteriaPopup->criteria();
+                                 onSearchRequested();
+                         });
 
         m_criteriaPopup->adjustSize();
-        const auto buttonBottomLeft = m_criteriaButton->mapToGlobal(
-                QPoint(0, m_criteriaButton->height()));
-        m_criteriaPopup->move(buttonBottomLeft.x() + m_criteriaButton->width()
-                                      - m_criteriaPopup->width(),
-                              buttonBottomLeft.y());
+        auto point = QPoint(0, m_criteriaButton->height());
+        point = m_criteriaButton->mapToGlobal(point);
+        m_criteriaPopup->move(point.x()
+                              + m_criteriaButton->width()
+                              - m_criteriaPopup->width(),
+                              point.y());
         m_criteriaPopup->show();
 }
 
@@ -130,14 +126,15 @@ void NfSearchBar::onSearchRequested()
         case NfUiMode::Library:
         {
                 auto* state = m_state->libraryModeState();
-                if (state) {
-                        NfLibraryQuery searchQuery;
-                        searchQuery.libraryId = state->currentLibrary();
-                        searchQuery.searchText =
-                                m_searchTextInput->text().trimmed().toStdString();
-                        searchQuery.criteria = m_searchCriteria;
-                        state->setQuery(searchQuery);
-                }
+                if (!state)
+                        return;
+
+                NfLibraryQuery searchQuery;
+                searchQuery.libraryId = state->currentLibrary();
+                searchQuery.searchText = m_searchTextInput->text().
+                        trimmed().toStdString();
+                searchQuery.criteria = m_searchCriteria;
+                state->setQuery(searchQuery);
                 return;
         }
         case NfUi::NfUiMode::Shoots:

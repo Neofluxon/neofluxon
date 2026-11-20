@@ -29,7 +29,6 @@
 
 #include <QString>
 #include <QStringList>
-#include <QVector>
 
 #include <vector>
 
@@ -53,6 +52,9 @@ public:
 signals:
         void searchRequested();
 
+protected slots:
+        void clearCriteria();
+
 private:
         struct CriterionRow
         {
@@ -62,11 +64,11 @@ private:
 
         void addCriterion(const QString& name);
 
-        QWidget* m_criteriaList{nullptr};
+        QWidget* m_criteriaListWidget{nullptr};
         QVBoxLayout* m_criteriaLayout{nullptr};
         QStringList m_cameraValues;
         QStringList m_lensValues;
-        QVector<CriterionRow> m_criteria;
+        std::vector<CriterionRow> m_criteria;
 };
 
 } // namespace NfDesktop

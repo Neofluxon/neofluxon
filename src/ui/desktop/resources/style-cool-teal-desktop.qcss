@@ -11,6 +11,13 @@ QFrame#SearchCriteriaWidget {
     border-radius: 8px;
 }
 
+QWidget#CriteriaListWidget,
+QWidget#SearchCriterionRow,
+QWidget#SearchCriterionValue,
+QWidget#SearchCriterionValueControl {
+    background-color: transparent;
+}
+
 QLabel#SearchCriteriaHeading {
     background: transparent;
     color: #e6eaf2;

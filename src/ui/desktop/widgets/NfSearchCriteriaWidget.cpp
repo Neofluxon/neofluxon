@@ -23,11 +23,11 @@
 
 #include "NfSearchCriteriaWidget.h"
 
-#include <algorithm>
-
 #include <QComboBox>
 #include <QDate>
 #include <QDateEdit>
+#include <QCalendarWidget>
+#include <QHash>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -40,7 +40,6 @@ namespace {
 
 struct CriterionDefinition
 {
-        QString name;
         NfCore::NfLibrarySearchField field;
         QStringList operators;
         QStringList values;
@@ -48,48 +47,45 @@ struct CriterionDefinition
         bool date{false};
 };
 
-const QVector<CriterionDefinition>& criterionDefinitions()
-{
-        static const QVector<CriterionDefinition> definitions{
-                {QObject::tr("Camera"), NfCore::NfLibrarySearchField::Camera,
-                 {QObject::tr("Is"), QObject::tr("Contains")},
-                 {},
-                 true,
-                 false},
-                {QObject::tr("Lens"), NfCore::NfLibrarySearchField::Lens,
-                 {QObject::tr("Is"), QObject::tr("Contains")},
-                 {},
-                 true,
-                 false},
-                {QObject::tr("Date Taken"), NfCore::NfLibrarySearchField::DateTaken,
-                 {QObject::tr("Is"), QObject::tr("Before"),
-                  QObject::tr("After"), QObject::tr("Between")},
-                 {},
-                 false,
-                 true},
-                {QObject::tr("File Format"), NfCore::NfLibrarySearchField::FileFormat,
-                 {QObject::tr("Is")},
-                 {QObject::tr("RAW"), QObject::tr("JPEG"), QObject::tr("PNG")},
-                 false,
-                 false},
-                {QObject::tr("Folder"), NfCore::NfLibrarySearchField::Folder,
-                 {QObject::tr("Is"), QObject::tr("Contains")},
-                 {},
-                 true,
-                 false},
-        };
-        return definitions;
-}
-
 const CriterionDefinition* definitionFor(const QString& name)
 {
-        const auto& definitions = criterionDefinitions();
-        const auto it = std::find_if(definitions.cbegin(),
-                                     definitions.cend(),
-                                     [&name](const auto& definition) {
-                                             return definition.name == name;
-                                     });
-        return it == definitions.cend() ? nullptr : &*it;
+        static const auto definitions = [] {
+                QHash<QString, CriterionDefinition> result;
+                result.insert(QObject::tr("Camera"),
+                              CriterionDefinition{NfCore::NfLibrarySearchField::Camera,
+                                                  {QObject::tr("Is"), QObject::tr("Contains")},
+                                                  {},
+                                                  true,
+                                                  false});
+                result.insert(QObject::tr("Lens"),
+                              CriterionDefinition{NfCore::NfLibrarySearchField::Lens,
+                                                  {QObject::tr("Is"), QObject::tr("Contains")},
+                                                  {},
+                                                 true,
+                                                 false});
+                result.insert(QObject::tr("Date Taken"),
+                              CriterionDefinition{NfCore::NfLibrarySearchField::DateTaken,
+                                                  {QObject::tr("Is"), QObject::tr("Before"), QObject::tr("After"), QObject::tr("Between")},
+                                                  {},
+                                                  false,
+                                                  true});
+                result.insert(QObject::tr("File Format"),
+                              CriterionDefinition{NfCore::NfLibrarySearchField::FileFormat,
+                                                  {QObject::tr("Is")},
+                                                  {QObject::tr("RAW"), QObject::tr("JPEG"), QObject::tr("PNG")},
+                                                  false,
+                                                  false});
+                result.insert(QObject::tr("Folder"),
+                              CriterionDefinition{NfCore::NfLibrarySearchField::Folder,
+                                                 {QObject::tr("Is"), QObject::tr("Contains")},
+                                                 {},
+                                                 true,
+                                                 false});
+                return result;
+        }();
+
+        const auto res = definitions.constFind(name);
+        return res != definitions.cend() ? &res.value() : nullptr;
 }
 
 QWidget* createValueControl(const CriterionDefinition& definition,
@@ -99,6 +95,7 @@ QWidget* createValueControl(const CriterionDefinition& definition,
                             QWidget* parent)
 {
         auto* container = new QWidget(parent);
+        container->setObjectName("SearchCriterionValueControl");
         auto* layout = new QHBoxLayout(container);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(8);
@@ -107,8 +104,12 @@ QWidget* createValueControl(const CriterionDefinition& definition,
                 auto* edit = new QDateEdit(container);
                 edit->setCalendarPopup(true);
                 edit->setDisplayFormat("yyyy-MM-dd");
+                edit->setMinimumDate(QDate(1800, 1, 1));
+                edit->setMaximumDate(QDate::currentDate());
                 edit->setSpecialValueText(QObject::tr("Select date"));
                 edit->setDate(edit->minimumDate());
+                const auto today = QDate::currentDate();
+                edit->calendarWidget()->setCurrentPage(today.year(), today.month());
                 edit->setMinimumWidth(128);
                 layout->addWidget(edit);
         };
@@ -161,11 +162,12 @@ NfSearchCriteriaWidget::NfSearchCriteriaWidget(const QStringList& cameraValues,
         criteriaLabel->setObjectName("SearchCriteriaHeading");
         layout->addWidget(criteriaLabel);
 
-        m_criteriaList = new QWidget(this);
-        m_criteriaLayout = new QVBoxLayout(m_criteriaList);
+        m_criteriaListWidget = new QWidget(this);
+        m_criteriaListWidget->setObjectName("CriteriaListWidget");
+        m_criteriaLayout = new QVBoxLayout(m_criteriaListWidget);
         m_criteriaLayout->setContentsMargins(0, 0, 0, 0);
         m_criteriaLayout->setSpacing(6);
-        layout->addWidget(m_criteriaList);
+        layout->addWidget(m_criteriaListWidget);
 
         auto* footer = new QHBoxLayout();
         footer->setSpacing(8);
@@ -191,22 +193,7 @@ NfSearchCriteriaWidget::NfSearchCriteriaWidget(const QStringList& cameraValues,
         QObject::connect(clearButton,
                          &QPushButton::clicked,
                          this,
-                         [this]() {
-                                 for (const auto& row : m_criteria) {
-                                         auto* valueBox =
-                                                 row.widget->findChild<QComboBox*>(
-                                                         "SearchCriterionInput");
-                                         if (valueBox) {
-                                                 valueBox->setCurrentIndex(-1);
-                                                 if (valueBox->isEditable())
-                                                         valueBox->setEditText(QString{});
-                                         }
-                                         const auto dateEdits =
-                                                 row.widget->findChildren<QDateEdit*>();
-                                         for (auto* dateEdit : dateEdits)
-                                                 dateEdit->setDate(dateEdit->minimumDate());
-                                 }
-                         });
+                         &NfSearchCriteriaWidget::clearCriteria);
 
         addCriterion(tr("Date Taken"));
         addCriterion(tr("Camera"));
@@ -215,13 +202,32 @@ NfSearchCriteriaWidget::NfSearchCriteriaWidget(const QStringList& cameraValues,
         addCriterion(tr("Folder"));
 }
 
+void NfSearchCriteriaWidget::clearCriteria()
+{
+        for (const auto& row : m_criteria) {
+                auto* valueBox = row.widget->findChild<QComboBox*>("SearchCriterionInput");
+                if (valueBox) {
+                        valueBox->setCurrentIndex(-1);
+                        if (valueBox->isEditable())
+                                valueBox->setEditText(QString{});
+                }
+
+                const auto dateEdits = row.widget->findChildren<QDateEdit*>();
+                for (auto* dateEdit : dateEdits) {
+                        dateEdit->setDate(dateEdit->minimumDate());
+                        const auto today = QDate::currentDate();
+                        dateEdit->calendarWidget()->setCurrentPage(today.year(), today.month());
+                }
+        }
+}
+
 void NfSearchCriteriaWidget::addCriterion(const QString& name)
 {
         const auto* definition = definitionFor(name);
         if (!definition)
                 return;
 
-        auto* row = new QWidget(m_criteriaList);
+        auto* row = new QWidget(m_criteriaListWidget);
         row->setObjectName("SearchCriterionRow");
         auto* layout = new QHBoxLayout(row);
         layout->setContentsMargins(0, 0, 0, 0);
@@ -245,14 +251,13 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
         auto* valueHostLayout = new QVBoxLayout(valueHost);
         valueHostLayout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(valueHost, 1);
-        valueHostLayout->addWidget(
-                createValueControl(*definition,
-                                   operatorBox->currentText(),
-                                   m_cameraValues,
-                                   m_lensValues,
-                                   valueHost));
+        valueHostLayout->addWidget(createValueControl(*definition,
+                                                      operatorBox->currentText(),
+                                                      m_cameraValues,
+                                                      m_lensValues,
+                                                      valueHost));
 
-        m_criteria.append({definition->field, row});
+        m_criteria.push_back({definition->field, row});
         m_criteriaLayout->addWidget(row);
 
         QObject::connect(operatorBox,
@@ -265,12 +270,11 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
                           lensValues = m_lensValues](const QString& op) {
                                  auto* oldControl = valueHostLayout->takeAt(0)->widget();
                                  delete oldControl;
-                                 valueHostLayout->addWidget(
-                                         createValueControl(*definition,
-                                                            op,
-                                                            cameraValues,
-                                                            lensValues,
-                                                            valueHost));
+                                 valueHostLayout->addWidget(createValueControl(*definition,
+                                                                               op,
+                                                                               cameraValues,
+                                                                               lensValues,
+                                                                               valueHost));
                          });
 }
 
