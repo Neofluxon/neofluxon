@@ -30,6 +30,9 @@
 #include <QApplication>
 #include <QIcon>
 #include <QMouseEvent>
+#include <QFontMetrics>
+#include <QPolygonF>
+#include <cmath>
 
 namespace NfDesktop {
 
@@ -38,6 +41,7 @@ NfThumbnailDelegate::NfThumbnailDelegate(QObject* parent)
         , m_favoriteIcon{":/icons/favorite.svg"}
         , m_favoriteOutlineIcon{":/icons/favorite-outline.svg"}
         , m_padding{4}
+        , m_controlsHeight{32}
 {
 }
 
@@ -49,18 +53,63 @@ QSize NfThumbnailDelegate::sizeHint(const QStyleOptionViewItem& option,
 
 QRect NfThumbnailDelegate::thumbnailRect(const QRect& itemRect) const
 {
-        return itemRect.adjusted(m_padding, m_padding, -m_padding, -m_padding);
+        return itemRect.adjusted(m_padding,
+                                 m_padding,
+                                 -m_padding,
+                                 -(m_controlsHeight + m_padding));
+}
+
+QRect NfThumbnailDelegate::controlsRect(const QRect& itemRect) const
+{
+        const auto thumbnail = thumbnailRect(itemRect);
+        return QRect(thumbnail.left(),
+                     thumbnail.bottom() + 5,
+                     thumbnail.width(),
+                     m_controlsHeight - 6);
 }
 
 QRect NfThumbnailDelegate::favoriteIconRect(const QRect& itemRect) const
 {
-        constexpr int iconSize = 22;
-        constexpr int inset = 4;
-        const auto thumbnail = thumbnailRect(itemRect);
-        return QRect(thumbnail.right() - inset - iconSize + 1,
-                     thumbnail.top() + inset,
+        constexpr int iconSize = 16;
+        constexpr int inset = 8;
+        const auto controls = controlsRect(itemRect);
+        return QRect(controls.right() - inset - iconSize + 1,
+                     controls.top() + (controls.height() - iconSize) / 2,
                      iconSize,
                      iconSize);
+}
+
+QRect NfThumbnailDelegate::favoriteHitRect(const QRect& itemRect) const
+{
+        const auto icon = favoriteIconRect(itemRect);
+        constexpr int hitSize = 28;
+        return QRect(icon.center().x() - hitSize / 2,
+                     icon.center().y() - hitSize / 2,
+                     hitSize,
+                     hitSize);
+}
+
+static void drawOutlineStar(QPainter* painter, const QRect& rect)
+{
+        constexpr qreal pi = 3.14159265358979323846;
+        QPolygonF star;
+        const QPointF center(rect.center());
+        const qreal outerRadius = rect.width() * 0.48;
+        const qreal innerRadius = outerRadius * 0.46;
+
+        for (int point = 0; point < 10; ++point) {
+                const qreal radius = (point % 2 == 0) ? outerRadius : innerRadius;
+                const qreal angle = -pi / 2.0 + point * pi / 5.0;
+                star << QPointF(center.x() + radius * std::cos(angle),
+                                center.y() + radius * std::sin(angle));
+        }
+
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        painter->setPen(QPen(QColor(127, 135, 149), 1));
+        painter->setBrush(Qt::NoBrush);
+        painter->drawPolygon(star);
+        painter->restore();
 }
 
 void NfThumbnailDelegate::setFavoriteHoverIndex(const QModelIndex& index)
@@ -79,7 +128,7 @@ bool NfThumbnailDelegate::editorEvent(QEvent *event,
 
         auto* mouseEvent = static_cast<QMouseEvent*>(event);
         if (mouseEvent->button() != Qt::LeftButton
-            || !favoriteIconRect(option.rect).contains(mouseEvent->pos()))
+            || !favoriteHitRect(option.rect).contains(mouseEvent->pos()))
                 return QStyledItemDelegate::editorEvent(event, model, option, index);
 
         const auto photo = model->data(index, NfBrowserModel::PhotoRole).value<NfPhoto>();
@@ -136,21 +185,32 @@ void NfThumbnailDelegate::paint(QPainter* painter,
         painter->restore();
 
         const auto photo = index.data(NfBrowserModel::PhotoRole).value<NfPhoto>();
+        const auto controls = controlsRect(opt.rect);
+
+        painter->save();
+        constexpr int starSize = 14;
+        constexpr int starSpacing = 1;
+        for (int i = 0; i < 5; ++i) {
+                const QRect starRect(controls.left() + 8 + i * (starSize + starSpacing),
+                                     controls.top() + (controls.height() - starSize) / 2,
+                                     starSize,
+                                     starSize);
+                drawOutlineStar(painter,
+                                starRect);
+        }
+
+        painter->restore();
+
         painter->save();
         const auto favIconRect = favoriteIconRect(opt.rect);
-        painter->setPen(Qt::NoPen);
-        if (index == m_favoriteHoverIndex) {
-                painter->setBrush(QColor(68, 72, 82, 235));
-        } else {
-                painter->setBrush(QColor(24, 27, 34, 170));
-        }
-        painter->drawEllipse(favIconRect);
-
-        const auto iconRect = favIconRect.adjusted(1, 1, -1, -1);
+        const auto iconRect = favIconRect;
         if (photo.isFavorite()) {
                 m_favoriteIcon.paint(painter, iconRect);
         } else {
-                painter->setOpacity(0.45);
+                if (index == m_favoriteHoverIndex)
+                        painter->setOpacity(1.0);
+                else
+                        painter->setOpacity(0.78);
                 m_favoriteOutlineIcon.paint(painter, iconRect);
         }
         painter->restore();

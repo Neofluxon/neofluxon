@@ -45,6 +45,7 @@ public:
                          const QStyleOptionViewItem &option,
                          const QModelIndex &index) override;
         QRect favoriteIconRect(const QRect& itemRect) const;
+        QRect favoriteHitRect(const QRect& itemRect) const;
         void setFavoriteHoverIndex(const QModelIndex& index);
 
 signals:
@@ -52,11 +53,13 @@ signals:
 
 private:
         QRect thumbnailRect(const QRect& itemRect) const;
+        QRect controlsRect(const QRect& itemRect) const;
 
         QIcon m_favoriteIcon;
         QIcon m_favoriteOutlineIcon;
         QModelIndex m_favoriteHoverIndex;
         int m_padding;
+        int m_controlsHeight;
 };
 
 } // namespace NfDesktop

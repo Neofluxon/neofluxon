@@ -36,7 +36,7 @@ namespace NfDesktop {
 NfThumbnailsView::NfThumbnailsView(QWidget* parent)
         : QListView(parent)
         , m_layoutMode{LayoutMode::GridView}
-        , m_thumbnailSize{180, 120}
+        , m_thumbnailSize{220, 260}
 
 {
         setObjectName("NfThumbnailsView");
@@ -97,7 +97,7 @@ void NfThumbnailsView::mousePressEvent(QMouseEvent* event)
                 const auto index = indexAt(event->pos());
                 auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegate(index));
                 if (index.isValid() && delegate
-                    && delegate->favoriteIconRect(visualRect(index)).contains(event->pos())) {
+                    && delegate->favoriteHitRect(visualRect(index)).contains(event->pos())) {
                         m_favoritePressActive = true;
                         m_favoritePressIndex = index;
                         event->accept();
@@ -115,7 +115,7 @@ void NfThumbnailsView::mouseReleaseEvent(QMouseEvent* event)
 
                 auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegate(m_favoritePressIndex));
                 if (delegate && m_favoritePressIndex.isValid()
-                    && delegate->favoriteIconRect(visualRect(m_favoritePressIndex)).contains(event->pos())) {
+                    && delegate->favoriteHitRect(visualRect(m_favoritePressIndex)).contains(event->pos())) {
                         QStyleOptionViewItem option;
                         option.rect = visualRect(m_favoritePressIndex);
                         option.widget = this;
@@ -148,17 +148,17 @@ void NfThumbnailsView::updateLayout()
                 setMinimumHeight(0);
                 setMaximumHeight(QWIDGETSIZE_MAX);
                 setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+                setThumbnailSize(QSize(220, 260));
         } else {
                 setWrapping(false);
                 setResizeMode(QListView::Fixed);
                 const int verticalPadding = 32;
-                const int filmstripHeight = m_thumbnailSize.height() + verticalPadding;
+                const int filmstripHeight = 192;
                 setMinimumHeight(filmstripHeight);
                 setMaximumHeight(filmstripHeight);
                 setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                setThumbnailSize(QSize(180, 160));
         }
-
-        setThumbnailSize(m_thumbnailSize);
 }
 
 void NfThumbnailsView::resizeEvent(QResizeEvent* event)
@@ -181,7 +181,7 @@ void NfThumbnailsView::mouseMoveEvent(QMouseEvent* event)
         auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegate(index));
         QModelIndex nextHoverIndex;
         if (index.isValid() && delegate
-            && delegate->favoriteIconRect(visualRect(index)).contains(event->pos())) {
+            && delegate->favoriteHitRect(visualRect(index)).contains(event->pos())) {
                 nextHoverIndex = index;
                 setCursor(Qt::PointingHandCursor);
         } else {
