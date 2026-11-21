@@ -271,4 +271,15 @@ void NfLibraryManager::setFolderImportedCallback(FolderImportedCallback cb)
         m_folderImportedCb = std::move(cb);
 }
 
+bool NfLibraryManager::setImageFavorite(int64_t libraryId,
+                                        const NfPhotoId& photoId,
+                                        bool favorite)
+{
+        auto library = getLibrary(libraryId);
+        if (library)
+                return library->setImageFavorite(photoId, favorite);
+
+        return false;
+}
+
 } // namespace NfCore

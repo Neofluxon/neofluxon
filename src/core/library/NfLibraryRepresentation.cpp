@@ -378,6 +378,7 @@ NfLibraryRepresentation::imageRecordsToPhotos(const NfImageRecords& records)
                 photo.setSizeOnDisk(record.sizeOnDisk);
                 photo.setFormat(record.format);
                 photo.setDateTaken(record.dateTaken);
+                photo.setFavorite(record.favorite);
                 photos.emplace_back(std::move(photo));
         }
 

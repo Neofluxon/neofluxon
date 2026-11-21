@@ -50,6 +50,11 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
         m_thumbnailsView->setModel(m_model);
         m_mainLayout->addWidget(m_thumbnailsView);
 
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::favoriteToggleRequested,
+                         m_model,
+                         &NfBrowserModel::updateFavorite);
+
         QObject::connect(m_state,
                          &NfUiBrowserState::viewModeChanged,
                          this,
@@ -180,6 +185,13 @@ void NfBrowserView::updateView()
 void NfBrowserView::keyPressEvent(QKeyEvent *event)
 {
         switch (event->key()) {
+        case Qt::Key_F:
+                if (event->modifiers() == Qt::NoModifier) {
+                        m_thumbnailsView->setFocus();
+                        QCoreApplication::sendEvent(m_thumbnailsView, event);
+                        event->accept();
+                        break;
+                }
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:

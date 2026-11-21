@@ -35,14 +35,14 @@ NfPhoto::NfPhoto(const std::filesystem::path &filePath)
 {
 }
 
-const NfPhotoId& NfPhoto::id() const
-{
-        return m_photoId;
-}
-
 const std::filesystem::path& NfPhoto::path() const
 {
         return m_filePath;
+}
+
+const NfPhotoId& NfPhoto::id() const
+{
+        return m_photoId;
 }
 
 void NfPhoto::setName(std::string_view name)
@@ -85,18 +85,6 @@ const std::chrono::system_clock::time_point& NfPhoto::dateTaken() const
         return m_dateTaken;
 }
 
-NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
-{
-        auto ext = path.extension().string();
-        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-        const auto supportedFormat = NfSupportedFormats::all.find(ext);
-        if (supportedFormat != NfSupportedFormats::all.end())
-                return supportedFormat->second;
-
-        return PhotoFormat::Unknown;
-}
-
 void NfPhoto::setCameraMaker(std::string_view maker)
 {
         m_cameraMaker = maker;
@@ -125,6 +113,14 @@ void NfPhoto::setLens(std::string_view lens)
 const std::string& NfPhoto::lens() const
 {
         return m_lens;
+}
+
+bool NfPhoto::isValid() const
+{
+        return id().isValid()
+                && !m_name.empty()
+                && m_sizeOnDisk != 0
+                && m_format != PhotoFormat::Unknown;
 }
 
 bool NfPhoto::loadSummary(bool fileSystemOnly)
@@ -165,12 +161,26 @@ bool NfPhoto::loadSummary(bool fileSystemOnly)
         return true;
 }
 
-bool NfPhoto::isValid() const
+void NfPhoto::setFavorite(bool favorite)
 {
-        return id().isValid()
-                && !m_name.empty()
-                && m_sizeOnDisk != 0
-                && m_format != PhotoFormat::Unknown;
+        m_favorite = favorite;
+}
+
+bool NfPhoto::isFavorite() const
+{
+        return m_favorite;
+}
+
+NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)
+{
+        auto ext = path.extension().string();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+        const auto supportedFormat = NfSupportedFormats::all.find(ext);
+        if (supportedFormat != NfSupportedFormats::all.end())
+                return supportedFormat->second;
+
+        return PhotoFormat::Unknown;
 }
 
 } // namespace NfCore

@@ -24,6 +24,9 @@
 #ifndef NF_THUMBNAIL_DELEGATE_H
 #define NF_THUMBNAIL_DELEGATE_H
 
+#include "NfBrowserModel.h"
+
+#include <QIcon>
 #include <QStyledItemDelegate>
 
 namespace NfDesktop {
@@ -37,8 +40,22 @@ public:
                    const QModelIndex& index) const override;
         QSize sizeHint(const QStyleOptionViewItem& option,
                        const QModelIndex& index) const override;
+        bool editorEvent(QEvent *event,
+                         QAbstractItemModel *model,
+                         const QStyleOptionViewItem &option,
+                         const QModelIndex &index) override;
+        QRect favoriteIconRect(const QRect& itemRect) const;
+        void setFavoriteHoverIndex(const QModelIndex& index);
+
+signals:
+        void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
 
 private:
+        QRect thumbnailRect(const QRect& itemRect) const;
+
+        QIcon m_favoriteIcon;
+        QIcon m_favoriteOutlineIcon;
+        QModelIndex m_favoriteHoverIndex;
         int m_padding;
 };
 

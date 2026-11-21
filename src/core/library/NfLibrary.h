@@ -35,6 +35,7 @@ namespace NfCore {
 
 class NfLibraryDatabase;
 class NfLibraryRepresentation;
+class NfPhotoId;
 class NfPhoto;
 class NfLibraryQuery;
 
@@ -52,6 +53,7 @@ public:
         void addPhoto(const NfPhoto& photo);
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
         bool folderExists(std::filesystem::path &folder) const;
+        bool setImageFavorite(const NfPhotoId& photoId, bool favorite = true);
 
 private:
         int64_t storeCamera(std::string_view maker, std::string_view model);

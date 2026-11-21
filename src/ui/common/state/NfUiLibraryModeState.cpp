@@ -34,13 +34,13 @@ NfUiLibraryModeState::NfUiLibraryModeState(QObject* parent)
 {
 }
 
-void NfUiLibraryModeState::setCurrentLibrary(uint64_t libraryId)
+void NfUiLibraryModeState::setCurrentLibrary(int64_t libraryId)
 {
         m_currentLibrary = libraryId;
         emit currentLibraryChanged(m_currentLibrary);
 }
 
-uint64_t NfUiLibraryModeState::currentLibrary() const
+int64_t NfUiLibraryModeState::currentLibrary() const
 {
         return m_currentLibrary;
 }

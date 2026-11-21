@@ -17,6 +17,8 @@
   <file>icons/folder.svg</file>
   <file>icons/equipment.svg</file>
   <file>icons/collections.svg</file>
+  <file>icons/favorite.svg</file>
+  <file>icons/favorite-outline.svg</file>
   <file>icons/viewmode_grid.svg</file>
   <file>icons/viewmode_preview.svg</file>
   <file>icons/folder-scan-current.svg</file>

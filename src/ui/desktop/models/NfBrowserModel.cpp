@@ -25,7 +25,9 @@
 #include "NfContext.h"
 #include "NfUiState.h"
 #include "NfUiFolderModeState.h"
+#include "NfUiLibraryModeState.h"
 #include "NfPhotoProvider.h"
+#include "NfLibraryAdapter.h"
 #include "core/NfLogger.h"
 
 #include <ranges>
@@ -114,6 +116,33 @@ void NfBrowserModel::setSortOrder(const NfUiBrowserState::SortOrder sortOrder)
 NfPhotoSource NfBrowserModel::getSource() const
 {
         return m_photoProvider->getSource();
+}
+
+bool NfBrowserModel::updateFavorite(const NfPhotoId& photoId, bool favorite)
+{
+        const auto photoIndex = indexForPhotoId(photoId);
+        if (!photoIndex.isValid())
+                return false;
+
+        if (!m_context->uiState || !m_context->library) {
+                NF_LOG_ERROR("cannot set favorite without UI state and library adapter");
+                return false;
+        }
+
+        const auto libraryId = m_context->uiState->libraryModeState()->currentLibrary();
+        if (!m_context->library->setImageFavorite(libraryId,
+                                                  photoId,
+                                                  favorite)) {
+                NF_LOG_ERROR("failed to update favorite for photo id: "
+                             << photoId.value());
+                return false;
+        }
+
+        const auto positionIndex = m_visibleIndexes[photoIndex.row()];
+        m_allPhotos[positionIndex].setFavorite(favorite);
+        emit dataChanged(photoIndex, photoIndex, {ImageDataRole::PhotoRole});
+
+        return true;
 }
 
 bool NfBrowserModel::acceptsPhoto(const NfPhoto& photo) const

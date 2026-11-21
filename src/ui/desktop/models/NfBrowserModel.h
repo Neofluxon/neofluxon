@@ -71,6 +71,7 @@ public:
         void setSource(NfCore::NfPhotoSource source);
         NfCore::NfPhotoSource getSource() const;
         void setFormatFilter(const std::set<NfCore::NfPhoto::PhotoFormat>& formats);
+        bool updateFavorite(const NfCore::NfPhotoId& photoId, bool favorite);
         // Returns the model index for a photo ID, or an invalid index if not found.
         QModelIndex indexForPhotoId(const NfCore::NfPhotoId& photoId) const;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;

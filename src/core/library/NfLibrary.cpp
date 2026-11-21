@@ -108,7 +108,8 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
         int cameraId = storeCamera(photo.cameraMaker(),
                                    photo.cameraModel());
         int lensId   = storeLens(photo.lens());
-        auto id = m_db->addImage(folderId,
+        auto id = m_db->addImage(photo.id().value(),
+                                 folderId,
                                  photo.name(),
                                  photo.format(),
                                  photo.sizeOnDisk(),
@@ -162,6 +163,20 @@ bool NfLibrary::folderExists(std::filesystem::path &folder) const
         using Mode = NfLibraryDatabase::Transaction::Mode;
         NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
         return m_db->getFolderIdByPath(folder, id()) != -1;
+}
+
+bool NfLibrary::setImageFavorite(const NfPhotoId& photoId, bool favorite)
+{
+        NfLibraryDatabase::Transaction tx(m_db);
+        if (!m_db->setImagesFavorite({photoId}, favorite)) {
+                NF_LOG_ERROR("Failed to set favorite for photo id: "
+                             << photoId.value());
+                return false;
+        }
+
+        tx.commit();
+
+        return true;
 }
 
 int64_t NfLibrary::storeCamera(std::string_view maker,

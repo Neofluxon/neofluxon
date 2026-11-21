@@ -42,7 +42,12 @@ NfThumbnailsView::NfThumbnailsView(QWidget* parent)
         setObjectName("NfThumbnailsView");
         setAttribute(Qt::WA_StyledBackground, true);
 
-        setItemDelegate(new NfThumbnailDelegate(this));
+        auto* delegate = new NfThumbnailDelegate(this);
+        setItemDelegate(delegate);
+        QObject::connect(delegate,
+                         &NfThumbnailDelegate::favoriteToggleRequested,
+                         this,
+                         &NfThumbnailsView::favoriteToggleRequested);
 
         QObject::connect(verticalScrollBar(),
                          &QScrollBar::valueChanged,
@@ -81,6 +86,48 @@ void NfThumbnailsView::setThumbnailSize(const QSize &thumSize)
         m_thumbnailSize = thumSize;
         setIconSize(m_thumbnailSize);
         setGridSize(m_thumbnailSize);
+}
+
+void NfThumbnailsView::mousePressEvent(QMouseEvent* event)
+{
+        m_favoritePressActive = false;
+        m_favoritePressIndex = QModelIndex();
+
+        if (event->button() == Qt::LeftButton) {
+                const auto index = indexAt(event->pos());
+                auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegate(index));
+                if (index.isValid() && delegate
+                    && delegate->favoriteIconRect(visualRect(index)).contains(event->pos())) {
+                        m_favoritePressActive = true;
+                        m_favoritePressIndex = index;
+                        event->accept();
+                        return;
+                }
+        }
+
+        QListView::mousePressEvent(event);
+}
+
+void NfThumbnailsView::mouseReleaseEvent(QMouseEvent* event)
+{
+        if (m_favoritePressActive && event->button() == Qt::LeftButton) {
+                m_favoritePressActive = false;
+
+                auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegate(m_favoritePressIndex));
+                if (delegate && m_favoritePressIndex.isValid()
+                    && delegate->favoriteIconRect(visualRect(m_favoritePressIndex)).contains(event->pos())) {
+                        QStyleOptionViewItem option;
+                        option.rect = visualRect(m_favoritePressIndex);
+                        option.widget = this;
+                        delegate->editorEvent(event, model(), option, m_favoritePressIndex);
+                }
+
+                m_favoritePressIndex = QModelIndex();
+                event->accept();
+                return;
+        }
+
+        QListView::mouseReleaseEvent(event);
 }
 
 const QSize& NfThumbnailsView::thumbnailSize() const
@@ -126,9 +173,38 @@ void NfThumbnailsView::wheelEvent(QWheelEvent* event)
 
 void NfThumbnailsView::mouseMoveEvent(QMouseEvent* event)
 {
-        auto index = indexAt(event->pos());
-        if (index.isValid())
+        const auto index = indexAt(event->pos());
+        if (index.isValid()) {
                 emit photoHovered(index);
+        }
+
+        auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegate(index));
+        QModelIndex nextHoverIndex;
+        if (index.isValid() && delegate
+            && delegate->favoriteIconRect(visualRect(index)).contains(event->pos())) {
+                nextHoverIndex = index;
+                setCursor(Qt::PointingHandCursor);
+        } else {
+                setCursor(Qt::ArrowCursor);
+        }
+
+        if (nextHoverIndex != m_favoriteHoverIndex) {
+                if (m_favoriteHoverIndex.isValid()) {
+                        viewport()->update(visualRect(m_favoriteHoverIndex));
+                        if (auto* oldDelegate = qobject_cast<NfThumbnailDelegate*>(
+                                    itemDelegate(m_favoriteHoverIndex))) {
+                                oldDelegate->setFavoriteHoverIndex(QModelIndex());
+                        }
+                }
+                m_favoriteHoverIndex = nextHoverIndex;
+                if (m_favoriteHoverIndex.isValid()) {
+                        if (auto* hoverDelegate = qobject_cast<NfThumbnailDelegate*>(
+                                    itemDelegate(m_favoriteHoverIndex))) {
+                                hoverDelegate->setFavoriteHoverIndex(m_favoriteHoverIndex);
+                        }
+                        viewport()->update(visualRect(m_favoriteHoverIndex));
+                }
+        }
 
         QListView::mouseMoveEvent(event);
 }
@@ -148,6 +224,20 @@ void NfThumbnailsView::keyPressEvent(QKeyEvent *event)
         QListView::keyPressEvent(event);
 
         switch (event->key()) {
+        case Qt::Key_F:
+                if (event->modifiers() == Qt::NoModifier) {
+                        const auto index = currentIndex();
+                        if (index.isValid()) {
+                                const auto photo = model()->data(
+                                        index, NfBrowserModel::PhotoRole).value<NfPhoto>();
+                                if (photo.id().isValid()) {
+                                        emit favoriteToggleRequested(photo.id(), !photo.isFavorite());
+                                        event->accept();
+                                        break;
+                                }
+                        }
+                }
+                break;
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:

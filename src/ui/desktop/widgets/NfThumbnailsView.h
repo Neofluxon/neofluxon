@@ -24,6 +24,8 @@
 #ifndef NF_THUBNAILS_VIEW_H
 #define NF_THUBNAILS_VIEW_H
 
+#include "NfBrowserModel.h"
+
 #include <QListView>
 
 class QWheelEvent;
@@ -53,11 +55,14 @@ public:
 signals:
         void photoActivated(const QModelIndex& index);
         void photoHovered(const QModelIndex& index);
+        void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
 
 protected:
         void resizeEvent(QResizeEvent* event) override;
         void wheelEvent(QWheelEvent* event) override;
         void mouseMoveEvent(QMouseEvent* event) override;
+        void mousePressEvent(QMouseEvent* event) override;
+        void mouseReleaseEvent(QMouseEvent* event) override;
         void mouseDoubleClickEvent(QMouseEvent* event) override;
         void keyPressEvent(QKeyEvent *event) override;
         void onScrollChanged();
@@ -68,6 +73,9 @@ private:
 private:
         LayoutMode m_layoutMode;
         QSize m_thumbnailSize;
+        bool m_favoritePressActive{false};
+        QModelIndex m_favoritePressIndex;
+        QModelIndex m_favoriteHoverIndex;
 };
 
 } // namespace NfDesktop

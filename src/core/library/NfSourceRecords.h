@@ -58,6 +58,7 @@ struct NfImageRecord {
         std::uintmax_t sizeOnDisk;
         NfPhoto::PhotoFormat format;
         std::chrono::system_clock::time_point dateTaken;
+        bool favorite{false};
 };
 
 using NfImageRecords = std::vector<NfImageRecord>;

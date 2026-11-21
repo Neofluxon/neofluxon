@@ -97,7 +97,8 @@ public:
         std::vector<int64_t> libraryIds() const;
         std::vector<NfLibraryEntry> libraries() const;
         int64_t addFolder(const std::filesystem::path& path, int64_t libraryId);
-        int64_t addImage(int64_t folderId,
+        int64_t addImage(uint64_t photo_id,
+                         int64_t folderId,
                          const std::string& fileName,
                          NfPhoto::PhotoFormat format,
                          std::uintmax_t sizeOnDisk,
@@ -118,11 +119,13 @@ public:
         int64_t addLens(std::string_view lens);
         std::unique_ptr<NfRepresentationRecord> getRepresentationRecord(int64_t libraryId,
                                                                         NfLibraryRepresentation::RepresentationType repType);
-        int64_t getOrCreateEquipment(const std::string& type,
-                                     const std::string& make,
-                                     const std::string& model);
-        int64_t createCollection(const std::string& name, int64_t parentId = 0);
-        bool addImageToCollection(int64_t imageId, int64_t collectionId);
+        //int64_t getOrCreateEquipment(const std::string& type,
+        //                             const std::string& make,
+        //                             const std::string& model);
+        //int64_t createCollection(const std::string& name, int64_t parentId = 0);
+        //bool addImageToCollection(int64_t imageId, int64_t collectionId);
+        bool setImagesFavorite(const std::vector<NfPhotoId>& photoIds,
+                               bool favorite = true);
 
 protected:
         void populateSourceData(NfRepresentationRecord *record);

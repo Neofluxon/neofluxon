@@ -69,6 +69,9 @@ public:
                 LibraryResultCallback resultCb,
                 NfRequestType request = NfRequestType::VisibleLibraryTree);
         void setFolderImportedCallback(FolderImportedCallback cb);
+        bool setImageFavorite(int64_t libraryId,
+                              const NfPhotoId& photoId,
+                              bool favorite = true);
 
 private:
         NfScheduler* m_backgroundScheduler;

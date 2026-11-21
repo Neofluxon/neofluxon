@@ -24,6 +24,7 @@
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibraryManager.h"
 #include "core/library/NfLibrary.h"
+#include "core/NfPhotoId.h"
 #include "core/NfLogger.h"
 
 using namespace NfCore;
@@ -96,4 +97,12 @@ void NfLibraryAdapter::requestLibraryBranch(uint64_t libraryId,
                                           },
                                           request);
 }
+
+bool NfLibraryAdapter::setImageFavorite(int64_t libraryId,
+                                        const NfPhotoId& photoId,
+                                        bool favorite)
+{
+        return m_library->setImageFavorite(libraryId, photoId, favorite);
+}
+
 } // namespace NfUi

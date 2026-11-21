@@ -22,21 +22,21 @@
  */
 
 #include "NfThumbnailDelegate.h"
+#include "NfBrowserModel.h"
 #include "core/NfLogger.h"
 
 #include <QPainter>
 #include <QPainterPath>
 #include <QApplication>
+#include <QIcon>
+#include <QMouseEvent>
 
 namespace NfDesktop {
 
-enum CustomRoles {
-        RatingRole = Qt::UserRole + 1,
-        IsFlaggedRole = Qt::UserRole + 2
-};
-
 NfThumbnailDelegate::NfThumbnailDelegate(QObject* parent)
         : QStyledItemDelegate(parent)
+        , m_favoriteIcon{":/icons/favorite.svg"}
+        , m_favoriteOutlineIcon{":/icons/favorite-outline.svg"}
         , m_padding{4}
 {
 }
@@ -45,6 +45,50 @@ QSize NfThumbnailDelegate::sizeHint(const QStyleOptionViewItem& option,
                                     [[maybe_unused]] const QModelIndex& index) const
 {
         return option.decorationSize;
+}
+
+QRect NfThumbnailDelegate::thumbnailRect(const QRect& itemRect) const
+{
+        return itemRect.adjusted(m_padding, m_padding, -m_padding, -m_padding);
+}
+
+QRect NfThumbnailDelegate::favoriteIconRect(const QRect& itemRect) const
+{
+        constexpr int iconSize = 22;
+        constexpr int inset = 4;
+        const auto thumbnail = thumbnailRect(itemRect);
+        return QRect(thumbnail.right() - inset - iconSize + 1,
+                     thumbnail.top() + inset,
+                     iconSize,
+                     iconSize);
+}
+
+void NfThumbnailDelegate::setFavoriteHoverIndex(const QModelIndex& index)
+{
+        m_favoriteHoverIndex = index;
+}
+
+bool NfThumbnailDelegate::editorEvent(QEvent *event,
+                                      QAbstractItemModel *model,
+                                      const QStyleOptionViewItem &option,
+                                      const QModelIndex &index)
+{
+        if (!model || !index.isValid()
+            || event->type() != QEvent::MouseButtonRelease)
+                return QStyledItemDelegate::editorEvent(event, model, option, index);
+
+        auto* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() != Qt::LeftButton
+            || !favoriteIconRect(option.rect).contains(mouseEvent->pos()))
+                return QStyledItemDelegate::editorEvent(event, model, option, index);
+
+        const auto photo = model->data(index, NfBrowserModel::PhotoRole).value<NfPhoto>();
+        if (!photo.id().isValid())
+                return true;
+
+        emit favoriteToggleRequested(photo.id(), !photo.isFavorite());
+
+        return true;
 }
 
 void NfThumbnailDelegate::paint(QPainter* painter,
@@ -66,16 +110,13 @@ void NfThumbnailDelegate::paint(QPainter* painter,
         painter->setRenderHint(QPainter::Antialiasing);
         painter->setRenderHint(QPainter::SmoothPixmapTransform);
 
-        auto thumbnailRect = QRect(opt.rect.left() + m_padding,
-                                   opt.rect.top() + m_padding,
-                                   opt.rect.width() - 2 * m_padding,
-                                   opt.rect.height() - 2 * m_padding);
+        const auto imageRect = thumbnailRect(opt.rect);
 
         auto pixmap = index.data(Qt::DecorationRole).value<QPixmap>();
         if (!pixmap.isNull()) {
-                auto scaledSize = pixmap.size().scaled(thumbnailRect.size(), Qt::KeepAspectRatio);
-                QRect imgRect(thumbnailRect.left() + (thumbnailRect.width() - scaledSize.width()) / 2,
-                              thumbnailRect.top() + (thumbnailRect.height() - scaledSize.height()) / 2,
+                auto scaledSize = pixmap.size().scaled(imageRect.size(), Qt::KeepAspectRatio);
+                QRect imgRect(imageRect.left() + (imageRect.width() - scaledSize.width()) / 2,
+                              imageRect.top() + (imageRect.height() - scaledSize.height()) / 2,
                               scaledSize.width(),
                               scaledSize.height());
 
@@ -89,9 +130,29 @@ void NfThumbnailDelegate::paint(QPainter* painter,
                 auto group = (opt.state & QStyle::State_Active) ? QPalette::Normal : QPalette::Inactive;
                 painter->setPen(Qt::NoPen);
                 painter->setBrush(opt.palette.color(group, QPalette::Base));
-                painter->drawRoundedRect(thumbnailRect, 4, 4);
+                painter->drawRoundedRect(imageRect, 4, 4);
         }
 
+        painter->restore();
+
+        const auto photo = index.data(NfBrowserModel::PhotoRole).value<NfPhoto>();
+        painter->save();
+        const auto favIconRect = favoriteIconRect(opt.rect);
+        painter->setPen(Qt::NoPen);
+        if (index == m_favoriteHoverIndex) {
+                painter->setBrush(QColor(68, 72, 82, 235));
+        } else {
+                painter->setBrush(QColor(24, 27, 34, 170));
+        }
+        painter->drawEllipse(favIconRect);
+
+        const auto iconRect = favIconRect.adjusted(1, 1, -1, -1);
+        if (photo.isFavorite()) {
+                m_favoriteIcon.paint(painter, iconRect);
+        } else {
+                painter->setOpacity(0.45);
+                m_favoriteOutlineIcon.paint(painter, iconRect);
+        }
         painter->restore();
 }
 

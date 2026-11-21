@@ -39,6 +39,7 @@
 namespace NfCore {
 class NfLibrary;
 class NfLibraryManager;
+class NfPhotoId;
 }
 
 namespace NfUi {
@@ -63,6 +64,10 @@ public:
         void requestLibraryBranch(
                 uint64_t libraryId,
                 NfCore::NfRequestType request = NfCore::NfRequestType::VisibleLibraryTree);
+        bool setImageFavorite(int64_t libraryId,
+                              const NfCore::NfPhotoId& photoId,
+                              bool favorite = true);
+
 
 signals:
         void folderImported();
