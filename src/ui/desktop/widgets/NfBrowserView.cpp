@@ -54,6 +54,10 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                          &NfThumbnailsView::favoriteToggleRequested,
                          m_model,
                          &NfBrowserModel::updateFavorite);
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::ratingChanged,
+                         m_model,
+                         &NfBrowserModel::updateRating);
 
         QObject::connect(m_state,
                          &NfUiBrowserState::viewModeChanged,
@@ -63,6 +67,14 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                          &NfUiBrowserState::formatFilterChanged,
                          m_model,
                          &NfBrowserModel::setFormatFilter);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::ratingFilterChanged,
+                         m_model,
+                         &NfBrowserModel::setRatingFilter);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::favoriteFilterChanged,
+                         m_model,
+                         &NfBrowserModel::setFavoriteFilter);
         QObject::connect(m_state,
                          &NfUiBrowserState::sortingUpdated,
                          [this]() {
@@ -92,8 +104,15 @@ NfBrowserView::NfBrowserView(NfUiBrowserState *state,
                                  }
                          });
         m_model->setFormatFilter(m_state->formatFilter());
+        m_model->setRatingFilter(m_state->ratingFilter());
+        m_model->setFavoriteFilter(m_state->favoriteFilter());
         QObject::connect(m_thumbnailsView, &QListView::doubleClicked,
                          [this](const QModelIndex &index) {
+                                 m_state->setViewMode(NfUiBrowserState::ViewMode::Preview);
+                         });
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::photoActivated,
+                         [this](const QModelIndex&) {
                                  m_state->setViewMode(NfUiBrowserState::ViewMode::Preview);
                          });
 

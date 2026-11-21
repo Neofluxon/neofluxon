@@ -84,6 +84,36 @@ void NfBrowserModel::setFormatFilter(const std::set<NfPhoto::PhotoFormat>& forma
         emit photoIndexesUpdated();
 }
 
+void NfBrowserModel::setRatingFilter(const std::set<int>& ratings)
+{
+        if (m_ratingFilter == ratings)
+                return;
+
+        m_ratingFilter = ratings;
+        beginResetModel();
+        rebuildVisiblePhotos();
+        if (!m_sortFields.empty())
+                sortPhotos();
+        endResetModel();
+        rebuildIndexMap();
+        emit photoIndexesUpdated();
+}
+
+void NfBrowserModel::setFavoriteFilter(bool favoritesOnly)
+{
+        if (m_favoriteFilter == favoritesOnly)
+                return;
+
+        m_favoriteFilter = favoritesOnly;
+        beginResetModel();
+        rebuildVisiblePhotos();
+        if (!m_sortFields.empty())
+                sortPhotos();
+        endResetModel();
+        rebuildIndexMap();
+        emit photoIndexesUpdated();
+}
+
 void NfBrowserModel::setSortFields(const NfUiBrowserState::SortFields &fields)
 {
         if (m_sortFields == fields)
@@ -145,9 +175,40 @@ bool NfBrowserModel::updateFavorite(const NfPhotoId& photoId, bool favorite)
         return true;
 }
 
+bool NfBrowserModel::updateRating(const NfPhotoId& photoId, int rating)
+{
+        const auto photoIndex = indexForPhotoId(photoId);
+        if (!photoIndex.isValid())
+                return false;
+
+        if (!m_context->uiState || !m_context->library) {
+                NF_LOG_ERROR("cannot set rating without UI state and library adapter");
+                return false;
+        }
+
+        const auto libraryId = m_context->uiState->libraryModeState()->currentLibrary();
+        if (!m_context->library->setImageRating(libraryId, photoId, rating)) {
+                NF_LOG_ERROR("failed to update rating for photo id: "
+                             << photoId.value());
+                return false;
+        }
+
+        const auto positionIndex = m_visibleIndexes[photoIndex.row()];
+        m_allPhotos[positionIndex].setRating(rating);
+        emit dataChanged(photoIndex, photoIndex, {ImageDataRole::PhotoRole});
+
+        return true;
+}
+
 bool NfBrowserModel::acceptsPhoto(const NfPhoto& photo) const
 {
-        return m_formatFilter.empty() || m_formatFilter.contains(photo.format());
+        if (!m_formatFilter.empty() && !m_formatFilter.contains(photo.format()))
+                return false;
+        if (!m_ratingFilter.empty() && !m_ratingFilter.contains(photo.rating()))
+                return false;
+        if (m_favoriteFilter && !photo.isFavorite())
+                return false;
+        return true;
 }
 
 void NfBrowserModel::rebuildVisiblePhotos()
@@ -169,10 +230,12 @@ void NfBrowserModel::sortPhotos()
         const bool byName = m_sortFields.contains(SortField::Name);
         const bool byDate = m_sortFields.contains(SortField::DateTaken);
         const bool bySize = m_sortFields.contains(SortField::FileSize);
+        const bool byRating = m_sortFields.contains(SortField::Rating);
+        const bool byFavorite = m_sortFields.contains(SortField::Favorite);
         const bool ascending = m_sortOrder == NfUiBrowserState::SortOrder::Ascending;
 
-        auto comparator = [this, byName, byDate, bySize, ascending](const auto indexA,
-                                                                    const auto indexB) {
+        auto comparator = [this, byName, byDate, bySize, byRating, byFavorite, ascending](const auto indexA,
+                                                                                           const auto indexB) {
                 const auto& photoA = m_allPhotos[indexA];
                 const auto& photoB = m_allPhotos[indexB];
                 if (byName && photoA.name() != photoB.name())
@@ -184,6 +247,12 @@ void NfBrowserModel::sortPhotos()
                 if (byDate && photoA.dateTaken() != photoB.dateTaken())
                         return ascending ? photoA.dateTaken() < photoB.dateTaken()
                                          : photoA.dateTaken() > photoB.dateTaken();
+                if (byRating && photoA.rating() != photoB.rating())
+                        return ascending ? photoA.rating() < photoB.rating()
+                                         : photoA.rating() > photoB.rating();
+                if (byFavorite && photoA.isFavorite() != photoB.isFavorite())
+                        return ascending ? !photoA.isFavorite()
+                                         : photoA.isFavorite();
 
                 return false;
         };

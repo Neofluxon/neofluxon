@@ -105,4 +105,11 @@ bool NfLibraryAdapter::setImageFavorite(int64_t libraryId,
         return m_library->setImageFavorite(libraryId, photoId, favorite);
 }
 
+bool NfLibraryAdapter::setImageRating(int64_t libraryId,
+                                      const NfPhotoId& photoId,
+                                      int rating)
+{
+        return m_library->setImageRating(libraryId, photoId, rating);
+}
+
 } // namespace NfUi

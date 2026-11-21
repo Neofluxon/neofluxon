@@ -54,6 +54,7 @@ public:
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
         bool folderExists(std::filesystem::path &folder) const;
         bool setImageFavorite(const NfPhotoId& photoId, bool favorite = true);
+        bool setImageRating(const NfPhotoId& photoId, int rating);
 
 private:
         int64_t storeCamera(std::string_view maker, std::string_view model);

@@ -379,6 +379,7 @@ NfLibraryRepresentation::imageRecordsToPhotos(const NfImageRecords& records)
                 photo.setFormat(record.format);
                 photo.setDateTaken(record.dateTaken);
                 photo.setFavorite(record.favorite);
+                photo.setRating(record.rating);
                 photos.emplace_back(std::move(photo));
         }
 

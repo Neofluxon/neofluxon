@@ -46,7 +46,9 @@ public:
         enum class SortField {
                 Name,
                 DateTaken,
-                FileSize
+                FileSize,
+                Rating,
+                Favorite
         };
         using SortFields = std::unordered_set<SortField>;
 
@@ -61,6 +63,8 @@ public:
         void setCurrentPhoto(const NfCore::NfPhoto& photo);
         const NfCore::NfPhoto& currentPhoto() const;
         const PhotoFormatFilter& formatFilter() const;
+        const std::set<int>& ratingFilter() const;
+        bool favoriteFilter() const;
         const SortFields& sortingFields() const;
         SortOrder sortOrder() const;
 
@@ -70,11 +74,15 @@ signals:
         void currentPhotoChanged(const NfCore::NfPhoto& photo);
         void formatFilterChanged(const PhotoFormatFilter& formats);
         void sortingUpdated();
+        void ratingFilterChanged(const std::set<int>& ratings);
+        void favoriteFilterChanged(bool favoritesOnly);
 
 public slots:
         void setViewMode(ViewMode mode);
         void setScanRecursively(bool recursive);
         void setFormatFilter(const PhotoFormatFilter& formats);
+        void setRatingFilter(const std::set<int>& ratings);
+        void setFavoriteFilter(bool favoritesOnly);
         void setSortFields(const SortFields &fields);
         void enableSortField(SortField field, bool b);
         void setSortOrder(SortOrder sortOrder);
@@ -84,6 +92,8 @@ private:
         bool m_scanRecursively{false};
         NfCore::NfPhoto m_photo;
         PhotoFormatFilter m_formatFilter;
+        std::set<int> m_ratingFilter;
+        bool m_favoriteFilter{false};
         SortFields m_sortFields;
         SortOrder m_sortOrder{};
 };

@@ -102,6 +102,12 @@ void NfBrowserSortBar::setupUi()
                                              SortField::DateTaken));
         fieldGroup->addAction(addFiledAction(tr("File Size"),
                                              SortField::FileSize));
+        fieldGroup->addAction(addFiledAction(tr("Rating"),
+                                             SortField::Rating));
+        m_fieldActions.at(SortField::Rating)->setIcon(QIcon(":/icons/rating.svg"));
+        fieldGroup->addAction(addFiledAction(tr("Favorite"),
+                                             SortField::Favorite));
+        m_fieldActions.at(SortField::Favorite)->setIcon(QIcon(":/icons/favorite.svg"));
 
         m_fieldButton->setMenu(menu);
 

@@ -44,6 +44,14 @@ NfBrowserFilterBar::NfBrowserFilterBar(NfUiBrowserState* state,
                          &NfUiBrowserState::formatFilterChanged,
                          this,
                          &NfBrowserFilterBar::updateFormatFilter);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::ratingFilterChanged,
+                         this,
+                         &NfBrowserFilterBar::updateFormatFilter);
+        QObject::connect(m_state,
+                         &NfUiBrowserState::favoriteFilterChanged,
+                         this,
+                         &NfBrowserFilterBar::updateFormatFilter);
         updateFormatFilter();
 }
 
@@ -84,10 +92,39 @@ void NfBrowserFilterBar::setupUi()
         addFormatAction(tr("PNG"), NfCore::NfPhoto::PhotoFormat::Png);
 
         menu->addSeparator();
-        m_clearAction = menu->addAction(tr("Clear format filters"));
+        m_favoriteAction = menu->addAction(QIcon(":/icons/favorite.svg"),
+                                           tr("Favorites only"));
+        m_favoriteAction->setCheckable(true);
+        QObject::connect(m_favoriteAction, &QAction::toggled, this,
+                         [this](bool checked) {
+                                 m_state->setFavoriteFilter(checked);
+                         });
+
+        menu->addSeparator();
+        for (int rating = 1; rating <= 5; ++rating) {
+                auto* action = menu->addAction(
+                        QIcon(":/icons/rating.svg"),
+                        tr("%1 star%2").arg(rating).arg(rating == 1 ? "" : "s"));
+                action->setCheckable(true);
+                m_ratingActions.emplace_back(rating, action);
+                QObject::connect(action, &QAction::toggled, this,
+                                 [this, rating](bool checked) {
+                                         auto ratings = m_state->ratingFilter();
+                                         if (checked)
+                                                 ratings.insert(rating);
+                                         else
+                                                 ratings.erase(rating);
+                                         m_state->setRatingFilter(ratings);
+                                 });
+        }
+
+        menu->addSeparator();
+        m_clearAction = menu->addAction(tr("Clear all filters"));
         QObject::connect(m_clearAction, &QAction::triggered,
                          m_state, [this]() {
                                  m_state->setFormatFilter({});
+                                 m_state->setRatingFilter({});
+                                 m_state->setFavoriteFilter(false);
                          });
 
         m_button->setMenu(menu);
@@ -103,11 +140,25 @@ void NfBrowserFilterBar::updateFormatFilter()
                 action->setChecked(formats.contains(format));
         }
 
-        m_clearAction->setEnabled(!formats.empty());
-        m_button->setText(QString::number(formats.size()));
-        m_button->setToolTip(formats.empty()
+        const auto& ratings = m_state->ratingFilter();
+        for (const auto& [rating, action] : m_ratingActions) {
+                const QSignalBlocker blocker(action);
+                action->setChecked(ratings.contains(rating));
+        }
+
+        {
+                const QSignalBlocker blocker(m_favoriteAction);
+                m_favoriteAction->setChecked(m_state->favoriteFilter());
+        }
+
+        const int activeCount = static_cast<int>(formats.size())
+                              + static_cast<int>(ratings.size())
+                              + (m_state->favoriteFilter() ? 1 : 0);
+        m_clearAction->setEnabled(activeCount > 0);
+        m_button->setText(activeCount > 0 ? QString::number(activeCount) : QString());
+        m_button->setToolTip(activeCount == 0
                              ? tr("Filter photos")
-                             : tr("Filter photos (%1 active)").arg(formats.size()));
+                             : tr("Filter photos (%1 active)").arg(activeCount));
 }
 
 } // namespace NfDesktop

@@ -282,4 +282,15 @@ bool NfLibraryManager::setImageFavorite(int64_t libraryId,
         return false;
 }
 
+bool NfLibraryManager::setImageRating(int64_t libraryId,
+                                      const NfPhotoId& photoId,
+                                      int rating)
+{
+        auto library = getLibrary(libraryId);
+        if (library)
+                return library->setImageRating(photoId, rating);
+
+        return false;
+}
+
 } // namespace NfCore

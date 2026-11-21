@@ -64,6 +64,8 @@ class NfPhoto {
         bool loadSummary(bool fileSystemOnly = false);
         void setFavorite(bool favorite = true);
         bool isFavorite() const;
+        void setRating(int rating);
+        int rating() const;
 
  private:
         PhotoFormat determineFormat(const std::filesystem::path& path);
@@ -78,6 +80,7 @@ class NfPhoto {
         std::string m_cameraModel;
         std::string m_lens;
         bool m_favorite{false};
+        int m_rating{0};
 };
 
 } // namespace NfCore

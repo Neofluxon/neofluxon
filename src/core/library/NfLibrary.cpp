@@ -115,7 +115,8 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
                                  photo.sizeOnDisk(),
                                  photo.dateTaken().time_since_epoch().count(),
                                  cameraId,
-                                 lensId);
+                                 lensId,
+                                 photo.rating());
 
         if (id < 0) {
                 NF_LOG_ERROR("Failed to add photo entry: " << photo.path());
@@ -176,6 +177,19 @@ bool NfLibrary::setImageFavorite(const NfPhotoId& photoId, bool favorite)
 
         tx.commit();
 
+        return true;
+}
+
+bool NfLibrary::setImageRating(const NfPhotoId& photoId, int rating)
+{
+        NfLibraryDatabase::Transaction tx(m_db);
+        if (!m_db->setImagesRating({photoId}, rating)) {
+                NF_LOG_ERROR("Failed to set rating for photo id: "
+                             << photoId.value());
+                return false;
+        }
+
+        tx.commit();
         return true;
 }
 

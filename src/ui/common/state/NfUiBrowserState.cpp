@@ -87,6 +87,34 @@ void NfUiBrowserState::setFormatFilter(const PhotoFormatFilter& formats)
         emit formatFilterChanged(m_formatFilter);
 }
 
+const std::set<int>& NfUiBrowserState::ratingFilter() const
+{
+        return m_ratingFilter;
+}
+
+void NfUiBrowserState::setRatingFilter(const std::set<int>& ratings)
+{
+        if (m_ratingFilter == ratings)
+                return;
+
+        m_ratingFilter = ratings;
+        emit ratingFilterChanged(m_ratingFilter);
+}
+
+bool NfUiBrowserState::favoriteFilter() const
+{
+        return m_favoriteFilter;
+}
+
+void NfUiBrowserState::setFavoriteFilter(bool favoritesOnly)
+{
+        if (m_favoriteFilter == favoritesOnly)
+                return;
+
+        m_favoriteFilter = favoritesOnly;
+        emit favoriteFilterChanged(m_favoriteFilter);
+}
+
 const NfUiBrowserState::SortFields& NfUiBrowserState::sortingFields() const
 {
         return m_sortFields;

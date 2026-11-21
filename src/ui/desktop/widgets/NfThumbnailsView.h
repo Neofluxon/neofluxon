@@ -56,6 +56,7 @@ signals:
         void photoActivated(const QModelIndex& index);
         void photoHovered(const QModelIndex& index);
         void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
+        void ratingChanged(NfCore::NfPhotoId photoId, int rating);
 
 protected:
         void resizeEvent(QResizeEvent* event) override;
@@ -75,6 +76,8 @@ private:
         QSize m_thumbnailSize;
         bool m_favoritePressActive{false};
         QModelIndex m_favoritePressIndex;
+        bool m_ratingPressActive{false};
+        QModelIndex m_ratingPressIndex;
         QModelIndex m_favoriteHoverIndex;
 };
 

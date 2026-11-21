@@ -46,10 +46,12 @@ public:
                          const QModelIndex &index) override;
         QRect favoriteIconRect(const QRect& itemRect) const;
         QRect favoriteHitRect(const QRect& itemRect) const;
+        QRect ratingHitRect(const QRect& itemRect, int rating) const;
         void setFavoriteHoverIndex(const QModelIndex& index);
 
 signals:
         void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
+        void ratingChanged(NfCore::NfPhotoId photoId, int rating);
 
 private:
         QRect thumbnailRect(const QRect& itemRect) const;
@@ -57,6 +59,8 @@ private:
 
         QIcon m_favoriteIcon;
         QIcon m_favoriteOutlineIcon;
+        QIcon m_ratingIcon;
+        QIcon m_ratingOutlineIcon;
         QModelIndex m_favoriteHoverIndex;
         int m_padding;
         int m_controlsHeight;

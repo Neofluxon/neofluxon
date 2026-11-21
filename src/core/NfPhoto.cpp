@@ -27,6 +27,8 @@
 #include "NfPhotoMetadataExtractor.h"
 #include "NfScopedTimer.h"
 
+#include <algorithm>
+
 namespace NfCore {
 
 NfPhoto::NfPhoto(const std::filesystem::path &filePath)
@@ -155,6 +157,7 @@ bool NfPhoto::loadSummary(bool fileSystemOnly)
                         m_cameraMaker = summary->cameraMaker;
                         m_cameraModel = summary->cameraModel;
                         m_lens = summary->lens;
+                        m_rating = std::clamp(summary->rating, 0, 5);
                 }
         }
 
@@ -169,6 +172,16 @@ void NfPhoto::setFavorite(bool favorite)
 bool NfPhoto::isFavorite() const
 {
         return m_favorite;
+}
+
+void NfPhoto::setRating(int rating)
+{
+        m_rating = std::clamp(rating, 0, 5);
+}
+
+int NfPhoto::rating() const
+{
+        return m_rating;
 }
 
 NfPhoto::PhotoFormat NfPhoto::determineFormat(const std::filesystem::path& path)

@@ -59,6 +59,7 @@ struct NfImageRecord {
         NfPhoto::PhotoFormat format;
         std::chrono::system_clock::time_point dateTaken;
         bool favorite{false};
+        int rating{0};
 };
 
 using NfImageRecords = std::vector<NfImageRecord>;

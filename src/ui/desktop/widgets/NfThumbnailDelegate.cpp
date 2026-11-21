@@ -31,8 +31,7 @@
 #include <QIcon>
 #include <QMouseEvent>
 #include <QFontMetrics>
-#include <QPolygonF>
-#include <cmath>
+#include <algorithm>
 
 namespace NfDesktop {
 
@@ -40,6 +39,8 @@ NfThumbnailDelegate::NfThumbnailDelegate(QObject* parent)
         : QStyledItemDelegate(parent)
         , m_favoriteIcon{":/icons/favorite.svg"}
         , m_favoriteOutlineIcon{":/icons/favorite-outline.svg"}
+        , m_ratingIcon{":/icons/rating.svg"}
+        , m_ratingOutlineIcon{":/icons/rating-outline.svg"}
         , m_padding{4}
         , m_controlsHeight{32}
 {
@@ -89,27 +90,16 @@ QRect NfThumbnailDelegate::favoriteHitRect(const QRect& itemRect) const
                      hitSize);
 }
 
-static void drawOutlineStar(QPainter* painter, const QRect& rect)
+QRect NfThumbnailDelegate::ratingHitRect(const QRect& itemRect, int rating) const
 {
-        constexpr qreal pi = 3.14159265358979323846;
-        QPolygonF star;
-        const QPointF center(rect.center());
-        const qreal outerRadius = rect.width() * 0.48;
-        const qreal innerRadius = outerRadius * 0.46;
-
-        for (int point = 0; point < 10; ++point) {
-                const qreal radius = (point % 2 == 0) ? outerRadius : innerRadius;
-                const qreal angle = -pi / 2.0 + point * pi / 5.0;
-                star << QPointF(center.x() + radius * std::cos(angle),
-                                center.y() + radius * std::sin(angle));
-        }
-
-        painter->save();
-        painter->setRenderHint(QPainter::Antialiasing);
-        painter->setPen(QPen(QColor(127, 135, 149), 1));
-        painter->setBrush(Qt::NoBrush);
-        painter->drawPolygon(star);
-        painter->restore();
+        constexpr int starSize = 14;
+        constexpr int starSpacing = 1;
+        const auto controls = controlsRect(itemRect);
+        const int index = std::clamp(rating - 1, 0, 4);
+        return QRect(controls.left() + 8 + index * (starSize + starSpacing),
+                     controls.top() + (controls.height() - starSize) / 2,
+                     18,
+                     controls.height());
 }
 
 void NfThumbnailDelegate::setFavoriteHoverIndex(const QModelIndex& index)
@@ -127,11 +117,21 @@ bool NfThumbnailDelegate::editorEvent(QEvent *event,
                 return QStyledItemDelegate::editorEvent(event, model, option, index);
 
         auto* mouseEvent = static_cast<QMouseEvent*>(event);
+        const auto photo = model->data(index, NfBrowserModel::PhotoRole).value<NfPhoto>();
+        if (photo.id().isValid()) {
+                for (int rating = 1; rating <= 5; ++rating) {
+                        if (ratingHitRect(option.rect, rating).contains(mouseEvent->pos())) {
+                                if (mouseEvent->button() == Qt::LeftButton)
+                                        emit ratingChanged(photo.id(), rating);
+                                return true;
+                        }
+                }
+        }
+
         if (mouseEvent->button() != Qt::LeftButton
             || !favoriteHitRect(option.rect).contains(mouseEvent->pos()))
                 return QStyledItemDelegate::editorEvent(event, model, option, index);
 
-        const auto photo = model->data(index, NfBrowserModel::PhotoRole).value<NfPhoto>();
         if (!photo.id().isValid())
                 return true;
 
@@ -195,8 +195,10 @@ void NfThumbnailDelegate::paint(QPainter* painter,
                                      controls.top() + (controls.height() - starSize) / 2,
                                      starSize,
                                      starSize);
-                drawOutlineStar(painter,
-                                starRect);
+                if (i < std::clamp(photo.rating(), 0, 5))
+                        m_ratingIcon.paint(painter, starRect);
+                else
+                        m_ratingOutlineIcon.paint(painter, starRect);
         }
 
         painter->restore();

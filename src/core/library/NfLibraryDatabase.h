@@ -104,7 +104,8 @@ public:
                          std::uintmax_t sizeOnDisk,
                          int64_t timestamp,
                          int64_t cameraId,
-                         int64_t lensId);
+                         int64_t lensId,
+                         int rating = 0);
         NfImageRecords getImages(const NfLibraryQuery &query) const;
         NfImageRecords getImagesByFolderId(int64_t folderId,
                                            int64_t libraryId) const;
@@ -126,6 +127,8 @@ public:
         //bool addImageToCollection(int64_t imageId, int64_t collectionId);
         bool setImagesFavorite(const std::vector<NfPhotoId>& photoIds,
                                bool favorite = true);
+        bool setImagesRating(const std::vector<NfPhotoId>& photoIds,
+                             int rating);
 
 protected:
         void populateSourceData(NfRepresentationRecord *record);

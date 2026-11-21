@@ -71,7 +71,10 @@ public:
         void setSource(NfCore::NfPhotoSource source);
         NfCore::NfPhotoSource getSource() const;
         void setFormatFilter(const std::set<NfCore::NfPhoto::PhotoFormat>& formats);
+        void setRatingFilter(const std::set<int>& ratings);
+        void setFavoriteFilter(bool favoritesOnly);
         bool updateFavorite(const NfCore::NfPhotoId& photoId, bool favorite);
+        bool updateRating(const NfCore::NfPhotoId& photoId, int rating);
         // Returns the model index for a photo ID, or an invalid index if not found.
         QModelIndex indexForPhotoId(const NfCore::NfPhotoId& photoId) const;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -111,6 +114,8 @@ private:
         // The model works only with m_visibleIndexes.
         std::vector<std::size_t> m_visibleIndexes;
         std::set<NfPhoto::PhotoFormat> m_formatFilter;
+        std::set<int> m_ratingFilter;
+        bool m_favoriteFilter{false};
         /**
          * indexForPhotoId() finds a photo's row without searching m_visiblePhotos.
          * When thumbnails or previews finish loading asynchronously, the

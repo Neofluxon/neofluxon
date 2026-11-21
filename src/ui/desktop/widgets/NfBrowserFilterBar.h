@@ -55,6 +55,8 @@ private:
         NfUi::NfUiBrowserState* m_state;
         QToolButton* m_button{nullptr};
         std::vector<std::pair<NfCore::NfPhoto::PhotoFormat, QAction*>> m_formatActions;
+        std::vector<std::pair<int, QAction*>> m_ratingActions;
+        QAction* m_favoriteAction{nullptr};
         QAction* m_clearAction{nullptr};
 };
 

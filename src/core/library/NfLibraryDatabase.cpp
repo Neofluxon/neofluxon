@@ -25,6 +25,8 @@
 #include "NfSourceRecords.h"
 #include "NfLibraryRepresentation.h"
 #include "NfLogger.h"
+
+#include <algorithm>
 #include "NfLibraryQuery.h"
 
 #include <bit>
@@ -492,7 +494,8 @@ int64_t NfLibraryDatabase::addImage(uint64_t photo_id,
                                     std::uintmax_t sizeOnDisk,
                                     int64_t timestamp,
                                     int64_t cameraId,
-                                    int64_t lensId)
+                                    int64_t lensId,
+                                    int rating)
 {
         NF_LOG_DEBUG("photo_id: " << photo_id
                      << "folderId: " << folderId
@@ -510,12 +513,14 @@ int64_t NfLibraryDatabase::addImage(uint64_t photo_id,
                             file_size,
                             format,
                             datetime_taken,
-                            camera_id, lens_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            camera_id, lens_id,
+                            rating)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(photo_id, folder_id, file_name) DO UPDATE SET
             datetime_taken = excluded.datetime_taken,
             camera_id = excluded.camera_id,
-            lens_id = excluded.lens_id
+            lens_id = excluded.lens_id,
+            rating = CASE WHEN images.rating IS NULL THEN excluded.rating ELSE images.rating END
         RETURNING id;)";
 
         sqlite3_stmt* stmt = nullptr;
@@ -541,6 +546,7 @@ int64_t NfLibraryDatabase::addImage(uint64_t photo_id,
                 sqlite3_bind_int64(stmt, index++, lensId);
         else
                 sqlite3_bind_null(stmt, index++);
+        sqlite3_bind_int(stmt, index++, std::clamp(rating, 0, 5));
 
         int64_t resultId = -1;
         if (sqlite3_step(stmt) == SQLITE_ROW)
@@ -564,7 +570,8 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                 i.format,
                 i.datetime_taken,
                 f.path,
-                i.favorite
+                i.favorite,
+                i.rating
             FROM images AS i
             JOIN folders AS f ON f.id = i.folder_id
             LEFT JOIN cameras AS c ON c.id = i.camera_id
@@ -695,7 +702,10 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                         .sizeOnDisk = fileSize,
                         .format = format,
                         .dateTaken = dateTaken,
-                        .favorite = sqlite3_column_int(stmt, 5) != 0
+                        .favorite = sqlite3_column_int(stmt, 5) != 0,
+                        .rating = sqlite3_column_type(stmt, 6) == SQLITE_NULL
+                                ? 0
+                                : sqlite3_column_int(stmt, 6)
                 });
         }
 
@@ -737,7 +747,8 @@ NfLibraryDatabase::getImagesByFolderId(int64_t folderId,
                 i.format,
                 i.datetime_taken,
                 f.path AS folder_path,
-                i.favorite
+                i.favorite,
+                i.rating
             FROM images AS i
             JOIN folders AS f ON f.id = i.folder_id
             WHERE i.folder_id IN (SELECT id FROM folder_tree);
@@ -775,7 +786,10 @@ NfLibraryDatabase::getImagesByFolderId(int64_t folderId,
                         .sizeOnDisk = fileSize,
                         .format = format,
                         .dateTaken = datetimeTaken,
-                        .favorite = sqlite3_column_int(stmt, 5) != 0
+                        .favorite = sqlite3_column_int(stmt, 5) != 0,
+                        .rating = sqlite3_column_type(stmt, 6) == SQLITE_NULL
+                                ? 0
+                                : sqlite3_column_int(stmt, 6)
                 });
         }
 
@@ -795,7 +809,8 @@ NfLibraryDatabase::getImagesByDate(const NfDateRange& dateRange,
                 i.format,
                 i.datetime_taken,
                 f.path AS folder_path,
-                i.favorite
+                i.favorite,
+                i.rating
             FROM images AS i
             JOIN folders AS f
             ON i.folder_id = f.id
@@ -840,7 +855,10 @@ NfLibraryDatabase::getImagesByDate(const NfDateRange& dateRange,
                         .sizeOnDisk = fileSize,
                         .format = format,
                         .dateTaken = datetimeTaken,
-                        .favorite = sqlite3_column_int(stmt, 5) != 0
+                        .favorite = sqlite3_column_int(stmt, 5) != 0,
+                        .rating = sqlite3_column_type(stmt, 6) == SQLITE_NULL
+                                ? 0
+                                : sqlite3_column_int(stmt, 6)
                 });
         }
 
@@ -865,7 +883,8 @@ NfLibraryDatabase::getImagesByEquipment(const NfEquipmentQuery& equipment,
                     i.file_size,
                     i.format,
                     i.datetime_taken,
-                    i.favorite
+                    i.favorite,
+                    i.rating
                 FROM images AS i
                 JOIN folders AS f
                 ON f.id = i.folder_id
@@ -886,7 +905,8 @@ NfLibraryDatabase::getImagesByEquipment(const NfEquipmentQuery& equipment,
                 i.file_size,
                 i.format,
                 i.datetime_taken,
-                i.favorite
+                i.favorite,
+                i.rating
                 FROM images AS i
                 JOIN folders AS f
                 ON f.id = i.folder_id
@@ -932,7 +952,10 @@ NfLibraryDatabase::getImagesByEquipment(const NfEquipmentQuery& equipment,
                         .sizeOnDisk = fileSize,
                         .format = format,
                         .dateTaken = datetimeTaken,
-                        .favorite = sqlite3_column_int(stmt, 5) != 0
+                        .favorite = sqlite3_column_int(stmt, 5) != 0,
+                        .rating = sqlite3_column_type(stmt, 6) == SQLITE_NULL
+                                ? 0
+                                : sqlite3_column_int(stmt, 6)
                 });
         }
 
@@ -1107,6 +1130,34 @@ bool NfLibraryDatabase::setImagesFavorite(const std::vector<NfPhotoId>& photoIds
 
         sqlite3_finalize(stmt);
 
+        return result;
+}
+
+bool NfLibraryDatabase::setImagesRating(const std::vector<NfPhotoId>& photoIds,
+                                        int rating)
+{
+        const char* sql = "UPDATE images SET rating = ? WHERE photo_id = ?;";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return false;
+
+        bool result = true;
+        const int clampedRating = std::clamp(rating, 0, 5);
+        for (const auto& photoId : photoIds) {
+                const auto id = std::bit_cast<int64_t>(photoId.value());
+                if (sqlite3_bind_int(stmt, 1, clampedRating) != SQLITE_OK
+                    || sqlite3_bind_int64(stmt, 2, id) != SQLITE_OK
+                    || sqlite3_step(stmt) != SQLITE_DONE) {
+                        result = false;
+                        break;
+                }
+
+                sqlite3_reset(stmt);
+                sqlite3_clear_bindings(stmt);
+        }
+
+        sqlite3_finalize(stmt);
         return result;
 }
 

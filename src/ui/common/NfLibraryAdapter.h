@@ -67,6 +67,9 @@ public:
         bool setImageFavorite(int64_t libraryId,
                               const NfCore::NfPhotoId& photoId,
                               bool favorite = true);
+        bool setImageRating(int64_t libraryId,
+                            const NfCore::NfPhotoId& photoId,
+                            int rating);
 
 
 signals:

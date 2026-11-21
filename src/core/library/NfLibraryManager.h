@@ -72,6 +72,9 @@ public:
         bool setImageFavorite(int64_t libraryId,
                               const NfPhotoId& photoId,
                               bool favorite = true);
+        bool setImageRating(int64_t libraryId,
+                            const NfPhotoId& photoId,
+                            int rating);
 
 private:
         NfScheduler* m_backgroundScheduler;
