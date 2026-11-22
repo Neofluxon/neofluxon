@@ -22,6 +22,7 @@
  */
 
 #include "NfSearchCriteriaWidget.h"
+#include "NfLibraryTreeModel.h"
 
 #include <QComboBox>
 #include <QDate>
@@ -33,6 +34,8 @@
 #include <QPushButton>
 #include <QSizePolicy>
 #include <QVBoxLayout>
+
+#include <vector>
 
 namespace NfDesktop {
 
@@ -90,8 +93,7 @@ const CriterionDefinition* definitionFor(const QString& name)
 
 QWidget* createValueControl(const CriterionDefinition& definition,
                             const QString& op,
-                            const QStringList& cameraValues,
-                            const QStringList& lensValues,
+                            const NfLibraryTreeModel::Equipment& equipment,
                             QWidget* parent)
 {
         auto* container = new QWidget(parent);
@@ -121,33 +123,40 @@ QWidget* createValueControl(const CriterionDefinition& definition,
                 return container;
         }
 
-        auto* value = new QComboBox(container);
-        value->setObjectName("SearchCriterionInput");
-        value->setMinimumWidth(220);
-        value->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        auto* valueComboBox = new QComboBox(container);
+
+        using EquipmentInfo = NfLibraryTreeModel::EquipmentInfo;
+        auto addEquipmentValues = [valueComboBox] (const std::vector<EquipmentInfo>& info) {
+                for (const auto& el: info)
+                        valueComboBox->addItem(el.name, el.id);
+        }
+
+        valueComboBox->setObjectName("SearchCriterionInput");
+        valueComboBox->setMinimumWidth(220);
+        valueComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         if (definition.editable)
-                value->setEditable(true);
-        auto values = definition.values;
+                valueComboBox->setEditable(true);
         if (definition.field == NfCore::NfLibrarySearchField::Camera)
-                values = cameraValues;
+                addEquipmentValues(valueComboBox, equipment.cameras);
         else if (definition.field == NfCore::NfLibrarySearchField::Lens)
-                values = lensValues;
-        value->addItems(values);
-        value->setCurrentIndex(-1);
-        if (value->isEditable())
-                value->setEditText(QString{});
-        layout->addWidget(value);
+                addEquipmentValues(valueComboBox, equipment.lenses);
+        else
+                valueComboBox->addItems(definition.values);
+
+        valueComboBox->setCurrentIndex(-1);
+        if (valueComboBox->isEditable())
+                valueComboBox->setEditText(QString{});
+        layout->addWidget(valueComboBox);
+
         return container;
 }
 
 } // namespace
 
-NfSearchCriteriaWidget::NfSearchCriteriaWidget(const QStringList& cameraValues,
-                                               const QStringList& lensValues,
-                                               QWidget* parent)
+        NfSearchCriteriaWidget::NfSearchCriteriaWidget(const NfDesktopContext &ctx,
+                                                       QWidget* parent)
         : NfStyledWidget(parent)
-        , m_cameraValues{cameraValues}
-        , m_lensValues{lensValues}
+        , m_context{ctx}
 {
         setObjectName("SearchCriteriaWidget");
         setMinimumWidth(0);
@@ -251,10 +260,12 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
         auto* valueHostLayout = new QVBoxLayout(valueHost);
         valueHostLayout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(valueHost, 1);
+
+        auto libraryId = m_context.uiState()->libraryModeState()->currentLibrary();
+        auto equipment = m_context.libraryTreeModel->getEquipment(libraryId);
         valueHostLayout->addWidget(createValueControl(*definition,
                                                       operatorBox->currentText(),
-                                                      m_cameraValues,
-                                                      m_lensValues,
+                                                      equipment,
                                                       valueHost));
 
         m_criteria.push_back({definition->field, row});
@@ -266,14 +277,12 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
                          [definition,
                           valueHostLayout,
                           valueHost,
-                          cameraValues = m_cameraValues,
-                          lensValues = m_lensValues](const QString& op) {
+                          equipment](const QString& op) {
                                  auto* oldControl = valueHostLayout->takeAt(0)->widget();
                                  delete oldControl;
                                  valueHostLayout->addWidget(createValueControl(*definition,
                                                                                op,
-                                                                               cameraValues,
-                                                                               lensValues,
+                                                                               equipment,
                                                                                valueHost));
                          });
 }
@@ -336,34 +345,8 @@ NfSearchCriteriaWidget::criteria() const
                 }
                 result.push_back(criterion);
         }
+
         return result;
-}
-
-void NfSearchCriteriaWidget::setEquipmentValues(const QStringList& cameraValues,
-                                               const QStringList& lensValues)
-{
-        m_cameraValues = cameraValues;
-        m_lensValues = lensValues;
-        for (const auto& row : m_criteria) {
-                if (row.field != NfCore::NfLibrarySearchField::Camera
-                    && row.field != NfCore::NfLibrarySearchField::Lens)
-                        continue;
-
-                auto* valueBox = row.widget->findChild<QComboBox*>(
-                        "SearchCriterionInput");
-                if (!valueBox)
-                        continue;
-
-                const auto currentValue = valueBox->currentText();
-                valueBox->clear();
-                valueBox->addItems(row.field == NfCore::NfLibrarySearchField::Camera
-                                           ? m_cameraValues
-                                           : m_lensValues);
-                if (currentValue.isEmpty())
-                        valueBox->setCurrentIndex(-1);
-                else
-                        valueBox->setCurrentText(currentValue);
-        }
 }
 
 } // namespace NfDesktop

@@ -241,8 +241,6 @@ NfLibraryTreeModel::getEquipment(uint64_t libraryId) const
         if (!equipmentItem)
                 return {};
 
-        // Get equipment category item
-
         // Load the children of category root item
         Equipment equipmentList;
         auto loadEquipment = [&equipmentList](const NfLibraryTreeItem* categoryItem) {
@@ -252,10 +250,12 @@ NfLibraryTreeModel::getEquipment(uint64_t libraryId) const
                         if (const auto* equipment = std::get_if<NfEquipmentQuery>(&itemValue)) {
                                 switch (equipment->kind) {
                                 case NfEquipmentQuery::Kind::Camera:
-                                        equipmentList.cameraNames.append(item->name());
+                                        equipmentList.cameras.emplace_back(equipment->id,
+                                                                           item->name());
                                         break;
                                 case NfEquipmentQuery::Kind::Lens:
-                                        equipmentList.lensNames.append(item->name());
+                                        equipmentList.lenes.emplace_back(equipment->id,
+                                                                           item->name());
                                         break;
                                 }
                         }
@@ -267,9 +267,9 @@ NfLibraryTreeModel::getEquipment(uint64_t libraryId) const
         // In the core we have types defined for these two root nodes,
         // in the UI they are just NodeType::Node
         for (int row = 0; row < equipmentItem->childCount(); row++) {
-                const auto* item = equipmentItem->child(row);
-                if (item)
-                        loadEquipment(item);
+                const auto* categoryItem = equipmentItem->child(row);
+                if (categoryItem)
+                        loadEquipment(categoryItem);
         }
 
         return equipmentList;

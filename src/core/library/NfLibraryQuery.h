@@ -26,7 +26,6 @@
 
 #include "NfLibraryRepresentation.h"
 #include "NfTimeUtils.h"
-#include "NfLibraryTreeNode.h"
 
 #include <cstdint>
 #include <string>
@@ -35,12 +34,30 @@
 
 namespace NfCore {
 
+struct NfEquipmentValue {
+        enum class Kind {
+                Camera,
+                Lens
+        };
+
+        Kind kind;
+        int64_t id;
+        bool operator==(const NfEquipmentQuery&) const = default;
+};
+
+using NfQueryValue = std::variant<std::monostate,
+                                  int,
+                                  int64_t,
+                                  std::string,
+                                  NfDateRange,
+                                  NfEquipmentValue>;
+
 enum class NfLibrarySearchField {
-        Camera,
         DateTaken,
-        Lens,
         FileFormat,
-        Folder
+        Folder,
+        Camera,
+        Lens,
 };
 
 enum class NfLibrarySearchOperator {
@@ -51,21 +68,18 @@ enum class NfLibrarySearchOperator {
         Between
 };
 
-struct NfLibrarySearchCriterion {
+struct NfLibraryQueryCriterion {
         NfLibrarySearchField field;
         NfLibrarySearchOperator op;
-        std::string value;
-        std::string secondValue;
+        NfQueryValue value;
         bool operator==(const NfLibrarySearchCriterion&) const = default;
 };
 
 struct NfLibraryQuery {
-        using QueryValue = NfLibraryTreeNode::NodeValue;
-        int64_t libraryId = -1;
+        int64_t libraryId{-1};
         NfLibraryRepresentation::RepresentationType representationType{};
-        QueryValue queryValue;
-        std::string searchText;
-        std::vector<NfLibrarySearchCriterion> criteria;
+        NfQueryValue queryValue;
+        std::vector<NfLibraryQueryCriterion> criteria;
         bool operator==(const NfLibraryQuery&) const = default;
 };
 

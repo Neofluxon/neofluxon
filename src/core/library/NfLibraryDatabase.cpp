@@ -582,21 +582,20 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                 WHERE lf.folder_id = i.folder_id
                 AND lf.library_id = ?)
         )"};
+
         auto parameters = std::vector<std::string>{};
         if (!query.searchText.empty()) {
-                sql += R"(
-            AND (
+                sql += R"( AND (
                 i.file_name LIKE ? COLLATE NOCASE
                 OR f.path LIKE ? COLLATE NOCASE
                 OR c.maker LIKE ? COLLATE NOCASE
                 OR c.model LIKE ? COLLATE NOCASE
-                OR l.name LIKE ? COLLATE NOCASE)
-        )";
-                const auto searchPattern = '%' + query.searchText + '%';
-                for (int parameter = 0; parameter < 5; ++parameter)
-                        parameters.push_back(searchPattern);
+                OR l.name LIKE ? COLLATE NOCASE))";
+
+                parameters = std::vector(5, '%' + query.searchText + '%');
         }
 
+        // Create the criteria SQL expressions
         using SearchField = NfLibrarySearchField;
         using SearchOperator = NfLibrarySearchOperator;
         for (const auto& criterion : query.criteria) {
@@ -642,6 +641,7 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                         }
                         break;
                 case SearchField::FileFormat:
+                        // TODO: use acally all types of formats
                         if (criterion.op == SearchOperator::Is) {
                                 sql += " AND i.format = CASE upper(?)"
                                        " WHEN 'JPEG' THEN 1 WHEN 'RAW' THEN 2"
@@ -660,6 +660,8 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                         break;
                 }
         }
+
+        // Order by file path and file name
         sql += " ORDER BY f.path, i.file_name COLLATE NOCASE;";
 
         sqlite3_stmt* stmt = nullptr;
@@ -668,6 +670,7 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                 return images;
         }
 
+        // Bind parameters
         auto parameter = 1;
         sqlite3_bind_int64(stmt, parameter++, query.libraryId);
         for (const auto& value : parameters) {
@@ -678,21 +681,24 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                                   SQLITE_TRANSIENT);
         }
 
+        // Get fields values
         int result = SQLITE_OK;
         while ((result = sqlite3_step(stmt)) == SQLITE_ROW) {
+                int index = 0;
                 const auto* fileName = reinterpret_cast<const char*>(
-                        sqlite3_column_text(stmt, 0));
+                        sqlite3_column_text(stmt, index));
                 const auto fileSize = static_cast<std::uintmax_t>(
-                        sqlite3_column_int64(stmt, 1));
+                        sqlite3_column_int64(stmt, index++));
                 const auto format = static_cast<NfPhoto::PhotoFormat>(
-                        sqlite3_column_int(stmt, 2));
-                const auto dateTaken = sqlite3_column_type(stmt, 3) == SQLITE_NULL
+                        sqlite3_column_int(stmt, index++));
+                const auto dateTaken = sqlite3_column_type(stmt, index) == SQLITE_NULL
                         ? std::chrono::system_clock::time_point{}
                         : std::chrono::system_clock::time_point{
-                                std::chrono::seconds{sqlite3_column_int64(stmt, 3)}
+                                std::chrono::seconds{sqlite3_column_int64(stmt, index)}
                         };
+                index++;
                 const auto* folderPath = reinterpret_cast<const char*>(
-                        sqlite3_column_text(stmt, 4));
+                        sqlite3_column_text(stmt, index++));
 
                 images.push_back({
                         .path = folderPath && fileName
@@ -702,10 +708,10 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                         .sizeOnDisk = fileSize,
                         .format = format,
                         .dateTaken = dateTaken,
-                        .favorite = sqlite3_column_int(stmt, 5) != 0,
-                        .rating = sqlite3_column_type(stmt, 6) == SQLITE_NULL
+                        .favorite = sqlite3_column_int(stmt, index++) != 0,
+                                .rating = sqlite3_column_type(stmt, index) == SQLITE_NULL
                                 ? 0
-                                : sqlite3_column_int(stmt, 6)
+                                : sqlite3_column_int(stmt, index)
                 });
         }
 

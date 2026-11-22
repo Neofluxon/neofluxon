@@ -25,7 +25,7 @@
 #define NF_LIBRARY_TREE_NODE_H
 
 #include "NfTimeUtils.h"
-#include "NfEquipmentQuery.h"
+#include "NfLibraryQuery.h"
 
 #include <memory>
 #include <string>
@@ -69,12 +69,7 @@ public:
                 Keyword
         };
 
-        using NodeValue = std::variant<std::monostate,
-                                       int,
-                                       int64_t,
-                                       std::string,
-                                       NfDateRange,
-                                       NfEquipmentQuery>;
+        using NodeValue = NfQueryValue;
 
         NfLibraryTreeNode(const std::string& name = {}, NodeType t  = {});
         ~NfLibraryTreeNode();

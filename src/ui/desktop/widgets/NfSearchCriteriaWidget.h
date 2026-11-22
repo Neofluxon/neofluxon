@@ -36,18 +36,17 @@ class QVBoxLayout;
 
 namespace NfDesktop {
 
+class NfDesktopContext;
+
 class NfSearchCriteriaWidget : public NfStyledWidget
 {
         Q_OBJECT
 
 public:
-        NfSearchCriteriaWidget(const QStringList& cameraValues,
-                               const QStringList& lensValues,
+        NfSearchCriteriaWidget(const NfDesktopContext &ctx,
                                QWidget* parent = nullptr);
         ~NfSearchCriteriaWidget() override = default;
         std::vector<NfCore::NfLibrarySearchCriterion> criteria() const;
-        void setEquipmentValues(const QStringList& cameraValues,
-                                const QStringList& lensValues);
 
 signals:
         void searchRequested();
@@ -64,6 +63,7 @@ private:
 
         void addCriterion(const QString& name);
 
+        const NfDesktopContext& m_context;
         QWidget* m_criteriaListWidget{nullptr};
         QVBoxLayout* m_criteriaLayout{nullptr};
         QStringList m_cameraValues;
