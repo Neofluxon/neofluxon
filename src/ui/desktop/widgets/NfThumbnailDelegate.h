@@ -48,6 +48,9 @@ public:
         QRect favoriteHitRect(const QRect& itemRect) const;
         QRect ratingHitRect(const QRect& itemRect, int rating) const;
         void setFavoriteHoverIndex(const QModelIndex& index);
+        void setHasControls(bool b = true);
+        bool hasControls() const;
+        int controlsHeight() const;
 
 signals:
         void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
@@ -56,6 +59,9 @@ signals:
 private:
         QRect thumbnailRect(const QRect& itemRect) const;
         QRect controlsRect(const QRect& itemRect) const;
+        void drawControls(QPainter *painter,
+                          const QStyleOptionViewItem& option,
+                          const QModelIndex &index) const;
 
         QIcon m_favoriteIcon;
         QIcon m_favoriteOutlineIcon;
@@ -63,7 +69,9 @@ private:
         QIcon m_ratingOutlineIcon;
         QModelIndex m_favoriteHoverIndex;
         int m_padding;
-        int m_controlsHeight;
+        int m_bottomPadding;
+        int m_controlsHeight{32};
+        bool m_hasControls{false};
 };
 
 } // namespace NfDesktop

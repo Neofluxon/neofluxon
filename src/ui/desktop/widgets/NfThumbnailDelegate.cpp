@@ -41,15 +41,18 @@ NfThumbnailDelegate::NfThumbnailDelegate(QObject* parent)
         , m_favoriteOutlineIcon{":/icons/favorite-outline.svg"}
         , m_ratingIcon{":/icons/rating.svg"}
         , m_ratingOutlineIcon{":/icons/rating-outline.svg"}
-        , m_padding{4}
-        , m_controlsHeight{32}
+        , m_padding{8}
+        , m_bottomPadding{4}
 {
 }
 
 QSize NfThumbnailDelegate::sizeHint(const QStyleOptionViewItem& option,
                                     [[maybe_unused]] const QModelIndex& index) const
 {
-        return option.decorationSize;
+        auto size = option.decorationSize;
+        if (hasControls())
+                size.rheight() += m_controlsHeight;
+        return size;
 }
 
 QRect NfThumbnailDelegate::thumbnailRect(const QRect& itemRect) const
@@ -57,7 +60,7 @@ QRect NfThumbnailDelegate::thumbnailRect(const QRect& itemRect) const
         return itemRect.adjusted(m_padding,
                                  m_padding,
                                  -m_padding,
-                                 -(m_controlsHeight + m_padding));
+                                 -((hasControls() ? m_controlsHeight : 0) + m_bottomPadding));
 }
 
 QRect NfThumbnailDelegate::controlsRect(const QRect& itemRect) const
@@ -102,6 +105,21 @@ QRect NfThumbnailDelegate::ratingHitRect(const QRect& itemRect, int rating) cons
                      controls.height());
 }
 
+void NfThumbnailDelegate::setHasControls(bool b)
+{
+        m_hasControls = b;
+}
+
+bool NfThumbnailDelegate::hasControls() const
+{
+        return m_hasControls;
+}
+
+int NfThumbnailDelegate::controlsHeight() const
+{
+        return m_controlsHeight;
+}
+
 void NfThumbnailDelegate::setFavoriteHoverIndex(const QModelIndex& index)
 {
         m_favoriteHoverIndex = index;
@@ -112,7 +130,7 @@ bool NfThumbnailDelegate::editorEvent(QEvent *event,
                                       const QStyleOptionViewItem &option,
                                       const QModelIndex &index)
 {
-        if (!model || !index.isValid()
+        if (!hasControls() || !model || !index.isValid()
             || event->type() != QEvent::MouseButtonRelease)
                 return QStyledItemDelegate::editorEvent(event, model, option, index);
 
@@ -184,8 +202,16 @@ void NfThumbnailDelegate::paint(QPainter* painter,
 
         painter->restore();
 
+        if (hasControls())
+                drawControls(painter, opt, index);
+}
+
+void NfThumbnailDelegate::drawControls(QPainter *painter,
+                                       const QStyleOptionViewItem& option,
+                                       const QModelIndex &index) const
+{
         const auto photo = index.data(NfBrowserModel::PhotoRole).value<NfPhoto>();
-        const auto controls = controlsRect(opt.rect);
+        const auto controls = controlsRect(option.rect);
 
         painter->save();
         constexpr int starSize = 14;
@@ -204,7 +230,7 @@ void NfThumbnailDelegate::paint(QPainter* painter,
         painter->restore();
 
         painter->save();
-        const auto favIconRect = favoriteIconRect(opt.rect);
+        const auto favIconRect = favoriteIconRect(option.rect);
         const auto iconRect = favIconRect;
         if (photo.isFavorite()) {
                 m_favoriteIcon.paint(painter, iconRect);

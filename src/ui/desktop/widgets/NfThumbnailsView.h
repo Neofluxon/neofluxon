@@ -34,6 +34,9 @@ class QMouseEvent;
 
 namespace NfDesktop {
 
+struct NfDesktopContext;
+class NfThumbnailDelegate;
+
 class NfThumbnailsView : public QListView
 {
     Q_OBJECT
@@ -44,7 +47,8 @@ public:
                 FilmstripView
         };
 
-        explicit NfThumbnailsView(QWidget* parent = nullptr);
+        explicit NfThumbnailsView(const NfDesktopContext& context,
+                                  QWidget* parent = nullptr);
 
         void setLayoutMode(LayoutMode mode);
         LayoutMode layoutMode() const;
@@ -74,6 +78,8 @@ private:
 private:
         LayoutMode m_layoutMode;
         QSize m_thumbnailSize;
+        bool m_hasControls{false};
+        NfThumbnailDelegate* m_thumbnailDelegate{nullptr};
         bool m_favoritePressActive{false};
         QModelIndex m_favoritePressIndex;
         bool m_ratingPressActive{false};

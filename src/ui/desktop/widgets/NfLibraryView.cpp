@@ -63,7 +63,7 @@ NfLibraryView::NfLibraryView(const NfDesktopContext &ctx,
         browserTopBar->setFixedHeight(36);
         m_mainLayout->addWidget(browserTopBar);
 
-        m_browserView = new NfBrowserView(m_state->browser(),
+        m_browserView = new NfBrowserView(ctx,
                                           m_model->browser(),
                                           this);
         m_model->setQuery(m_state->query());

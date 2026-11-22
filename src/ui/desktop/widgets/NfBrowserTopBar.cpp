@@ -67,8 +67,9 @@ void NfBrowserTopBar::setupUi()
         m_viewModeBar = new NfBrowserViewModeBar(this);
         m_viewModeBar->setState(m_browserState);
         m_sortBar = new NfBrowserSortBar(m_browserState, this);
-        m_searchBar = new NfSearchBar(m_context, this);
-        m_filterBar = new NfBrowserFilterBar(m_browserState, this);
+        if (m_state->mode() == NfUi::NfUiMode::Library)
+                m_searchBar = new NfSearchBar(m_context, this);
+        m_filterBar = new NfBrowserFilterBar(m_context, m_browserState, this);
 
         //        layout->addWidget(m_breadcrumbBar,1);
         if (m_state->mode() == NfUi::NfUiMode::Folders) {
@@ -106,7 +107,8 @@ void NfBrowserTopBar::setupUi()
         layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);
 
         layout->addStretch();
-        layout->addWidget(m_searchBar, 0, Qt::AlignVCenter);
+        if (m_searchBar)
+                layout->addWidget(m_searchBar, 0, Qt::AlignVCenter);
         layout->addWidget(m_filterBar, 0, Qt::AlignVCenter);
         /*m_editButton = new QToolButton(this);
         m_editButton->setObjectName("editInButton");

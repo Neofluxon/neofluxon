@@ -39,12 +39,15 @@ namespace NfUi {
 
 namespace NfDesktop {
 
+class NfDesktopContext;
+
 class NfBrowserFilterBar : public NfStyledWidget
 {
         Q_OBJECT
 
 public:
-        explicit NfBrowserFilterBar(NfUi::NfUiBrowserState* state,
+        explicit NfBrowserFilterBar(const NfDesktopContext& context,
+                                    NfUi::NfUiBrowserState* state,
                                     QWidget* parent = nullptr);
         ~NfBrowserFilterBar() override = default;
 
@@ -52,6 +55,7 @@ private:
         void setupUi();
         void updateFormatFilter();
 
+        const NfDesktopContext& m_context;
         NfUi::NfUiBrowserState* m_state;
         QToolButton* m_button{nullptr};
         std::vector<std::pair<NfCore::NfPhoto::PhotoFormat, QAction*>> m_formatActions;

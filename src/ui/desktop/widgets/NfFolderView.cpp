@@ -56,7 +56,7 @@ NfFolderView::NfFolderView(const NfDesktopContext& ctx,
         auto browserTopBar = new NfBrowserTopBar(m_context, this);
         m_mainLayout->addWidget(browserTopBar);
 
-        m_browserView = new NfBrowserView(m_state->browser(),
+        m_browserView = new NfBrowserView(m_context,
                                           m_model->browser(),
                                           this);
 

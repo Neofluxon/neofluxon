@@ -29,13 +29,14 @@
 #include <QWidget>
 
 namespace NfUi {
- class NfUiBrowserState;
+class NfUiBrowserState;
 }
 
 class QVBoxLayout;
 
 namespace NfDesktop {
 
+struct NfDesktopContext;
 class NfBrowserModel;
 class NfBreadcrumbView;
 class NfThumbnailsView;
@@ -46,7 +47,7 @@ class NfBrowserView : public QWidget
         Q_OBJECT
 
 public:
-        explicit NfBrowserView(NfUi::NfUiBrowserState *state,
+        explicit NfBrowserView(const NfDesktopContext& context,
                                NfBrowserModel *model,
                                QWidget* parent = nullptr);
 

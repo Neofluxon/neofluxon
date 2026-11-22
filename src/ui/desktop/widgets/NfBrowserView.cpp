@@ -22,6 +22,8 @@
  */
 
 #include "NfBrowserView.h"
+#include "NfDesktopContext.h"
+#include "NfUiState.h"
 #include "NfUiBrowserState.h"
 #include "NfBrowserModel.h"
 #include "NfThumbnailsView.h"
@@ -35,18 +37,18 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfBrowserView::NfBrowserView(NfUiBrowserState *state,
+NfBrowserView::NfBrowserView(const NfDesktopContext& context,
                              NfBrowserModel *model,
                              QWidget* parent)
         : QWidget(parent)
-        , m_state{state}
+        , m_state{context.uiState()->browserState()}
         , m_model{model}
 {
         m_mainLayout = new QVBoxLayout(this);
         m_mainLayout->setContentsMargins(0, 0, 0, 0);
         m_mainLayout->setSpacing(0);
 
-        m_thumbnailsView = new NfThumbnailsView(this);
+        m_thumbnailsView = new NfThumbnailsView(context, this);
         m_thumbnailsView->setModel(m_model);
         m_mainLayout->addWidget(m_thumbnailsView);
 

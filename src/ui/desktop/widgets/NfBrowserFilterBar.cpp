@@ -22,7 +22,9 @@
  */
 
 #include "NfBrowserFilterBar.h"
+#include "NfDesktopContext.h"
 #include "NfUiBrowserState.h"
+#include "NfUiState.h"
 
 #include <QAction>
 #include <QIcon>
@@ -34,9 +36,11 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
-NfBrowserFilterBar::NfBrowserFilterBar(NfUiBrowserState* state,
+NfBrowserFilterBar::NfBrowserFilterBar(const NfDesktopContext& context,
+                                       NfUiBrowserState* state,
                                        QWidget* parent)
         : NfStyledWidget(parent)
+        , m_context{context}
         , m_state{state}
 {
         setupUi();
@@ -91,31 +95,33 @@ void NfBrowserFilterBar::setupUi()
         addFormatAction(tr("JPEG"), NfCore::NfPhoto::PhotoFormat::Jpeg);
         addFormatAction(tr("PNG"), NfCore::NfPhoto::PhotoFormat::Png);
 
-        menu->addSeparator();
-        m_favoriteAction = menu->addAction(QIcon(":/icons/favorite.svg"),
-                                           tr("Favorites only"));
-        m_favoriteAction->setCheckable(true);
-        QObject::connect(m_favoriteAction, &QAction::toggled, this,
-                         [this](bool checked) {
-                                 m_state->setFavoriteFilter(checked);
-                         });
-
-        menu->addSeparator();
-        for (int rating = 1; rating <= 5; ++rating) {
-                auto* action = menu->addAction(
-                        QIcon(":/icons/rating.svg"),
-                        tr("%1 star%2").arg(rating).arg(rating == 1 ? "" : "s"));
-                action->setCheckable(true);
-                m_ratingActions.emplace_back(rating, action);
-                QObject::connect(action, &QAction::toggled, this,
-                                 [this, rating](bool checked) {
-                                         auto ratings = m_state->ratingFilter();
-                                         if (checked)
-                                                 ratings.insert(rating);
-                                         else
-                                                 ratings.erase(rating);
-                                         m_state->setRatingFilter(ratings);
+        if (m_context.uiState()->mode() == NfUiMode::Library) {
+                menu->addSeparator();
+                m_favoriteAction = menu->addAction(QIcon(":/icons/favorite.svg"),
+                                                   tr("Favorites only"));
+                m_favoriteAction->setCheckable(true);
+                QObject::connect(m_favoriteAction, &QAction::toggled, this,
+                                 [this](bool checked) {
+                                         m_state->setFavoriteFilter(checked);
                                  });
+
+                menu->addSeparator();
+                for (int rating = 1; rating <= 5; ++rating) {
+                        auto* action = menu->addAction(
+                                QIcon(":/icons/rating.svg"),
+                                tr("%1 star%2").arg(rating).arg(rating == 1 ? "" : "s"));
+                        action->setCheckable(true);
+                        m_ratingActions.emplace_back(rating, action);
+                        QObject::connect(action, &QAction::toggled, this,
+                                         [this, rating](bool checked) {
+                                                 auto ratings = m_state->ratingFilter();
+                                                 if (checked)
+                                                         ratings.insert(rating);
+                                                 else
+                                                         ratings.erase(rating);
+                                                 m_state->setRatingFilter(ratings);
+                                         });
+                }
         }
 
         menu->addSeparator();
@@ -123,8 +129,10 @@ void NfBrowserFilterBar::setupUi()
         QObject::connect(m_clearAction, &QAction::triggered,
                          m_state, [this]() {
                                  m_state->setFormatFilter({});
-                                 m_state->setRatingFilter({});
-                                 m_state->setFavoriteFilter(false);
+                                 if (m_context.uiState()->mode() == NfUiMode::Library) {
+                                         m_state->setRatingFilter({});
+                                         m_state->setFavoriteFilter(false);
+                                 }
                          });
 
         m_button->setMenu(menu);
@@ -140,20 +148,20 @@ void NfBrowserFilterBar::updateFormatFilter()
                 action->setChecked(formats.contains(format));
         }
 
-        const auto& ratings = m_state->ratingFilter();
-        for (const auto& [rating, action] : m_ratingActions) {
-                const QSignalBlocker blocker(action);
-                action->setChecked(ratings.contains(rating));
-        }
+        int activeCount = static_cast<int>(formats.size());
+        if (m_context.uiState()->mode() == NfUiMode::Library) {
+                const auto& ratings = m_state->ratingFilter();
+                for (const auto& [rating, action] : m_ratingActions) {
+                        const QSignalBlocker blocker(action);
+                        action->setChecked(ratings.contains(rating));
+                }
 
-        {
                 const QSignalBlocker blocker(m_favoriteAction);
                 m_favoriteAction->setChecked(m_state->favoriteFilter());
+                activeCount += static_cast<int>(ratings.size())
+                               + (m_state->favoriteFilter() ? 1 : 0);
         }
 
-        const int activeCount = static_cast<int>(formats.size())
-                              + static_cast<int>(ratings.size())
-                              + (m_state->favoriteFilter() ? 1 : 0);
         m_clearAction->setEnabled(activeCount > 0);
         m_button->setText(activeCount > 0 ? QString::number(activeCount) : QString());
         m_button->setToolTip(activeCount == 0
