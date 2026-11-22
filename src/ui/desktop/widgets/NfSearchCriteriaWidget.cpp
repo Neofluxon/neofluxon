@@ -138,12 +138,14 @@ QWidget* createValueControl(const CriterionDefinition& definition,
                 }
                 const auto unsetDate = minimumDate.addDays(-1);
                 auto* edit = new QDateEdit(container);
+                edit->setObjectName("SearchDateEdit");
                 edit->setCalendarPopup(true);
                 edit->setDisplayFormat("yyyy-MM-dd");
                 edit->setMinimumDate(unsetDate);
                 edit->setMaximumDate(maximumDate);
                 edit->setSpecialValueText(QObject::tr("Select date"));
                 edit->setDate(unsetDate);
+                edit->calendarWidget()->setObjectName("SearchDateCalendar");
                 const auto initialDate = today < minimumDate
                         ? minimumDate
                         : today > maximumDate ? maximumDate : today;
