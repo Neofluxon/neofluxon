@@ -247,15 +247,15 @@ NfLibraryTreeModel::getEquipment(uint64_t libraryId) const
                 for (int row = 0; row < categoryItem->childCount(); row++) {
                         const auto* item = categoryItem->child(row);
                         const auto itemValue = item->value();
-                        if (const auto* equipment = std::get_if<NfEquipmentQuery>(&itemValue)) {
+                        if (const auto* equipment = std::get_if<NfEquipmentValue>(&itemValue)) {
                                 switch (equipment->kind) {
-                                case NfEquipmentQuery::Kind::Camera:
+                                case NfEquipmentValue::Kind::Camera:
                                         equipmentList.cameras.emplace_back(equipment->id,
                                                                            item->name());
                                         break;
-                                case NfEquipmentQuery::Kind::Lens:
-                                        equipmentList.lenes.emplace_back(equipment->id,
-                                                                           item->name());
+                                case NfEquipmentValue::Kind::Lens:
+                                        equipmentList.lenses.emplace_back(equipment->id,
+                                                                          item->name());
                                         break;
                                 }
                         }

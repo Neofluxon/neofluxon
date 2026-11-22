@@ -25,32 +25,11 @@
 #define NF_LIBRARY_QUERY_H
 
 #include "NfLibraryRepresentation.h"
-#include "NfTimeUtils.h"
+#include "NfQueryValue.h"
 
-#include <cstdint>
-#include <string>
-#include <variant>
 #include <vector>
 
 namespace NfCore {
-
-struct NfEquipmentValue {
-        enum class Kind {
-                Camera,
-                Lens
-        };
-
-        Kind kind;
-        int64_t id;
-        bool operator==(const NfEquipmentQuery&) const = default;
-};
-
-using NfQueryValue = std::variant<std::monostate,
-                                  int,
-                                  int64_t,
-                                  std::string,
-                                  NfDateRange,
-                                  NfEquipmentValue>;
 
 enum class NfLibrarySearchField {
         DateTaken,
@@ -72,7 +51,7 @@ struct NfLibraryQueryCriterion {
         NfLibrarySearchField field;
         NfLibrarySearchOperator op;
         NfQueryValue value;
-        bool operator==(const NfLibrarySearchCriterion&) const = default;
+        bool operator==(const NfLibraryQueryCriterion&) const = default;
 };
 
 struct NfLibraryQuery {

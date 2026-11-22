@@ -46,7 +46,7 @@ public:
         NfSearchCriteriaWidget(const NfDesktopContext &ctx,
                                QWidget* parent = nullptr);
         ~NfSearchCriteriaWidget() override = default;
-        std::vector<NfCore::NfLibrarySearchCriterion> criteria() const;
+        std::vector<NfCore::NfLibraryQueryCriterion> criteria() const;
 
 signals:
         void searchRequested();

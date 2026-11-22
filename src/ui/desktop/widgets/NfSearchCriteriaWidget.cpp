@@ -22,7 +22,10 @@
  */
 
 #include "NfSearchCriteriaWidget.h"
+#include "NfDesktopContext.h"
 #include "NfLibraryTreeModel.h"
+#include "NfUiLibraryModeState.h"
+#include "NfUiState.h"
 
 #include <QComboBox>
 #include <QDate>
@@ -128,8 +131,9 @@ QWidget* createValueControl(const CriterionDefinition& definition,
         using EquipmentInfo = NfLibraryTreeModel::EquipmentInfo;
         auto addEquipmentValues = [valueComboBox] (const std::vector<EquipmentInfo>& info) {
                 for (const auto& el: info)
-                        valueComboBox->addItem(el.name, el.id);
-        }
+                        valueComboBox->addItem(el.name,
+                                               static_cast<qlonglong>(el.id));
+        };
 
         valueComboBox->setObjectName("SearchCriterionInput");
         valueComboBox->setMinimumWidth(220);
@@ -137,9 +141,9 @@ QWidget* createValueControl(const CriterionDefinition& definition,
         if (definition.editable)
                 valueComboBox->setEditable(true);
         if (definition.field == NfCore::NfLibrarySearchField::Camera)
-                addEquipmentValues(valueComboBox, equipment.cameras);
+                addEquipmentValues(equipment.cameras);
         else if (definition.field == NfCore::NfLibrarySearchField::Lens)
-                addEquipmentValues(valueComboBox, equipment.lenses);
+                addEquipmentValues(equipment.lenses);
         else
                 valueComboBox->addItems(definition.values);
 
@@ -287,13 +291,13 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
                          });
 }
 
-std::vector<NfCore::NfLibrarySearchCriterion>
+std::vector<NfCore::NfLibraryQueryCriterion>
 NfSearchCriteriaWidget::criteria() const
 {
-        using NfCore::NfLibrarySearchCriterion;
+        using NfCore::NfLibraryQueryCriterion;
         using NfCore::NfLibrarySearchOperator;
 
-        auto result = std::vector<NfLibrarySearchCriterion>{};
+        auto result = std::vector<NfLibraryQueryCriterion>{};
         result.reserve(static_cast<size_t>(m_criteria.size()));
         for (const auto& row : m_criteria) {
                 const auto* definition = row.widget->findChild<QComboBox*>(
@@ -312,16 +316,17 @@ NfSearchCriteriaWidget::criteria() const
                 else if (operatorText == tr("Between"))
                         op = NfLibrarySearchOperator::Between;
 
-                auto criterion = NfLibrarySearchCriterion{
+                auto criterion = NfLibraryQueryCriterion{
                         .field = row.field,
                         .op = op
                 };
                 const auto* valueBox = row.widget->findChild<QComboBox*>(
                         "SearchCriterionInput");
                 if (valueBox) {
-                        criterion.value = valueBox->currentText().toStdString();
-                        if (criterion.value.empty())
+                        const auto value = valueBox->currentText().toStdString();
+                        if (value.empty())
                                 continue;
+                        criterion.value = value;
                 } else {
                         const auto dateEdits =
                                 row.widget->findChildren<QDateEdit*>();
@@ -329,18 +334,25 @@ NfSearchCriteriaWidget::criteria() const
                             || dateEdits.first()->date()
                                        == dateEdits.first()->minimumDate())
                                 continue;
-                        criterion.value = dateEdits.first()->date()
-                                                          .toString(Qt::ISODate)
-                                                          .toStdString();
+                        const auto startDate = dateEdits.first()->date();
+                        const auto startRange = NfCore::NfTimeUtils::getDayRange(
+                                std::chrono::year{startDate.year()}
+                                / std::chrono::month{static_cast<unsigned>(startDate.month())}
+                                / std::chrono::day{static_cast<unsigned>(startDate.day())});
                         if (op == NfLibrarySearchOperator::Between) {
                                 if (dateEdits.size() < 2
                                     || dateEdits.at(1)->date()
                                                == dateEdits.at(1)->minimumDate())
                                         continue;
-                                criterion.secondValue =
-                                        dateEdits.at(1)->date()
-                                                                .toString(Qt::ISODate)
-                                                                .toStdString();
+                                const auto endDate = dateEdits.at(1)->date();
+                                const auto endRange = NfCore::NfTimeUtils::getDayRange(
+                                        std::chrono::year{endDate.year()}
+                                        / std::chrono::month{static_cast<unsigned>(endDate.month())}
+                                        / std::chrono::day{static_cast<unsigned>(endDate.day())});
+                                criterion.value = NfCore::NfDateRange{
+                                        startRange.start_ticks, endRange.end_ticks};
+                        } else {
+                                criterion.value = startRange;
                         }
                 }
                 result.push_back(criterion);

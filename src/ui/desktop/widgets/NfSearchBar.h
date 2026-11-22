@@ -39,7 +39,6 @@ class NfUiState;
 namespace NfDesktop {
 
 class NfDesktopContext;
-class NfLibraryTreeModel;
 class NfSearchCriteriaWidget;
 
 class NfSearchBar : public NfStyledWidget
@@ -56,12 +55,12 @@ protected slots:
         void onShowCriteriaPopup();
 
 private:
+        const NfDesktopContext& m_context;
         NfUi::NfUiState *m_state;
-        NfLibraryTreeModel* m_libraryTreeModel{nullptr};
         QLineEdit* m_searchTextInput{nullptr};
         QToolButton* m_criteriaButton{nullptr};
         NfSearchCriteriaWidget* m_criteriaPopup{nullptr};
-        std::vector<NfCore::NfLibrarySearchCriterion> m_searchCriteria;
+        std::vector<NfCore::NfLibraryQueryCriterion> m_searchCriteria;
 };
 
 } // namespace NfDesktop

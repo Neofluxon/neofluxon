@@ -32,7 +32,7 @@
 
 #include <cstdint>
 #include <memory>
-#include <pair>
+#include <utility>
 
 namespace NfCore {
 class NfLibrary;
@@ -60,12 +60,12 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         struct EquipmentInfo {
                 int64_t id{-1};
                 QString name;
-        }
+        };
 
         struct Equipment {
                 std::vector<EquipmentInfo> cameras;
                 std::vector<EquipmentInfo> lenses;
-        }
+        };
 
         explicit NfLibraryTreeModel(const NfDesktopContext& ctx,
                                     QObject* parent = nullptr);

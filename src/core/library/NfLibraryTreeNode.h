@@ -24,13 +24,11 @@
 #ifndef NF_LIBRARY_TREE_NODE_H
 #define NF_LIBRARY_TREE_NODE_H
 
-#include "NfTimeUtils.h"
-#include "NfLibraryQuery.h"
+#include "NfQueryValue.h"
 
 #include <memory>
 #include <string>
 #include <vector>
-#include <variant>
 #include <utility>
 #include <map>
 

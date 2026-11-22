@@ -142,7 +142,6 @@ std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
         case RepresentationType::Collections:
                 break;
         default:
-                repType = RepresentationType::Canonical;
                 break;
         }
 

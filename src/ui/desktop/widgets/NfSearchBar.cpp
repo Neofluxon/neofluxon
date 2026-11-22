@@ -44,8 +44,8 @@ namespace NfDesktop {
 NfSearchBar::NfSearchBar(const NfDesktopContext &ctx,
                          QWidget* parent)
         : NfStyledWidget(parent)
+        , m_context{ctx}
         , m_state{ctx.uiState()}
-        , m_libraryTreeModel{ctx.libraryTreeModel}
 {
         setObjectName("NfSearchBar");
         setFixedWidth(220);
@@ -85,20 +85,7 @@ NfSearchBar::NfSearchBar(const NfDesktopContext &ctx,
 
 void NfSearchBar::onShowCriteriaPopup()
 {
-        if (!m_libraryTreeModel)
-                return;
-
-        const auto* libraryState = m_state->libraryModeState();
-        const auto id = libraryState->currentLibrary();
-        QStringList cameras;
-        QStringList lenses;
-        const auto equipment = m_libraryTreeModel->getEquipment(id);
-        cameras  = equipment.cameraNames;
-        lenses   = equipment.lensNames;
-
-        m_criteriaPopup = new NfSearchCriteriaWidget(cameras,
-                                                     lenses,
-                                                     this);
+        m_criteriaPopup = new NfSearchCriteriaWidget(m_context, this);
         m_criteriaPopup->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
         QObject::connect(m_criteriaPopup,
                          &NfSearchCriteriaWidget::searchRequested,
@@ -131,7 +118,7 @@ void NfSearchBar::onSearchRequested()
 
                 NfLibraryQuery searchQuery;
                 searchQuery.libraryId = state->currentLibrary();
-                searchQuery.searchText = m_searchTextInput->text().
+                searchQuery.queryValue = m_searchTextInput->text().
                         trimmed().toStdString();
                 searchQuery.criteria = m_searchCriteria;
                 state->setQuery(searchQuery);

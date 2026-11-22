@@ -106,8 +106,9 @@ std::vector<NfPhoto> NfLibraryRepresentation::queryPhotos(const NfLibraryQuery &
                 break;
         case RepresentationType::Equipment:
                 NF_LOG_DEBUG("Representation: Equipment");
-                if (const auto *equipment = std::get_if<NfEquipmentQuery>(&query.queryValue))
-                        return queryPhotosByEquipment(*equipment);
+                if (const auto *equipment = std::get_if<NfEquipmentValue>(&query.queryValue))
+                        return queryPhotosByEquipment(
+                                NfEquipmentQuery{equipment->kind, equipment->id});
                 break;
         case RepresentationType::Collections:
                 NF_LOG_DEBUG("Representation: Collections");
@@ -264,7 +265,7 @@ void NfLibraryRepresentation::loadCamerasTree(NfLibraryTreeNode *parent,
                 auto childNode = findOrCreateChild(parent,
                                                    name,
                                                    NfLibraryTreeNode::NodeType::Camera);
-                childNode->setValue(NfEquipmentQuery{NfEquipmentQuery::Kind::Camera,
+                childNode->setValue(NfEquipmentValue{NfEquipmentValue::Kind::Camera,
                                                      camera.id} );
         }
 }
@@ -276,7 +277,7 @@ void NfLibraryRepresentation::loadLensesTree(NfLibraryTreeNode *parent,
                 auto childNode = findOrCreateChild(parent,
                                                    lens.name,
                                                    NfLibraryTreeNode::NodeType::Lens);
-                childNode->setValue(NfEquipmentQuery{NfEquipmentQuery::Kind::Lens,
+                childNode->setValue(NfEquipmentValue{NfEquipmentValue::Kind::Lens,
                                                      lens.id} );
         }
 }

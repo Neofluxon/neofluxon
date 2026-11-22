@@ -584,7 +584,8 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
         )"};
 
         auto parameters = std::vector<std::string>{};
-        if (!query.searchText.empty()) {
+        const auto* searchText = std::get_if<std::string>(&query.queryValue);
+        if (searchText && !searchText->empty()) {
                 sql += R"( AND (
                 i.file_name LIKE ? COLLATE NOCASE
                 OR f.path LIKE ? COLLATE NOCASE
@@ -592,70 +593,83 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
                 OR c.model LIKE ? COLLATE NOCASE
                 OR l.name LIKE ? COLLATE NOCASE))";
 
-                parameters = std::vector(5, '%' + query.searchText + '%');
+                parameters = std::vector(5, '%' + *searchText + '%');
         }
 
         // Create the criteria SQL expressions
         using SearchField = NfLibrarySearchField;
         using SearchOperator = NfLibrarySearchOperator;
         for (const auto& criterion : query.criteria) {
-                if (criterion.value.empty())
-                        continue;
+                const auto* stringValue = std::get_if<std::string>(&criterion.value);
 
                 switch (criterion.field) {
                 case SearchField::Camera:
+                        if (!stringValue || stringValue->empty())
+                                continue;
                         if (criterion.op == SearchOperator::Is) {
                                 sql += " AND (c.maker || ' ' || c.model = ? COLLATE NOCASE)";
-                                parameters.push_back(criterion.value);
+                                parameters.push_back(*stringValue);
                         } else if (criterion.op == SearchOperator::Contains) {
                                 sql += " AND (c.maker || ' ' || c.model LIKE ? COLLATE NOCASE)";
-                                const auto pattern = '%' + criterion.value + '%';
+                                const auto pattern = '%' + *stringValue + '%';
                                 parameters.push_back(pattern);
                         }
                         break;
                 case SearchField::DateTaken:
-                        if (criterion.op == SearchOperator::Is) {
-                                sql += " AND date(i.datetime_taken, 'unixepoch') = date(?)";
-                                parameters.push_back(criterion.value);
-                        } else if (criterion.op == SearchOperator::Before) {
-                                sql += " AND date(i.datetime_taken, 'unixepoch') < date(?)";
-                                parameters.push_back(criterion.value);
-                        } else if (criterion.op == SearchOperator::After) {
-                                sql += " AND date(i.datetime_taken, 'unixepoch') > date(?)";
-                                parameters.push_back(criterion.value);
-                        } else if (criterion.op == SearchOperator::Between
-                                   && !criterion.secondValue.empty()) {
-                                sql += " AND date(i.datetime_taken, 'unixepoch')"
-                                       " BETWEEN date(?) AND date(?)";
-                                parameters.push_back(criterion.value);
-                                parameters.push_back(criterion.secondValue);
+                        if (const auto* dateRange =
+                                    std::get_if<NfDateRange>(&criterion.value)) {
+                                const auto start = std::to_string(dateRange->start_ticks);
+                                const auto end = std::to_string(dateRange->end_ticks);
+                                if (criterion.op == SearchOperator::Is) {
+                                        sql += " AND i.datetime_taken >= ? AND i.datetime_taken < ?";
+                                        parameters.push_back(start);
+                                        parameters.push_back(end);
+                                } else if (criterion.op == SearchOperator::Before) {
+                                        sql += " AND i.datetime_taken < ?";
+                                        parameters.push_back(start);
+                                } else if (criterion.op == SearchOperator::After) {
+                                        sql += " AND i.datetime_taken >= ?";
+                                        parameters.push_back(end);
+                                } else if (criterion.op == SearchOperator::Between) {
+                                        sql += " AND i.datetime_taken >= ? AND i.datetime_taken < ?";
+                                        parameters.push_back(start);
+                                        parameters.push_back(end);
+                                }
+                        } else {
+                                continue;
                         }
                         break;
                 case SearchField::Lens:
+                        if (!stringValue || stringValue->empty())
+                                continue;
                         if (criterion.op == SearchOperator::Is) {
                                 sql += " AND l.name = ? COLLATE NOCASE";
-                                parameters.push_back(criterion.value);
+                                parameters.push_back(*stringValue);
                         } else if (criterion.op == SearchOperator::Contains) {
                                 sql += " AND l.name LIKE ? COLLATE NOCASE";
-                                parameters.push_back('%' + criterion.value + '%');
+                                parameters.push_back('%' + *stringValue + '%');
                         }
                         break;
                 case SearchField::FileFormat:
+                        if (!stringValue || stringValue->empty())
+                                continue;
                         // TODO: use acally all types of formats
                         if (criterion.op == SearchOperator::Is) {
                                 sql += " AND i.format = CASE upper(?)"
                                        " WHEN 'JPEG' THEN 1 WHEN 'RAW' THEN 2"
                                        " WHEN 'PNG' THEN 3 ELSE 0 END";
-                                parameters.push_back(criterion.value);
+                                parameters.push_back(*stringValue);
                         }
                         break;
                 case SearchField::Folder:
+                        if (!stringValue || stringValue->empty())
+                                continue;
                         if (criterion.op == SearchOperator::Is) {
                                 sql += " AND f.path = ? COLLATE NOCASE";
-                                parameters.push_back(criterion.value);
+                                parameters.push_back(*stringValue);
                         } else if (criterion.op == SearchOperator::Contains) {
                                 sql += " AND f.path LIKE ? COLLATE NOCASE";
-                                parameters.push_back('%' + criterion.value + '%');
+                                parameters.push_back('%' + *stringValue + '%');
                         }
                         break;
                 }
@@ -686,7 +700,7 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
         while ((result = sqlite3_step(stmt)) == SQLITE_ROW) {
                 int index = 0;
                 const auto* fileName = reinterpret_cast<const char*>(
-                        sqlite3_column_text(stmt, index));
+                        sqlite3_column_text(stmt, index++));
                 const auto fileSize = static_cast<std::uintmax_t>(
                         sqlite3_column_int64(stmt, index++));
                 const auto format = static_cast<NfPhoto::PhotoFormat>(
