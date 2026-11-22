@@ -74,6 +74,11 @@ std::vector<std::unique_ptr<NfLibraryRepresentation>>NfLibrary::representations(
         return reps;
 }
 
+std::optional<NfDateRange> NfLibrary::dateTimeRange() const
+{
+        return m_db->getDateTimeRange(m_id);
+}
+
 bool NfLibrary::addFolder(const std::filesystem::path& folder)
 {
         NfLibraryDatabase::Transaction tx(m_db);

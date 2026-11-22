@@ -201,6 +201,7 @@ bool NfLibraryTreeModel::removeLibrary(uint64_t libraryId)
         beginRemoveRows(QModelIndex(), row, row);
         m_root->removeChild(row);
         endRemoveRows();
+        m_timelineRanges.erase(libraryId);
         return true;
 }
 
@@ -275,6 +276,20 @@ NfLibraryTreeModel::getEquipment(uint64_t libraryId) const
         return equipmentList;
 }
 
+std::optional<NfDateRange>
+NfLibraryTreeModel::getDateTimeRange(uint64_t libraryId) const
+{
+        const auto row = libraryRow(libraryId);
+        if (row < 0)
+                return std::nullopt;
+
+        const auto range = m_timelineRanges.find(libraryId);
+        if (range == m_timelineRanges.end())
+                return std::nullopt;
+
+        return range->second;
+}
+
 int NfLibraryTreeModel::libraryRow(uint64_t libraryId) const
 {
         for (int row = 0; row < m_root->childCount(); ++row) {
@@ -297,6 +312,7 @@ void NfLibraryTreeModel::onTreeUpdated(const NfLibraryTreeSnapshot& snapshot)
         beginResetModel();
         m_root = std::make_unique<NfLibraryTreeItem>(
                 tr("Libraries"), NfLibraryTreeItem::NodeType::Root);
+        m_timelineRanges.clear();
         for (const auto& library : snapshot)
                 addLibrarySnapshot(library);
         endResetModel();
@@ -333,6 +349,10 @@ void NfLibraryTreeModel::addLibrarySnapshot(const NfLibrarySnapshot& library)
                                                                nodeType,
                                                                m_root.get());
         libraryItem->setValue(library.id);
+        if (library.timelineRange)
+                m_timelineRanges[library.id] = *library.timelineRange;
+        else
+                m_timelineRanges.erase(library.id);
         for (const auto& representation : library.representations) {
                 auto repItem = std::make_unique<NfLibraryTreeItem>(
                         QString::fromUtf8(representation.name.c_str()),

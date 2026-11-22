@@ -24,8 +24,10 @@
 #define NF_LIBRARY_TREE_SNAPSHOT_H
 
 #include "NfLibraryRepresentation.h"
+#include "NfTimeUtils.h"
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -47,6 +49,7 @@ struct NfLibraryRepresentationSnapshot {
 struct NfLibrarySnapshot {
         int64_t id;
         std::string name;
+        std::optional<NfDateRange> timelineRange;
         std::vector<NfLibraryRepresentationSnapshot> representations;
 };
 

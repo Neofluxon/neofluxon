@@ -27,10 +27,12 @@
 #include "NfLibraryRepresentation.h"
 #include "NfEquipmentQuery.h"
 #include "NfSourceRecords.h"
+#include "NfTimeUtils.h"
 
 #include <cstdint>
 #include <sqlite3.h>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 #include <memory>
@@ -106,6 +108,7 @@ public:
                          int64_t cameraId,
                          int64_t lensId,
                          int rating = 0);
+        std::optional<NfDateRange> getDateTimeRange(int64_t libraryId) const;
         NfImageRecords getImages(const NfLibraryQuery &query) const;
         NfImageRecords getImagesByFolderId(int64_t folderId,
                                            int64_t libraryId) const;

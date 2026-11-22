@@ -27,11 +27,14 @@
 #include <QAbstractItemModel>
 
 #include "core/library/NfLibraryTreeTask.h"
+#include "core/utils/NfTimeUtils.h"
 
 #include <QStringList>
 
 #include <cstdint>
 #include <memory>
+#include <optional>
+#include <unordered_map>
 #include <utility>
 
 namespace NfCore {
@@ -85,6 +88,7 @@ class NfLibraryTreeModel : public QAbstractItemModel {
         bool removeLibrary(uint64_t libraryId);
         QModelIndex libraryIndexById(uint64_t libraryId) const;
         Equipment getEquipment(uint64_t libraryId) const;
+        std::optional<NfCore::NfDateRange> getDateTimeRange(uint64_t libraryId) const;
 
 protected slots:
         void onTreeUpdated(const NfCore::NfLibraryTreeSnapshot& snapshot);
@@ -104,6 +108,7 @@ signals:
 
         NfUi::NfLibraryAdapter* m_library;
         std::unique_ptr<NfLibraryTreeItem> m_root;
+        std::unordered_map<uint64_t, NfCore::NfDateRange> m_timelineRanges;
         uint64_t m_loadGeneration{0};
 };
 

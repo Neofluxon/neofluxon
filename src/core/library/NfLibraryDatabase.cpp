@@ -739,6 +739,45 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
         return images;
 }
 
+std::optional<NfDateRange>
+NfLibraryDatabase::getDateTimeRange(int64_t libraryId) const
+{
+        if (!m_db || libraryId <= 0)
+                return std::nullopt;
+
+        constexpr auto sql = R"(
+            SELECT MIN(i.datetime_taken), MAX(i.datetime_taken)
+            FROM images AS i
+            JOIN library_folders AS lf ON lf.folder_id = i.folder_id
+            WHERE lf.library_id = ? AND i.datetime_taken IS NOT NULL;
+        )";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+                NF_LOG_ERROR("can't prepare datetime bounds query: "
+                             << sqlite3_errmsg(m_db));
+                return std::nullopt;
+        }
+
+        sqlite3_bind_int64(stmt, 1, libraryId);
+        std::optional<NfDateRange> result;
+        const auto stepResult = sqlite3_step(stmt);
+        if (stepResult == SQLITE_ROW
+            && sqlite3_column_type(stmt, 0) != SQLITE_NULL
+            && sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
+                const auto maxTicks = sqlite3_column_int64(stmt, 1);
+                result = NfDateRange{
+                        sqlite3_column_int64(stmt, 0),
+                        maxTicks + 1};
+        } else if (stepResult != SQLITE_ROW && stepResult != SQLITE_DONE) {
+                NF_LOG_ERROR("can't query datetime bounds: "
+                             << sqlite3_errmsg(m_db));
+        }
+
+        sqlite3_finalize(stmt);
+        return result;
+}
+
 NfImageRecords
 NfLibraryDatabase::getImagesByFolderId(int64_t folderId,
                                        int64_t libraryId) const

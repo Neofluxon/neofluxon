@@ -86,8 +86,10 @@ NfLibrarySnapshot NfLibraryTreeTask::snapshotLibrary(const NfLibrary& library) c
 {
         NfLibrarySnapshot snapshot{
                 .id = library.id(),
-                .name = library.name()
+                .name = library.name(),
+                .timelineRange = library.dateTimeRange()
         };
+
         for (const auto& representation : library.representations()) {
                 if (isCancelled())
                         break;

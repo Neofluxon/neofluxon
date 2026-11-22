@@ -38,6 +38,7 @@
 #include <QSizePolicy>
 #include <QVBoxLayout>
 
+#include <chrono>
 #include <vector>
 
 namespace NfDesktop {
@@ -97,6 +98,7 @@ const CriterionDefinition* definitionFor(const QString& name)
 QWidget* createValueControl(const CriterionDefinition& definition,
                             const QString& op,
                             const NfLibraryTreeModel::Equipment& equipment,
+                            const std::optional<NfCore::NfDateRange>& dateTimeRange,
                             QWidget* parent)
 {
         auto* container = new QWidget(parent);
@@ -105,16 +107,48 @@ QWidget* createValueControl(const CriterionDefinition& definition,
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(8);
 
-        const auto addDateEdit = [layout, container]() {
+        const auto addDateEdit = [layout, container, dateTimeRange]() {
+                const auto today = QDate::currentDate();
+                auto minimumDate = today.addYears(-10);
+                auto maximumDate = today;
+                if (dateTimeRange
+                    && dateTimeRange->end_ticks > dateTimeRange->start_ticks) {
+                        const auto toDate = [](int64_t ticks) {
+                                const auto timePoint =
+                                        std::chrono::system_clock::time_point{
+                                                std::chrono::system_clock::duration{ticks}};
+                                const auto localTime = std::chrono::zoned_time{
+                                        std::chrono::current_zone(),
+                                        timePoint}.get_local_time();
+                                const auto day =
+                                        std::chrono::floor<std::chrono::days>(localTime);
+                                const std::chrono::year_month_day ymd{day};
+                                return QDate{static_cast<int>(ymd.year()),
+                                             static_cast<int>(unsigned(ymd.month())),
+                                             static_cast<int>(unsigned(ymd.day()))};
+                        };
+
+                        const auto libraryMinimum = toDate(dateTimeRange->start_ticks);
+                        const auto libraryMaximum = toDate(dateTimeRange->end_ticks - 1);
+                        if (libraryMinimum.isValid() && libraryMaximum.isValid()
+                            && libraryMinimum <= libraryMaximum) {
+                                minimumDate = libraryMinimum;
+                                maximumDate = libraryMaximum;
+                        }
+                }
+                const auto unsetDate = minimumDate.addDays(-1);
                 auto* edit = new QDateEdit(container);
                 edit->setCalendarPopup(true);
                 edit->setDisplayFormat("yyyy-MM-dd");
-                edit->setMinimumDate(QDate(1800, 1, 1));
-                edit->setMaximumDate(QDate::currentDate());
+                edit->setMinimumDate(unsetDate);
+                edit->setMaximumDate(maximumDate);
                 edit->setSpecialValueText(QObject::tr("Select date"));
-                edit->setDate(edit->minimumDate());
-                const auto today = QDate::currentDate();
-                edit->calendarWidget()->setCurrentPage(today.year(), today.month());
+                edit->setDate(unsetDate);
+                const auto initialDate = today < minimumDate
+                        ? minimumDate
+                        : today > maximumDate ? maximumDate : today;
+                edit->calendarWidget()->setCurrentPage(initialDate.year(),
+                                                      initialDate.month());
                 edit->setMinimumWidth(128);
                 layout->addWidget(edit);
         };
@@ -267,9 +301,11 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
 
         auto libraryId = m_context.uiState()->libraryModeState()->currentLibrary();
         auto equipment = m_context.libraryTreeModel->getEquipment(libraryId);
+        auto dateTimeRange = m_context.libraryTreeModel->getDateTimeRange(libraryId);
         valueHostLayout->addWidget(createValueControl(*definition,
                                                       operatorBox->currentText(),
                                                       equipment,
+                                                      dateTimeRange,
                                                       valueHost));
 
         m_criteria.push_back({definition->field, row});
@@ -281,12 +317,14 @@ void NfSearchCriteriaWidget::addCriterion(const QString& name)
                          [definition,
                           valueHostLayout,
                           valueHost,
-                          equipment](const QString& op) {
+                          equipment,
+                          dateTimeRange](const QString& op) {
                                  auto* oldControl = valueHostLayout->takeAt(0)->widget();
                                  delete oldControl;
                                  valueHostLayout->addWidget(createValueControl(*definition,
                                                                                op,
                                                                                equipment,
+                                                                               dateTimeRange,
                                                                                valueHost));
                          });
 }

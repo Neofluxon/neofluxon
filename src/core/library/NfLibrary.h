@@ -25,11 +25,13 @@
 #define NF_LIBRARY_H
 
 #include "NfPhoto.h"
+#include "NfTimeUtils.h"
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <string_view>
+#include <optional>
 
 namespace NfCore {
 
@@ -49,6 +51,7 @@ public:
         int64_t id() const;
         std::string name() const noexcept;
         std::vector<std::unique_ptr<NfLibraryRepresentation>> representations() const;
+        std::optional<NfDateRange> dateTimeRange() const;
         bool addFolder(const std::filesystem::path& folder);
         void addPhoto(const NfPhoto& photo);
         std::vector<NfPhoto> queryPhotos(const NfLibraryQuery &query) const;
