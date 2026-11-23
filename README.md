@@ -25,21 +25,23 @@ and functionality are still developed.
 
 ## Current features
 
-- Non-destructive: Original files are never modified; all operations leave the source files and directories unchanged.
 - Browse photos from the file system and libraries.
-- Supported Image Formats:
+- Supported image formats:
   - RAW: Canon CR2 and CR3, Nikon NEF, Fujifilm RAF, and Adobe DNG.
   - Raster: JPEG (JPG/JPEG) and PNG.
 - View thumbnails in a grid or filmstrip, with a large preview in filmstrip mode.
-- Sort by name, date taken, or file size.
-- Filter by RAW, JPEG, or PNG format.
-- View image metadata in a left-side panel with collapsible sections.
-- Browse file system sources in a right-side panel, supporting a folder tree, locations list, and storage list.
-- Manage multiple photo libraries and switch between them within the same application instance.
+- Sort by name, date taken, or file size, favorite, rating
+- Filter by RAW, JPEG, or PNG format, favorite, rating
+- View photo metadata in a left-side panel with collapsible sections.
+- Browse file system sources in a right-side panel, folder tree, locations list, and storage list.
+- Manage libraries and switch between them within the same application instance.
 - Create, rename, and delete libraries.
 - Import folders into a library.
-- Browse library contents using folder, date, and camera/lens tree views.
-- Configurable directory scanning: option to scan single folder levels or traverse subdirectories recursively.
+- Browse library contents using folder, date, and equipment (camera/lens) tree views.
+- Directory scanning: single folder or recursive.
+- Search library photos by text and criteria.
+- Photo favorite and 0-5 stars rating.
+- Keyboard shortcuts for browsing, search, filters, ratings, favorites, metadata, and sorting.
 - Three-level image caching: display cache, memory cache, and disk cache.
 - Multi-threaded background image decoding.
 
