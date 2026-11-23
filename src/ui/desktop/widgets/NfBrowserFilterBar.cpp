@@ -31,12 +31,40 @@
 #include <QSignalBlocker>
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QShowEvent>
+#include <algorithm>
 
 using namespace NfUi;
 
 namespace NfDesktop {
 
 namespace {
+
+class BrowserFilterMenu : public QMenu
+{
+public:
+        using QMenu::QMenu;
+
+protected:
+        void showEvent(QShowEvent* event) override
+        {
+                QMenu::showEvent(event);
+
+                auto* anchor = parentWidget();
+                auto* window = anchor ? anchor->window() : nullptr;
+                if (!window)
+                        return;
+
+                constexpr int edgePadding = 10;
+                const QRect windowRect(window->mapToGlobal(window->rect().topLeft()),
+                                       window->rect().size());
+                const int minX = windowRect.left() + edgePadding;
+                const int maxX = windowRect.right() - edgePadding - width() + 1;
+                const int x = std::clamp(geometry().x(), minX, std::max(minX, maxX));
+                if (x != geometry().x())
+                        move(x, geometry().y());
+        }
+};
 
 QIcon menuStateIcon(const QString& normalPath, const QString& activePath)
 {
@@ -84,7 +112,7 @@ void NfBrowserFilterBar::setupUi()
         m_button->setFixedHeight(32);
         m_button->setAccessibleName(tr("Filter photos"));
 
-        auto* menu = new QMenu(m_button);
+        auto* menu = new BrowserFilterMenu(m_button);
         menu->setObjectName("BrowserFilterMenu");
 
         const auto addFormatAction = [this, menu](const QString& label,
