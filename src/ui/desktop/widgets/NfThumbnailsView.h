@@ -63,6 +63,7 @@ signals:
         void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
         void ratingChanged(NfCore::NfPhotoId photoId, int rating);
         void viewModeToggleRequested();
+        void gridViewRequested();
 
 protected:
         void resizeEvent(QResizeEvent* event) override;

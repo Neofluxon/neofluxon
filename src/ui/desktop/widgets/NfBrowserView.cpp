@@ -62,6 +62,12 @@ NfBrowserView::NfBrowserView(const NfDesktopContext& context,
                                          : NfUiBrowserState::ViewMode::Grid;
                                  m_state->setViewMode(nextMode);
                          });
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::gridViewRequested,
+                         this,
+                         [this]() {
+                                 m_state->setViewMode(NfUiBrowserState::ViewMode::Grid);
+                         });
 
         QObject::connect(m_thumbnailsView,
                          &NfThumbnailsView::favoriteToggleRequested,

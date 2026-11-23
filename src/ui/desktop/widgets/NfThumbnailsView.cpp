@@ -346,6 +346,14 @@ void NfThumbnailsView::keyPressEvent(QKeyEvent *event)
                 return;
         }
 
+        if (event->key() == Qt::Key_Escape
+            && event->modifiers() == Qt::NoModifier
+            && m_layoutMode == LayoutMode::FilmstripView) {
+                emit gridViewRequested();
+                event->accept();
+                return;
+        }
+
         QListView::keyPressEvent(event);
 
         switch (event->key()) {
