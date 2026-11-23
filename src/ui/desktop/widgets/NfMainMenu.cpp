@@ -24,6 +24,8 @@
 #include "NfMainMenu.h"
 
 #include <QIcon>
+#include <QKeySequence>
+#include <QShortcut>
 #include <QSize>
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -74,6 +76,20 @@ NfMainMenu::NfMainMenu(QWidget* parent)
                          &QPushButton::clicked,
                          this, &NfMainMenu::libraryClicked);
         menuLayout->addWidget(m_libraryButton);
+
+        auto* foldersShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_1), this);
+        foldersShortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(foldersShortcut,
+                         &QShortcut::activated,
+                         this,
+                         &NfMainMenu::foldersClicked);
+
+        auto* libraryShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_2), this);
+        libraryShortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(libraryShortcut,
+                         &QShortcut::activated,
+                         this,
+                         &NfMainMenu::libraryClicked);
 
         menuLayout->addStretch();
 

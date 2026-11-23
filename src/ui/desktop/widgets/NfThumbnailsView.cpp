@@ -80,13 +80,30 @@ void NfThumbnailsView::setLayoutMode(LayoutMode mode)
         if (m_layoutMode == mode)
                 return;
 
+        // Save the current scoll if we are moving to filmstrip mode
+        if (mode == LayoutMode::FilmstripView) {
+                m_gridScrollPosition = verticalScrollBar()->value();
+                m_restoreGridScrollPosition = true;
+        }
+
         m_layoutMode = mode;
+
         updateLayout();
 }
 
 NfThumbnailsView::LayoutMode NfThumbnailsView::layoutMode() const
 {
         return m_layoutMode;
+}
+
+void NfThumbnailsView::restoreGridScrollPosition()
+{
+        if (!m_restoreGridScrollPosition
+            || m_layoutMode != LayoutMode::GridView)
+                return;
+
+        verticalScrollBar()->setValue(m_gridScrollPosition);
+        m_restoreGridScrollPosition = false;
 }
 
 void NfThumbnailsView::setThumbnailSize(const QSize &thumSize)
@@ -323,6 +340,12 @@ void NfThumbnailsView::mouseDoubleClickEvent(QMouseEvent* event)
 
 void NfThumbnailsView::keyPressEvent(QKeyEvent *event)
 {
+        if (event->key() == Qt::Key_V && event->modifiers() == Qt::NoModifier) {
+                emit viewModeToggleRequested();
+                event->accept();
+                return;
+        }
+
         QListView::keyPressEvent(event);
 
         switch (event->key()) {

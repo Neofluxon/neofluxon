@@ -53,6 +53,17 @@ NfBrowserView::NfBrowserView(const NfDesktopContext& context,
         m_mainLayout->addWidget(m_thumbnailsView);
 
         QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::viewModeToggleRequested,
+                         this,
+                         [this]() {
+                                 const auto nextMode =
+                                         m_state->viewMode() == NfUiBrowserState::ViewMode::Grid
+                                         ? NfUiBrowserState::ViewMode::Preview
+                                         : NfUiBrowserState::ViewMode::Grid;
+                                 m_state->setViewMode(nextMode);
+                         });
+
+        QObject::connect(m_thumbnailsView,
                          &NfThumbnailsView::favoriteToggleRequested,
                          m_model,
                          &NfBrowserModel::updateFavorite);
@@ -164,6 +175,8 @@ void NfBrowserView::showGridView()
         }
 
         m_mainLayout->setStretch(0, 1);
+        m_mainLayout->activate();
+        m_thumbnailsView->restoreGridScrollPosition();
 }
 
 void NfBrowserView::showPreviewView()

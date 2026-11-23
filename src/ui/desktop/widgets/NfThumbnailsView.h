@@ -52,6 +52,7 @@ public:
 
         void setLayoutMode(LayoutMode mode);
         LayoutMode layoutMode() const;
+        void restoreGridScrollPosition();
 
         void setThumbnailSize(const QSize &thumSize);
         const QSize& thumbnailSize() const;
@@ -61,6 +62,7 @@ signals:
         void photoHovered(const QModelIndex& index);
         void favoriteToggleRequested(NfCore::NfPhotoId photoId, bool favorite);
         void ratingChanged(NfCore::NfPhotoId photoId, int rating);
+        void viewModeToggleRequested();
 
 protected:
         void resizeEvent(QResizeEvent* event) override;
@@ -82,6 +84,8 @@ private:
 
         LayoutMode m_layoutMode;
         QSize m_thumbnailSize;
+        int m_gridScrollPosition{0};
+        bool m_restoreGridScrollPosition{false};
         bool m_hasControls{false};
         NfThumbnailDelegate* m_thumbnailDelegate{nullptr};
         bool m_favoritePressActive{false};
