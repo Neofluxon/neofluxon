@@ -147,8 +147,12 @@ bool NfThumbnailDelegate::editorEvent(QEvent *event,
         if (photo.id().isValid()) {
                 for (int rating = 1; rating <= 5; ++rating) {
                         if (ratingHitRect(option.rect, rating).contains(mouseEvent->pos())) {
-                                if (mouseEvent->button() == Qt::LeftButton)
-                                        emit ratingChanged(photo.id(), rating);
+                                if (mouseEvent->button() == Qt::LeftButton) {
+                                        const int newRating = photo.rating() == rating
+                                                ? 0
+                                                : rating;
+                                        emit ratingChanged(photo.id(), newRating);
+                                }
                                 return true;
                         }
                 }
