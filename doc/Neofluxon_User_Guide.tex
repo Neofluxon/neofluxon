@@ -102,9 +102,9 @@ are still developed.
 
 Neofluxon provides two ways to browse photos:
 \begin{itemize}
-  \item \textbf{Folder Mode} displays photos directly from their existing
+  \item \textbf{Folders} displays photos directly from their existing
         filesystem folders. It does not require a library or an import.
-  \item \textbf{Library Mode} displays photos recorded in a library. A
+  \item \textbf{Library} displays photos recorded in a library. A
         library stores catalog information about folders and photos; it
         does not copy or move the original files.
 \end{itemize}
@@ -116,7 +116,7 @@ Neofluxon provides two ways to browse photos:
 The main window is organized into three main areas:
 \begin{itemize}
   \item \textbf{Left panel:} provides navigation. Its contents depend on
-        whether Folder Mode or Library Mode is active.
+        whether Folders or Library is active.
   \item \textbf{Central browser:} displays photos from the current folder or
         selected library location.
   \item \textbf{Right panel:} displays metadata for the selected photo.
@@ -124,22 +124,39 @@ The main window is organized into three main areas:
 
 The left and right panels can be resized or collapsed.
 
-\subsection{Switching Between Folder Mode and Library Mode}
+\subsection{Switching Between Folders and Library}
 
-Select \textbf{Folders} or \textbf{Library} from the Main Menu in the left panel to switch between browsing modes.
+Select \textbf{Folders} or \textbf{Library} from the Main Menu in the left
+panel to switch between browsing modes.
 
-In Folder Mode, select a folder in the source panel to display its photos in the central browser.
+In Folders, select a folder in the source panel to display its photos in the central browser.
 
-In Library Mode, select a library and then choose one of its representations to browse its contents.
+In Library, select a library and then choose one of its representations to browse its contents.
 The currently selected library is always displayed in the top bar.
 
-\subsection{Keyboard Navigation}
+\subsection{Keyboard Shortcuts}
 
-When the central browser is focused, use the arrow keys to navigate photos:
-\textbf{Left} and \textbf{Right} move to the previous or next photo, while
-\textbf{Up} and \textbf{Down} move between rows in Grid mode. Press
-\textbf{Home} or \textbf{End} to move to the first or last thumbnail, or
-\textbf{Page Up} and \textbf{Page Down} to move by a page in Grid mode.
+\begin{description}
+  \item[\textbf{Ctrl+1}] Switch to Folders.
+  \item[\textbf{Ctrl+2}] Switch to Library.
+  \item[\textbf{Ctrl+F}] Focus the photo search input (Library).
+  \item[\textbf{Ctrl+Shift+F}] Enable/disable the Favorites filter (Library).
+  \item[\textbf{Ctrl+Shift+C}] Clear all filters.
+  \item[\textbf{Backspace}] Go to the parent folder (Folders).
+  \item[\textbf{R}] Enable recursive folder scanning (Folders).
+  \item[\textbf{V}] Switch between Grid and Preview modes.
+  \item[\textbf{Esc}] Return from Preview mode to Grid mode.
+  \item[\textbf{Enter} or \textbf{Return}] Open the selected photo in Preview mode.
+  \item[\textbf{Arrow keys}] Move between photos. Left and Right move to the
+        previous or next photo; Up and Down move between rows in Grid mode.
+  \item[\textbf{Home} or \textbf{End}] Select the first or last thumbnail.
+  \item[\textbf{Page Up} or \textbf{Page Down}] Move by a page in Grid view mode.
+  \item[\textbf{F}] Mark the selected favorite (Library).
+  \item[\textbf{0--5}] Set the selected photo rating, 0 clears the rating (Library).
+  \item[\textbf{S}] Ascending or descending sort order.
+  \item[\textbf{Shift+S}] Cycle through sort fields.
+  \item[\textbf{I}] Show or hide the photo metadata panel.
+\end{description}
 
 \subsection{Selecting and Viewing Photos}
 
@@ -151,7 +168,7 @@ another thumbnail in the filmstrip to view a different photo.
 
 \subsection{Finding a Folder}
 
-The Folder Mode source panel provides three ways to locate a directory.
+The Folders source panel provides three ways to locate a directory.
 
 \subsubsection{Folder Tree}
 
@@ -183,7 +200,7 @@ folder only. When recursive-scan is enabled the browser will include
 photos in subfolders.
 
 The recursive scan control is located in the browser's
-top bar and is available only in Folder Mode.
+top bar and is available only in Folders.
 
 \section{Working with Libraries}
 
@@ -201,7 +218,7 @@ Neofluxon does not copy or move the source files.
 
 \subsection{Creating and Selecting a Library}
 
-The library list appears in the left panel when Library Mode is active.
+The library list appears in the left panel when Library is active.
 Select a library to make it current.
 
 Use the plus button beside \textbf{Libraries} to create a library and enter

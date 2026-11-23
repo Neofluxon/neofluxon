@@ -72,6 +72,21 @@ cmake --build build --parallel
 cmake --install build
 ```
 
+## Documentation
+
+The user guide is written in LaTeX in `doc/Neofluxon_User_Guide.tex`.
+To generate PDF, install a LaTeX distribution that provides `pdflatex`,
+then run:
+
+```sh
+cmake -S . -B build -DNEOFLUXON_DOCUMENTATION=ON
+cmake --build build --parallel
+```
+
+The PDF is generated at
+`build/doc/Neofluxon_User_Guide-<version>.pdf` and is included when the
+application is installed. Documentation generation is disabled by default.
+
 ## Planned features
 
 The project is currently focused on building its Digital Asset Management (DAM) foundation.
