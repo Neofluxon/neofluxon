@@ -65,6 +65,7 @@ signals:
         void viewModeToggleRequested();
         void gridViewRequested();
         void sortDirectionToggleRequested();
+        void sortFieldCycleRequested();
 
 protected:
         void resizeEvent(QResizeEvent* event) override;

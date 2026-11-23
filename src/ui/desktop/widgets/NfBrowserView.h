@@ -66,6 +66,7 @@ protected:
 
 private:
         void setupShortcuts(NfUi::NfUiState* uiState);
+        void setupSortFieldCycleShortcut();
         void restoreCurrentPhoto();
 
         NfUi::NfUiBrowserState *m_state;

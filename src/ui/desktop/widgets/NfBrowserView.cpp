@@ -36,6 +36,8 @@
 #include <QShowEvent>
 #include <QShortcut>
 
+#include <array>
+
 using namespace NfUi;
 
 namespace NfDesktop {
@@ -110,9 +112,11 @@ NfBrowserView::NfBrowserView(const NfDesktopContext& context,
                                          m_state->setCurrentPhoto(NfPhoto{});
                                  }
                          });
+
         m_model->setFormatFilter(m_state->formatFilter());
         m_model->setRatingFilter(m_state->ratingFilter());
         m_model->setFavoriteFilter(m_state->favoriteFilter());
+
         QObject::connect(m_thumbnailsView, &QListView::doubleClicked,
                          [this](const QModelIndex &index) {
                                  m_state->setViewMode(NfUiBrowserState::ViewMode::Preview);
@@ -172,6 +176,7 @@ void NfBrowserView::setupShortcuts(NfUi::NfUiState* uiState)
                                          : NfUiBrowserState::SortOrder::Ascending;
                                  m_state->setSortOrder(nextOrder);
                          });
+        setupSortFieldCycleShortcut();
 
         auto* metadataPanelShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);
         metadataPanelShortcut->setContext(Qt::WidgetWithChildrenShortcut);
@@ -179,6 +184,36 @@ void NfBrowserView::setupShortcuts(NfUi::NfUiState* uiState)
                          &QShortcut::activated,
                          uiState,
                          &NfUiState::toggleMetadataInfo);
+}
+
+void NfBrowserView::setupSortFieldCycleShortcut()
+{
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::sortFieldCycleRequested,
+                         this,
+                         [this]() {
+                                 using SortField = NfUiBrowserState::SortField;
+                                 // TODO: This assumes one active field;
+                                 // revise for multi-field sorting
+                                 // if that will be implemented.
+                                 constexpr std::array fields{
+                                         SortField::Name,
+                                         SortField::DateTaken,
+                                         SortField::FileSize,
+                                         SortField::Rating,
+                                         SortField::Favorite
+                                 };
+                                 std::size_t currentIndex = fields.size() - 1;
+                                 for (std::size_t i = 0; i < fields.size(); ++i) {
+                                         if (m_state->sortingFields().contains(fields[i])) {
+                                                 currentIndex = i;
+                                                 break;
+                                         }
+                                 }
+                                 const auto nextField =
+                                         fields[(currentIndex + 1) % fields.size()];
+                                 m_state->setSortFields({nextField});
+                         });
 }
 
 void NfBrowserView::restoreCurrentPhoto()
