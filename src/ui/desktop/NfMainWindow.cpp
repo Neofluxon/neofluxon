@@ -23,6 +23,7 @@
 
 #include "NfMainWindow.h"
 #include "NfContext.h"
+#include "NfUiState.h"
 #include "NfTopBar.h"
 #include "NfLeftPanel.h"
 #include "NfRightPanel.h"
@@ -87,13 +88,20 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         auto leftPanel = new NfLeftPanel(m_context, this);
         leftPanel->setMinimumWidth(220);
         m_splitter->addWidget(leftPanel);
-        m_splitter->addWidget(new NfCentralWidget(m_context, this));
+        auto* centralWidget = new NfCentralWidget(m_context, this);
+        m_splitter->addWidget(centralWidget);
 
         // Resizable, has minimum and minmum width, and is collapsible
         auto rightPanel = new NfRightPanel(m_context, this);
         rightPanel->setMinimumWidth(240);
         rightPanel->setMaximumWidth(420);
         m_splitter->addWidget(rightPanel);
+        QObject::connect(m_context.uiState(),
+                         &NfUiState::toggleMetadataInfo,
+                         rightPanel,
+                         [rightPanel]() {
+                                 rightPanel->setVisible(!rightPanel->isVisible());
+                         });
 
         // Set both panels are collapsable
         m_splitter->setCollapsible(0, true);

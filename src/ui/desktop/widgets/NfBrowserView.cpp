@@ -32,6 +32,8 @@
 
 #include <QVBoxLayout>
 #include <QKeyEvent>
+#include <QKeySequence>
+#include <QShortcut>
 
 using namespace NfUi;
 
@@ -51,6 +53,13 @@ NfBrowserView::NfBrowserView(const NfDesktopContext& context,
         m_thumbnailsView = new NfThumbnailsView(context, this);
         m_thumbnailsView->setModel(m_model);
         m_mainLayout->addWidget(m_thumbnailsView);
+
+        auto* metadataPanelShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);
+        metadataPanelShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+        QObject::connect(metadataPanelShortcut,
+                         &QShortcut::activated,
+                         context.uiState(),
+                         &NfUiState::toggleMetadataInfo);
 
         QObject::connect(m_thumbnailsView,
                          &NfThumbnailsView::viewModeToggleRequested,

@@ -62,6 +62,7 @@ public slots:
 
 signals:
         void modeChanged(NfUiMode mode);
+        void toggleMetadataInfo();
 
 private:
         void saveState();
