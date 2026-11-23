@@ -12,7 +12,7 @@ folder structure on the filesystem.
 The project is in early development, and features
 and functionality are still developed.
 
-**Current release:** 0.1.0
+**Current release:** 0.2.0
 
 **License:** GNU General Public License, Version 3
 
