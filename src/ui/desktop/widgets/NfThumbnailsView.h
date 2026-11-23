@@ -66,6 +66,7 @@ protected:
         void resizeEvent(QResizeEvent* event) override;
         void wheelEvent(QWheelEvent* event) override;
         void mouseMoveEvent(QMouseEvent* event) override;
+        void leaveEvent(QEvent* event) override;
         void mousePressEvent(QMouseEvent* event) override;
         void mouseReleaseEvent(QMouseEvent* event) override;
         void mouseDoubleClickEvent(QMouseEvent* event) override;
@@ -74,8 +75,11 @@ protected:
 
 private:
         void updateLayout();
+        NfThumbnailDelegate* thumbnailDelegate() const;
+        void processEnterKey(QKeyEvent* event);
+        void processFavoriteKey(QKeyEvent* event);
+        void processRatingKey(QKeyEvent* event);
 
-private:
         LayoutMode m_layoutMode;
         QSize m_thumbnailSize;
         bool m_hasControls{false};
@@ -85,6 +89,8 @@ private:
         bool m_ratingPressActive{false};
         QModelIndex m_ratingPressIndex;
         QModelIndex m_favoriteHoverIndex;
+        QModelIndex m_ratingHoverIndex;
+        int m_ratingHover{0};
 };
 
 } // namespace NfDesktop

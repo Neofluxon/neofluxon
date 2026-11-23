@@ -116,7 +116,7 @@ void NfThumbnailsView::mousePressEvent(QMouseEvent* event)
 
         if (event->button() == Qt::LeftButton) {
                 const auto index = indexAt(event->pos());
-                auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegateForIndex(index));
+                auto* delegate = thumbnailDelegate();
                 if (index.isValid() && delegate
                     && delegate->favoriteHitRect(visualRect(index)).contains(event->pos())) {
                         m_favoritePressActive = true;
@@ -124,6 +124,7 @@ void NfThumbnailsView::mousePressEvent(QMouseEvent* event)
                         event->accept();
                         return;
                 }
+
                 if (index.isValid() && delegate) {
                         for (int rating = 1; rating <= 5; ++rating) {
                                 if (delegate->ratingHitRect(visualRect(index), rating)
@@ -145,24 +146,27 @@ void NfThumbnailsView::mouseReleaseEvent(QMouseEvent* event)
         if (m_ratingPressActive && event->button() == Qt::LeftButton) {
                 m_ratingPressActive = false;
 
-                auto* delegate = qobject_cast<NfThumbnailDelegate*>(
-                        itemDelegateForIndex(m_ratingPressIndex));
+                auto* delegate = thumbnailDelegate();
                 if (delegate && m_ratingPressIndex.isValid()) {
                         QStyleOptionViewItem option;
                         option.rect = visualRect(m_ratingPressIndex);
                         option.widget = this;
-                        delegate->editorEvent(event, model(), option, m_ratingPressIndex);
+                        delegate->editorEvent(event,
+                                              model(),
+                                              option,
+                                              m_ratingPressIndex);
                 }
 
-                m_ratingPressIndex = QModelIndex();
+                m_ratingPressIndex = {};
                 event->accept();
+
                 return;
         }
 
         if (m_favoritePressActive && event->button() == Qt::LeftButton) {
                 m_favoritePressActive = false;
 
-                auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegateForIndex(m_favoritePressIndex));
+                auto* delegate = thumbnailDelegate();
                 if (delegate && m_favoritePressIndex.isValid()
                     && delegate->favoriteHitRect(visualRect(m_favoritePressIndex)).contains(event->pos())) {
                         QStyleOptionViewItem option;
@@ -171,8 +175,9 @@ void NfThumbnailsView::mouseReleaseEvent(QMouseEvent* event)
                         delegate->editorEvent(event, model(), option, m_favoritePressIndex);
                 }
 
-                m_favoritePressIndex = QModelIndex();
+                m_favoritePressIndex = {};
                 event->accept();
+
                 return;
         }
 
@@ -206,6 +211,11 @@ void NfThumbnailsView::updateLayout()
         setThumbnailSize(m_thumbnailSize);
 }
 
+NfThumbnailDelegate* NfThumbnailsView::thumbnailDelegate() const
+{
+        return m_thumbnailDelegate;
+}
+
 void NfThumbnailsView::resizeEvent(QResizeEvent* event)
 {
         QListView::resizeEvent(event);
@@ -219,45 +229,59 @@ void NfThumbnailsView::wheelEvent(QWheelEvent* event)
 void NfThumbnailsView::mouseMoveEvent(QMouseEvent* event)
 {
         const auto index = indexAt(event->pos());
-        if (index.isValid()) {
+        if (index.isValid())
                 emit photoHovered(index);
-        }
 
-        auto* delegate = qobject_cast<NfThumbnailDelegate*>(itemDelegateForIndex(index));
+        auto* delegate = thumbnailDelegate();
         QModelIndex nextHoverIndex;
+        QModelIndex nextRatingHoverIndex;
+        int nextRatingHover = 0;
         bool ratingControlHovered = false;
         if (index.isValid() && delegate) {
-                if (delegate->favoriteHitRect(visualRect(index)).contains(event->pos())) {
+                if (delegate->favoriteHitRect(visualRect(index)).contains(event->pos()))
                         nextHoverIndex = index;
-                }
 
                 for (int rating = 1; rating <= 5; ++rating) {
                         if (delegate->ratingHitRect(visualRect(index), rating)
                             .contains(event->pos())) {
                                 ratingControlHovered = true;
+                                nextRatingHoverIndex = index;
+                                nextRatingHover = rating;
                                 break;
                         }
                 }
         }
 
-        if (nextHoverIndex.isValid() || ratingControlHovered) {
+        if (nextHoverIndex.isValid() || ratingControlHovered)
                 setCursor(Qt::PointingHandCursor);
-        } else {
+        else
                 setCursor(Qt::ArrowCursor);
+
+        if (nextRatingHoverIndex != m_ratingHoverIndex
+            || nextRatingHover != m_ratingHover) {
+                if (m_ratingHoverIndex.isValid())
+                        viewport()->update(visualRect(m_ratingHoverIndex));
+
+                m_ratingHoverIndex = nextRatingHoverIndex;
+                m_ratingHover = nextRatingHover;
+                if (delegate)
+                        delegate->setRatingHover(m_ratingHoverIndex, m_ratingHover);
+
+                if (m_ratingHoverIndex.isValid())
+                        viewport()->update(visualRect(m_ratingHoverIndex));
         }
 
         if (nextHoverIndex != m_favoriteHoverIndex) {
                 if (m_favoriteHoverIndex.isValid()) {
                         viewport()->update(visualRect(m_favoriteHoverIndex));
-                        if (auto* oldDelegate = qobject_cast<NfThumbnailDelegate*>(
-                                    itemDelegateForIndex(m_favoriteHoverIndex))) {
+                        if (auto* oldDelegate = thumbnailDelegate()) {
                                 oldDelegate->setFavoriteHoverIndex(QModelIndex());
                         }
                 }
+
                 m_favoriteHoverIndex = nextHoverIndex;
                 if (m_favoriteHoverIndex.isValid()) {
-                        if (auto* hoverDelegate = qobject_cast<NfThumbnailDelegate*>(
-                                    itemDelegateForIndex(m_favoriteHoverIndex))) {
+                        if (auto* hoverDelegate = thumbnailDelegate()) {
                                 hoverDelegate->setFavoriteHoverIndex(m_favoriteHoverIndex);
                         }
                         viewport()->update(visualRect(m_favoriteHoverIndex));
@@ -267,10 +291,30 @@ void NfThumbnailsView::mouseMoveEvent(QMouseEvent* event)
         QListView::mouseMoveEvent(event);
 }
 
+void NfThumbnailsView::leaveEvent(QEvent* event)
+{
+        auto* delegate = thumbnailDelegate();
+        if (m_ratingHoverIndex.isValid()) {
+                viewport()->update(visualRect(m_ratingHoverIndex));
+                m_ratingHoverIndex = {};
+                m_ratingHover = 0;
+                if (delegate)
+                        delegate->setRatingHover({}, 0);
+        }
+
+        if (m_favoriteHoverIndex.isValid()) {
+                viewport()->update(visualRect(m_favoriteHoverIndex));
+                m_favoriteHoverIndex = {};
+                if (delegate)
+                        delegate->setFavoriteHoverIndex({});
+        }
+
+        QListView::leaveEvent(event);
+}
+
 void NfThumbnailsView::mouseDoubleClickEvent(QMouseEvent* event)
 {
         auto index = indexAt(event->pos());
-
         if (index.isValid())
                 emit photoActivated(index);
 
@@ -284,28 +328,10 @@ void NfThumbnailsView::keyPressEvent(QKeyEvent *event)
         switch (event->key()) {
         case Qt::Key_Return:
         case Qt::Key_Enter:
-                if (event->modifiers() == Qt::NoModifier) {
-                        const auto index = currentIndex();
-                        if (index.isValid()) {
-                                emit photoActivated(index);
-                                event->accept();
-                                break;
-                        }
-                }
+                processEnterKey(event);
                 break;
         case Qt::Key_F:
-                if (event->modifiers() == Qt::NoModifier) {
-                        const auto index = currentIndex();
-                        if (index.isValid()) {
-                                const auto photo = model()->data(
-                                        index, NfBrowserModel::PhotoRole).value<NfPhoto>();
-                                if (photo.id().isValid()) {
-                                        emit favoriteToggleRequested(photo.id(), !photo.isFavorite());
-                                        event->accept();
-                                        break;
-                                }
-                        }
-                }
+                processFavoriteKey(event);
                 break;
         case Qt::Key_0:
         case Qt::Key_1:
@@ -313,19 +339,7 @@ void NfThumbnailsView::keyPressEvent(QKeyEvent *event)
         case Qt::Key_3:
         case Qt::Key_4:
         case Qt::Key_5:
-                if (event->modifiers() == Qt::NoModifier) {
-                        const auto index = currentIndex();
-                        if (index.isValid()) {
-                                const auto photo = model()->data(
-                                        index, NfBrowserModel::PhotoRole).value<NfPhoto>();
-                                if (photo.id().isValid()) {
-                                        const int rating = event->key() - Qt::Key_0;
-                                        emit ratingChanged(photo.id(), rating);
-                                        event->accept();
-                                        break;
-                                }
-                        }
-                }
+                processRatingKey(event);
                 break;
         case Qt::Key_Left:
         case Qt::Key_Right:
@@ -375,4 +389,56 @@ void NfThumbnailsView::onScrollChanged()
                                            m_layoutMode == LayoutMode::GridView ? 1 : 4);
         }
 }
+
+void NfThumbnailsView::processEnterKey(QKeyEvent* event)
+{
+        if (event->modifiers() != Qt::NoModifier)
+                return;
+
+        const auto index = currentIndex();
+        if (!index.isValid())
+                return;
+
+        emit photoActivated(index);
+        event->accept();
+}
+
+void NfThumbnailsView::processFavoriteKey(QKeyEvent* event)
+{
+        if (event->modifiers() != Qt::NoModifier)
+                return;
+
+        const auto index = currentIndex();
+        if (!index.isValid())
+                return;
+
+        auto role = NfBrowserModel::PhotoRole;
+        const auto photo = model()->data(index, role).value<NfPhoto>();
+        if (!photo.id().isValid())
+                return;
+
+        emit favoriteToggleRequested(photo.id(),
+                                     !photo.isFavorite());
+        event->accept();
+}
+
+void NfThumbnailsView::processRatingKey(QKeyEvent* event)
+{
+        if (event->modifiers() != Qt::NoModifier)
+                return;
+
+        const auto index = currentIndex();
+        if (!index.isValid())
+                return;
+
+        const auto photo = model()->data(
+                index, NfBrowserModel::PhotoRole).value<NfPhoto>();
+        if (!photo.id().isValid())
+                return;
+
+        const int rating = event->key() - Qt::Key_0;
+        emit ratingChanged(photo.id(), rating);
+        event->accept();
+}
+
 } // namespace NfDesktop

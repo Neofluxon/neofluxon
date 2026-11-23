@@ -39,8 +39,10 @@ NfThumbnailDelegate::NfThumbnailDelegate(QObject* parent)
         : QStyledItemDelegate(parent)
         , m_favoriteIcon{":/icons/favorite.svg"}
         , m_favoriteOutlineIcon{":/icons/favorite-outline.svg"}
+        , m_favoriteOutlineHoverIcon{":/icons/favorite-outline-active.svg"}
         , m_ratingIcon{":/icons/rating.svg"}
         , m_ratingOutlineIcon{":/icons/rating-outline.svg"}
+        , m_ratingOutlineHoverIcon{":/icons/rating-outline-active.svg"}
         , m_padding{8}
         , m_bottomPadding{4}
 {
@@ -123,6 +125,12 @@ int NfThumbnailDelegate::controlsHeight() const
 void NfThumbnailDelegate::setFavoriteHoverIndex(const QModelIndex& index)
 {
         m_favoriteHoverIndex = index;
+}
+
+void NfThumbnailDelegate::setRatingHover(const QModelIndex& index, int rating)
+{
+        m_ratingHoverIndex = index;
+        m_ratingHover = rating;
 }
 
 bool NfThumbnailDelegate::editorEvent(QEvent *event,
@@ -221,10 +229,13 @@ void NfThumbnailDelegate::drawControls(QPainter *painter,
                                      controls.top() + (controls.height() - starSize) / 2,
                                      starSize,
                                      starSize);
-                if (i < std::clamp(photo.rating(), 0, 5))
+                if (i < std::clamp(photo.rating(), 0, 5)) {
                         m_ratingIcon.paint(painter, starRect);
-                else
+                } else if (index == m_ratingHoverIndex && i + 1 == m_ratingHover) {
+                        m_ratingOutlineHoverIcon.paint(painter, starRect);
+                } else {
                         m_ratingOutlineIcon.paint(painter, starRect);
+                }
         }
 
         painter->restore();
@@ -235,11 +246,10 @@ void NfThumbnailDelegate::drawControls(QPainter *painter,
         if (photo.isFavorite()) {
                 m_favoriteIcon.paint(painter, iconRect);
         } else {
-                if (index == m_favoriteHoverIndex)
-                        painter->setOpacity(1.0);
-                else
-                        painter->setOpacity(0.78);
-                m_favoriteOutlineIcon.paint(painter, iconRect);
+                const auto& icon = index == m_favoriteHoverIndex
+                        ? m_favoriteOutlineHoverIcon
+                        : m_favoriteOutlineIcon;
+                icon.paint(painter, iconRect);
         }
         painter->restore();
 }

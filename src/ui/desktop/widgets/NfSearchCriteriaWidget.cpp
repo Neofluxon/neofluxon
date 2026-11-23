@@ -228,7 +228,6 @@ QWidget* createValueControl(const CriterionDefinition& definition,
 
         auto* searchButton = new QPushButton(tr("Search"), this);
         searchButton->setObjectName("SubmitSearchCriteriaButton");
-        searchButton->setDefault(true);
         footer->addWidget(searchButton);
         layout->addLayout(footer);
 

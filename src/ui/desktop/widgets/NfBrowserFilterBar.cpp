@@ -36,6 +36,17 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
+namespace {
+
+QIcon menuStateIcon(const QString& normalPath, const QString& activePath)
+{
+        QIcon icon(normalPath);
+        icon.addFile(activePath, QSize(24, 24), QIcon::Active);
+        return icon;
+}
+
+}
+
 NfBrowserFilterBar::NfBrowserFilterBar(const NfDesktopContext& context,
                                        NfUiBrowserState* state,
                                        QWidget* parent)
@@ -74,6 +85,7 @@ void NfBrowserFilterBar::setupUi()
         m_button->setAccessibleName(tr("Filter photos"));
 
         auto* menu = new QMenu(m_button);
+        menu->setObjectName("BrowserFilterMenu");
 
         const auto addFormatAction = [this, menu](const QString& label,
                                                   NfCore::NfPhoto::PhotoFormat format) {
@@ -98,7 +110,7 @@ void NfBrowserFilterBar::setupUi()
         if (m_context.uiState()->mode() == NfUiMode::Library) {
                 menu->addSeparator();
                 m_favoriteAction = menu->addAction(QIcon(":/icons/favorite.svg"),
-                                                   tr("Favorites only"));
+                                                   tr("Favorites"));
                 m_favoriteAction->setCheckable(true);
                 QObject::connect(m_favoriteAction, &QAction::toggled, this,
                                  [this](bool checked) {
@@ -108,7 +120,7 @@ void NfBrowserFilterBar::setupUi()
                 menu->addSeparator();
                 for (int rating = 1; rating <= 5; ++rating) {
                         auto* action = menu->addAction(
-                                QIcon(":/icons/rating.svg"),
+                                QIcon(":/icons/rating-outline.svg"),
                                 tr("%1 star%2").arg(rating).arg(rating == 1 ? "" : "s"));
                         action->setCheckable(true);
                         m_ratingActions.emplace_back(rating, action);
@@ -153,11 +165,22 @@ void NfBrowserFilterBar::updateFormatFilter()
                 const auto& ratings = m_state->ratingFilter();
                 for (const auto& [rating, action] : m_ratingActions) {
                         const QSignalBlocker blocker(action);
-                        action->setChecked(ratings.contains(rating));
+                        const bool checked = ratings.contains(rating);
+                        action->setChecked(checked);
+                        action->setIcon(menuStateIcon(
+                                checked ? ":/icons/rating.svg"
+                                        : ":/icons/rating-outline.svg",
+                                checked ? ":/icons/rating-active.svg"
+                                        : ":/icons/rating-outline-active.svg"));
                 }
 
                 const QSignalBlocker blocker(m_favoriteAction);
-                m_favoriteAction->setChecked(m_state->favoriteFilter());
+                const bool favorite = m_state->favoriteFilter();
+                m_favoriteAction->setChecked(favorite);
+                m_favoriteAction->setIcon(menuStateIcon(
+                        favorite ? ":/icons/favorite.svg"
+                                 : ":/icons/favorite-outline.svg",
+                        ":/icons/favorite.svg"));
                 activeCount += static_cast<int>(ratings.size())
                                + (m_state->favoriteFilter() ? 1 : 0);
         }

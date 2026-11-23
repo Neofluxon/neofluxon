@@ -48,6 +48,7 @@ public:
         QRect favoriteHitRect(const QRect& itemRect) const;
         QRect ratingHitRect(const QRect& itemRect, int rating) const;
         void setFavoriteHoverIndex(const QModelIndex& index);
+        void setRatingHover(const QModelIndex& index, int rating);
         void setHasControls(bool b = true);
         bool hasControls() const;
         int controlsHeight() const;
@@ -65,9 +66,13 @@ private:
 
         QIcon m_favoriteIcon;
         QIcon m_favoriteOutlineIcon;
+        QIcon m_favoriteOutlineHoverIcon;
         QIcon m_ratingIcon;
         QIcon m_ratingOutlineIcon;
+        QIcon m_ratingOutlineHoverIcon;
         QModelIndex m_favoriteHoverIndex;
+        QModelIndex m_ratingHoverIndex;
+        int m_ratingHover{0};
         int m_padding;
         int m_bottomPadding;
         int m_controlsHeight{32};

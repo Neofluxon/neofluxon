@@ -163,9 +163,21 @@ QPushButton#SubmitSearchCriteriaButton {
 }
 
 QPushButton#SubmitSearchCriteriaButton {
-    background-color: #38bdf8;
-    color: #0b0d12;
+    background-color: #242632;
+    color: #e6eaf2;
     font-weight: bold;
+}
+
+QPushButton#SubmitSearchCriteriaButton:hover {
+    background-color: #323546;
+    border-color: #38bdf8;
+    color: #ffffff;
+}
+
+QPushButton#SubmitSearchCriteriaButton:pressed {
+    background-color: #38bdf8;
+    border-color: #38bdf8;
+    color: #0b0d12;
 }
 
 QMenu#LibraryContextMenu {
@@ -198,6 +210,39 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #38bdf8;
     color: #0b0d12;
+}
+
+QMenu#BrowserFilterMenu {
+    background-color: #20222e;
+    color: #e6eaf2;
+    border: 1px solid #404452;
+    padding: 6px;
+}
+
+QMenu#BrowserFilterMenu::item {
+    background-color: transparent;
+    padding: 7px 10px;
+    margin: 2px 0;
+}
+
+QMenu#BrowserFilterMenu::item:selected {
+    background-color: #323546;
+    color: #ffffff;
+}
+
+QMenu#BrowserFilterMenu::indicator {
+    width: 14px;
+    height: 14px;
+}
+
+QMenu#BrowserFilterMenu::indicator:checked {
+    image: url(:/icons/check.svg);
+}
+
+QMenu#BrowserFilterMenu::separator {
+    height: 1px;
+    background-color: #404452;
+    margin: 5px 4px;
 }
 
 QTreeView::item:selected,
