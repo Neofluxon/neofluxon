@@ -47,6 +47,8 @@ class NfFolderView : public QWidget
                               QWidget* parent = nullptr);
 
 private:
+        void setupShortcuts();
+
         const NfDesktopContext& m_context;
         NfUi::NfUiFolderModeState *m_state;
         NfFolderModel* m_model;

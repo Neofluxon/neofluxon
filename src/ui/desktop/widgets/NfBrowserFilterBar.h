@@ -54,6 +54,8 @@ public:
 private:
         void setupUi();
         void updateFormatFilter();
+        void clearFilters();
+        void toggleFavoriteFilter();
 
         const NfDesktopContext& m_context;
         NfUi::NfUiBrowserState* m_state;

@@ -64,6 +64,7 @@ signals:
         void ratingChanged(NfCore::NfPhotoId photoId, int rating);
         void viewModeToggleRequested();
         void gridViewRequested();
+        void sortDirectionToggleRequested();
 
 protected:
         void resizeEvent(QResizeEvent* event) override;

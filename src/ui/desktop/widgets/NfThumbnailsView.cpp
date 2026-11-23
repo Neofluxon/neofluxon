@@ -354,6 +354,12 @@ void NfThumbnailsView::keyPressEvent(QKeyEvent *event)
                 return;
         }
 
+        if (event->key() == Qt::Key_S && event->modifiers() == Qt::NoModifier) {
+                emit sortDirectionToggleRequested();
+                event->accept();
+                return;
+        }
+
         QListView::keyPressEvent(event);
 
         switch (event->key()) {

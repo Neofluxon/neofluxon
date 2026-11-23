@@ -62,17 +62,7 @@ NfFolderView::NfFolderView(const NfDesktopContext& ctx,
                                           m_model->browser(),
                                           this);
 
-        auto* parentFolderShortcut = new QShortcut(QKeySequence(Qt::Key_Backspace),
-                                                   m_browserView);
-        parentFolderShortcut->setContext(Qt::WidgetWithChildrenShortcut);
-        QObject::connect(parentFolderShortcut,
-                         &QShortcut::activated,
-                         this,
-                         [this]() {
-                                 const auto parentPath = m_state->path().parent_path();
-                                 if (!parentPath.empty() && parentPath != m_state->path())
-                                         m_state->setPath(parentPath);
-                         });
+        setupShortcuts();
 
         QObject::connect(m_state,
                          &NfUiFolderModeState::pathChanged,
@@ -94,6 +84,33 @@ NfFolderView::NfFolderView(const NfDesktopContext& ctx,
                                  m_state->browser()->scanRecursively());
 
         m_mainLayout->addWidget(m_browserView);
+}
+
+void NfFolderView::setupShortcuts()
+{
+        auto* parentFolderShortcut = new QShortcut(QKeySequence(Qt::Key_Backspace),
+                                                   m_browserView);
+        parentFolderShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+        QObject::connect(parentFolderShortcut,
+                         &QShortcut::activated,
+                         this,
+                         [this]() {
+                                 const auto parentPath = m_state->path().parent_path();
+                                 if (!parentPath.empty() && parentPath != m_state->path())
+                                         m_state->setPath(parentPath);
+                         });
+
+        auto* recursiveScanShortcut = new QShortcut(QKeySequence(Qt::Key_R),
+                                                    m_browserView);
+        recursiveScanShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+        QObject::connect(recursiveScanShortcut,
+                         &QShortcut::activated,
+                         this,
+                         [this]() {
+                                 auto* browserState = m_state->browser();
+                                 browserState->setScanRecursively(
+                                         !browserState->scanRecursively());
+                         });
 }
 
 } // namespace NfDesktop

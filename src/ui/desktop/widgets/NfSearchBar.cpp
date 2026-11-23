@@ -32,7 +32,9 @@
 
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QKeySequence>
 #include <QLineEdit>
+#include <QShortcut>
 #include <QStringList>
 #include <QToolButton>
 
@@ -67,6 +69,16 @@ NfSearchBar::NfSearchBar(const NfDesktopContext &ctx,
                          &QLineEdit::returnPressed,
                          this,
                          &NfSearchBar::onSearchRequested);
+
+        auto* focusSearchShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this);
+        focusSearchShortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(focusSearchShortcut,
+                         &QShortcut::activated,
+                         this,
+                         [this]() {
+                                 m_searchTextInput->setFocus(Qt::ShortcutFocusReason);
+                                 m_searchTextInput->selectAll();
+                         });
 
         m_criteriaButton = new QToolButton(this);
         m_criteriaButton->setObjectName("SearchCriteriaButton");

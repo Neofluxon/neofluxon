@@ -55,29 +55,7 @@ NfBrowserView::NfBrowserView(const NfDesktopContext& context,
         m_thumbnailsView->setModel(m_model);
         m_mainLayout->addWidget(m_thumbnailsView);
 
-        auto* metadataPanelShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);
-        metadataPanelShortcut->setContext(Qt::WidgetWithChildrenShortcut);
-        QObject::connect(metadataPanelShortcut,
-                         &QShortcut::activated,
-                         context.uiState(),
-                         &NfUiState::toggleMetadataInfo);
-
-        QObject::connect(m_thumbnailsView,
-                         &NfThumbnailsView::viewModeToggleRequested,
-                         this,
-                         [this]() {
-                                 const auto nextMode =
-                                         m_state->viewMode() == NfUiBrowserState::ViewMode::Grid
-                                         ? NfUiBrowserState::ViewMode::Preview
-                                         : NfUiBrowserState::ViewMode::Grid;
-                                 m_state->setViewMode(nextMode);
-                         });
-        QObject::connect(m_thumbnailsView,
-                         &NfThumbnailsView::gridViewRequested,
-                         this,
-                         [this]() {
-                                 m_state->setViewMode(NfUiBrowserState::ViewMode::Grid);
-                         });
+        setupShortcuts(context.uiState());
 
         QObject::connect(m_thumbnailsView,
                          &NfThumbnailsView::favoriteToggleRequested,
@@ -163,6 +141,44 @@ NfBrowserView::NfBrowserView(const NfDesktopContext& context,
 
         updateView();
         restoreCurrentPhoto();
+}
+
+void NfBrowserView::setupShortcuts(NfUi::NfUiState* uiState)
+{
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::viewModeToggleRequested,
+                         this,
+                         [this]() {
+                                 const auto nextMode =
+                                         m_state->viewMode() == NfUiBrowserState::ViewMode::Grid
+                                         ? NfUiBrowserState::ViewMode::Preview
+                                         : NfUiBrowserState::ViewMode::Grid;
+                                 m_state->setViewMode(nextMode);
+                         });
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::gridViewRequested,
+                         this,
+                         [this]() {
+                                 m_state->setViewMode(NfUiBrowserState::ViewMode::Grid);
+                         });
+        QObject::connect(m_thumbnailsView,
+                         &NfThumbnailsView::sortDirectionToggleRequested,
+                         this,
+                         [this]() {
+                                 const auto nextOrder =
+                                         m_state->sortOrder()
+                                                 == NfUiBrowserState::SortOrder::Ascending
+                                         ? NfUiBrowserState::SortOrder::Descending
+                                         : NfUiBrowserState::SortOrder::Ascending;
+                                 m_state->setSortOrder(nextOrder);
+                         });
+
+        auto* metadataPanelShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);
+        metadataPanelShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+        QObject::connect(metadataPanelShortcut,
+                         &QShortcut::activated,
+                         uiState,
+                         &NfUiState::toggleMetadataInfo);
 }
 
 void NfBrowserView::restoreCurrentPhoto()

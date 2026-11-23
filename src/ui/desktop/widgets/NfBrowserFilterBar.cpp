@@ -30,7 +30,9 @@
 #include <QIcon>
 #include <QSignalBlocker>
 #include <QHBoxLayout>
+#include <QKeySequence>
 #include <QMenu>
+#include <QShortcut>
 #include <QShowEvent>
 #include <algorithm>
 
@@ -162,22 +164,47 @@ void NfBrowserFilterBar::setupUi()
                                                  m_state->setRatingFilter(ratings);
                                          });
                 }
+
+                auto keySequence = QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_F);
+                auto* toggleFavoritesShortcut = new QShortcut(keySequence, this);
+                toggleFavoritesShortcut->setContext(Qt::WindowShortcut);
+                QObject::connect(toggleFavoritesShortcut,
+                                 &QShortcut::activated,
+                                 this,
+                                 &NfBrowserFilterBar::toggleFavoriteFilter);
         }
 
         menu->addSeparator();
         m_clearAction = menu->addAction(tr("Clear all filters"));
         QObject::connect(m_clearAction, &QAction::triggered,
-                         m_state, [this]() {
-                                 m_state->setFormatFilter({});
-                                 if (m_context.uiState()->mode() == NfUiMode::Library) {
-                                         m_state->setRatingFilter({});
-                                         m_state->setFavoriteFilter(false);
-                                 }
-                         });
+                         this, &NfBrowserFilterBar::clearFilters);
+
+        auto keySequence = QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C);
+        auto* clearFiltersShortcut = new QShortcut(keySequence, this);
+        clearFiltersShortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(clearFiltersShortcut,
+                         &QShortcut::activated,
+                         this,
+                         &NfBrowserFilterBar::clearFilters);
 
         m_button->setMenu(menu);
 
         layout->addWidget(m_button, 0, Qt::AlignVCenter);
+}
+
+void NfBrowserFilterBar::clearFilters()
+{
+        m_state->setFormatFilter({});
+        if (m_context.uiState()->mode() == NfUiMode::Library) {
+                m_state->setRatingFilter({});
+                m_state->setFavoriteFilter(false);
+        }
+}
+
+void NfBrowserFilterBar::toggleFavoriteFilter()
+{
+        if (m_context.uiState()->mode() == NfUiMode::Library)
+                m_state->setFavoriteFilter(!m_state->favoriteFilter());
 }
 
 void NfBrowserFilterBar::updateFormatFilter()

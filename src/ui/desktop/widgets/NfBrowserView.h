@@ -30,6 +30,7 @@
 
 namespace NfUi {
 class NfUiBrowserState;
+class NfUiState;
 }
 
 class QVBoxLayout;
@@ -64,6 +65,7 @@ protected:
         void keyPressEvent(QKeyEvent *event) override;
 
 private:
+        void setupShortcuts(NfUi::NfUiState* uiState);
         void restoreCurrentPhoto();
 
         NfUi::NfUiBrowserState *m_state;
