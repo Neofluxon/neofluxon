@@ -33,6 +33,8 @@
 #include "NfBrowserView.h"
 #include "core/NfPhotoSource.h"
 
+#include <QKeySequence>
+#include <QShortcut>
 #include <QVBoxLayout>
 
 using namespace NfUi;
@@ -59,6 +61,18 @@ NfFolderView::NfFolderView(const NfDesktopContext& ctx,
         m_browserView = new NfBrowserView(m_context,
                                           m_model->browser(),
                                           this);
+
+        auto* parentFolderShortcut = new QShortcut(QKeySequence(Qt::Key_Backspace),
+                                                   m_browserView);
+        parentFolderShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+        QObject::connect(parentFolderShortcut,
+                         &QShortcut::activated,
+                         this,
+                         [this]() {
+                                 const auto parentPath = m_state->path().parent_path();
+                                 if (!parentPath.empty() && parentPath != m_state->path())
+                                         m_state->setPath(parentPath);
+                         });
 
         QObject::connect(m_state,
                          &NfUiFolderModeState::pathChanged,
