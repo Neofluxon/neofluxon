@@ -33,6 +33,7 @@
 #include <QVBoxLayout>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QShowEvent>
 #include <QShortcut>
 
 using namespace NfUi;
@@ -263,6 +264,12 @@ void NfBrowserView::keyPressEvent(QKeyEvent *event)
                 QWidget::keyPressEvent(event);
                 break;
         }
+}
+
+void NfBrowserView::showEvent(QShowEvent* event)
+{
+        QWidget::showEvent(event);
+        m_thumbnailsView->setFocus(Qt::OtherFocusReason);
 }
 
 } // namespace NfDesktop

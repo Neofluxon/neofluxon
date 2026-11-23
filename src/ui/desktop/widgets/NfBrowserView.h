@@ -33,6 +33,7 @@ class NfUiBrowserState;
 }
 
 class QVBoxLayout;
+class QShowEvent;
 
 namespace NfDesktop {
 
@@ -59,6 +60,7 @@ protected slots:
         void updateView();
 
 protected:
+        void showEvent(QShowEvent* event) override;
         void keyPressEvent(QKeyEvent *event) override;
 
 private:
