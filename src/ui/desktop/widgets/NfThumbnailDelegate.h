@@ -50,6 +50,7 @@ public:
         void setFavoriteHoverIndex(const QModelIndex& index);
         void setRatingHover(const QModelIndex& index, int rating);
         void setHasControls(bool b = true);
+        void setThumbnailSize(const QSize& size);
         bool hasControls() const;
         int controlsHeight() const;
 
@@ -75,6 +76,7 @@ private:
         int m_ratingHover{0};
         int m_padding;
         int m_bottomPadding;
+        QSize m_thumbnailSize;
         int m_controlsHeight{32};
         bool m_hasControls{false};
 };

@@ -31,6 +31,7 @@
 class QWheelEvent;
 class QResizeEvent;
 class QMouseEvent;
+class QShowEvent;
 
 namespace NfDesktop {
 
@@ -68,6 +69,7 @@ signals:
         void sortFieldCycleRequested();
 
 protected:
+        void showEvent(QShowEvent* event) override;
         void resizeEvent(QResizeEvent* event) override;
         void wheelEvent(QWheelEvent* event) override;
         void mouseMoveEvent(QMouseEvent* event) override;
@@ -80,6 +82,7 @@ protected:
 
 private:
         void updateLayout();
+        void updateFilmstripHeight();
         NfThumbnailDelegate* thumbnailDelegate() const;
         void processEnterKey(QKeyEvent* event);
         void processFavoriteKey(QKeyEvent* event);

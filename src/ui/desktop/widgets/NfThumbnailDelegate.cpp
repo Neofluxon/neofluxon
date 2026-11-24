@@ -59,18 +59,29 @@ QSize NfThumbnailDelegate::sizeHint(const QStyleOptionViewItem& option,
 
 QRect NfThumbnailDelegate::thumbnailRect(const QRect& itemRect) const
 {
+        const int bottomPadding = hasControls() ? m_bottomPadding : m_padding;
+        if (!m_thumbnailSize.isEmpty()) {
+                return QRect(itemRect.left() + m_padding,
+                             itemRect.top() + m_padding,
+                             itemRect.width() - 2 * m_padding,
+                             std::max(0, m_thumbnailSize.height()
+                                      - m_padding - bottomPadding));
+        }
+
         return itemRect.adjusted(m_padding,
                                  m_padding,
                                  -m_padding,
-                                 -((hasControls() ? m_controlsHeight : 0) + m_bottomPadding));
+                                 -((hasControls() ? m_controlsHeight : 0) + bottomPadding));
 }
 
 QRect NfThumbnailDelegate::controlsRect(const QRect& itemRect) const
 {
-        const auto thumbnail = thumbnailRect(itemRect);
-        return QRect(thumbnail.left(),
-                     thumbnail.bottom() + 5,
-                     thumbnail.width(),
+        const int controlsTop = m_thumbnailSize.isEmpty()
+                ? itemRect.bottom() - m_controlsHeight + 1
+                : itemRect.top() + m_thumbnailSize.height();
+        return QRect(itemRect.left() + m_padding,
+                     controlsTop,
+                     itemRect.width() - 2 * m_padding,
                      m_controlsHeight - 6);
 }
 
@@ -88,11 +99,8 @@ QRect NfThumbnailDelegate::favoriteIconRect(const QRect& itemRect) const
 QRect NfThumbnailDelegate::favoriteHitRect(const QRect& itemRect) const
 {
         const auto icon = favoriteIconRect(itemRect);
-        constexpr int hitSize = 28;
-        return QRect(icon.center().x() - hitSize / 2,
-                     icon.center().y() - hitSize / 2,
-                     hitSize,
-                     hitSize);
+        constexpr int hitPadding = 6;
+        return icon.adjusted(-hitPadding, -hitPadding, hitPadding, hitPadding);
 }
 
 QRect NfThumbnailDelegate::ratingHitRect(const QRect& itemRect, int rating) const
@@ -110,6 +118,11 @@ QRect NfThumbnailDelegate::ratingHitRect(const QRect& itemRect, int rating) cons
 void NfThumbnailDelegate::setHasControls(bool b)
 {
         m_hasControls = b;
+}
+
+void NfThumbnailDelegate::setThumbnailSize(const QSize& size)
+{
+        m_thumbnailSize = size;
 }
 
 bool NfThumbnailDelegate::hasControls() const

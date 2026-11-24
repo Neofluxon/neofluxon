@@ -32,6 +32,7 @@
 #include <QResizeEvent>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QShowEvent>
 
 namespace NfDesktop {
 
@@ -65,6 +66,10 @@ NfThumbnailsView::NfThumbnailsView(const NfDesktopContext& context, QWidget* par
                          &QScrollBar::valueChanged,
                          this,
                          &NfThumbnailsView::onScrollChanged);
+        QObject::connect(horizontalScrollBar(),
+                         &QScrollBar::rangeChanged,
+                         this,
+                         [this]() { updateFilmstripHeight(); });
 
         setMouseTracking(true);
         setSelectionMode(QAbstractItemView::SingleSelection);
@@ -110,18 +115,14 @@ void NfThumbnailsView::setThumbnailSize(const QSize &thumSize)
 {
         m_thumbnailSize = thumSize;
         setIconSize(m_thumbnailSize);
+        m_thumbnailDelegate->setThumbnailSize(m_thumbnailSize);
 
         auto itemSize = m_thumbnailSize;
         if (m_hasControls)
                 itemSize.rheight() += m_thumbnailDelegate->controlsHeight();
         setGridSize(itemSize);
 
-        if (m_layoutMode == LayoutMode::FilmstripView) {
-                const int verticalPadding = 32;
-                const int filmstripHeight = m_thumbnailSize.height() + verticalPadding;
-                setMinimumHeight(filmstripHeight);
-                setMaximumHeight(filmstripHeight);
-        }
+        updateFilmstripHeight();
 }
 
 void NfThumbnailsView::mousePressEvent(QMouseEvent* event)
@@ -233,9 +234,41 @@ NfThumbnailDelegate* NfThumbnailsView::thumbnailDelegate() const
         return m_thumbnailDelegate;
 }
 
+void NfThumbnailsView::updateFilmstripHeight()
+{
+        if (m_layoutMode != LayoutMode::FilmstripView)
+                return;
+
+        const auto* scrollBar = horizontalScrollBar();
+        // Add 3 pixel padding above and below the toolbar
+        // when the toolbar is visible
+        const int scrollBarHeight = scrollBar->isVisible()
+                ? scrollBar->height() + 6
+                : 0;
+        const auto margins = viewportMargins();
+        const int viewportOverhead = 2 * frameWidth()
+                + margins.top() + margins.bottom();
+        const int filmstripContentHeight = m_thumbnailSize.height()
+                + (m_hasControls ? m_thumbnailDelegate->controlsHeight() : 0);
+        const int filmstripHeight = filmstripContentHeight
+                + viewportOverhead + scrollBarHeight;
+        if (minimumHeight() != filmstripHeight
+            || maximumHeight() != filmstripHeight) {
+                setMinimumHeight(filmstripHeight);
+                setMaximumHeight(filmstripHeight);
+        }
+}
+
+void NfThumbnailsView::showEvent(QShowEvent* event)
+{
+        QListView::showEvent(event);
+        updateFilmstripHeight();
+}
+
 void NfThumbnailsView::resizeEvent(QResizeEvent* event)
 {
         QListView::resizeEvent(event);
+        updateFilmstripHeight();
 }
 
 void NfThumbnailsView::wheelEvent(QWheelEvent* event)
