@@ -37,17 +37,17 @@ public:
         explicit NfMainMenu(QWidget* parent = nullptr);
 
 public slots:
-        void setShootsMode();
+        void setProjectsMode();
         void setFolderMode();
         void setLibraryMode();
 
 signals:
-        void shootsClicked();
+        void projectsClicked();
         void foldersClicked();
         void libraryClicked();
 
 private:
-        //QPushButton* m_shootsButton;
+        QPushButton* m_projectsButton;
         QPushButton* m_foldersButton;
         QPushButton* m_libraryButton;
 };

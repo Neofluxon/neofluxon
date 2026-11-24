@@ -34,7 +34,7 @@ namespace NfDesktop {
 
 NfMainMenu::NfMainMenu(QWidget* parent)
         : NfStyledWidget(parent)
-          //        , shootsButton{nullptr}
+        , m_projectsButton{nullptr}
         , m_foldersButton{nullptr}
         , m_libraryButton{nullptr}
 
@@ -47,15 +47,15 @@ NfMainMenu::NfMainMenu(QWidget* parent)
         menuLayout->setContentsMargins(6, 6, 6, 6);
         menuLayout->setSpacing(2);
 
-        /*shootsButton = new QPushButton(tr("Shoots"), this);
-        shootsButton->setIcon(QIcon(":/icons/nav-shoots.svg"));
-        shootsButton->setIconSize(QSize(16, 16));
-        shootsButton->setCheckable(true);
-        shootsButton->setAutoExclusive(true);
-        QObject::connect(shootsButton,
+        m_projectsButton = new QPushButton(tr("Projects"), this);
+        m_projectsButton->setIcon(QIcon(":/icons/nav-projects.svg"));
+        m_projectsButton->setIconSize(QSize(16, 16));
+        m_projectsButton->setCheckable(true);
+        m_projectsButton->setAutoExclusive(true);
+        QObject::connect(m_projectsButton,
                          &QPushButton::clicked,
-                         this, &NfMainMenu::shootsClicked);
-                         menuLayout->addWidget(shootsButton);*/
+                         this, &NfMainMenu::projectsClicked);
+                         menuLayout->addWidget(m_projectsButton);
 
         m_foldersButton = new QPushButton(tr("Folders"), this);
         m_foldersButton->setIcon(QIcon(":/icons/nav-folders.svg"));
@@ -96,23 +96,23 @@ NfMainMenu::NfMainMenu(QWidget* parent)
         setLayout(menuLayout);
 }
 
-void NfMainMenu::setShootsMode()
+void NfMainMenu::setProjectsMode()
 {
-        /*shootsButton->setChecked(true);
+        m_projectsButton->setChecked(true);
         m_foldersButton->setChecked(false);
-        m_libraryButton->setChecked(false);*/
+        m_libraryButton->setChecked(false);
 }
 
 void NfMainMenu::setFolderMode()
 {
-        //shootsButton->setChecked(false);
+        m_projectsButton->setChecked(false);
         m_foldersButton->setChecked(true);
         m_libraryButton->setChecked(false);
 }
 
 void NfMainMenu::setLibraryMode()
 {
-        //shootsButton->setChecked(false);
+        m_projectsButton->setChecked(false);
         m_foldersButton->setChecked(false);
         m_libraryButton->setChecked(true);
 }

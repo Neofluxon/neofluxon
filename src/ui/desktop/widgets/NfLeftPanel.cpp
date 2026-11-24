@@ -65,8 +65,8 @@ NfLeftPanel::NfLeftPanel(const NfDesktopContext& context, QWidget *parent)
         panelLayout->addWidget(m_stack);
         setLayout(panelLayout);
 
-        QObject::connect(mainMenu, &NfMainMenu::shootsClicked, [this]() {
-                m_context.uiState()->setMode(NfUiMode::Shoots);
+        QObject::connect(mainMenu, &NfMainMenu::projectsClicked, [this]() {
+                //m_context.uiState()->setMode(NfUiMode::Projects);
         });
         QObject::connect(mainMenu, &NfMainMenu::foldersClicked, [this]() {
                 m_context.uiState()->setMode(NfUiMode::Folders);
@@ -80,8 +80,8 @@ NfLeftPanel::NfLeftPanel(const NfDesktopContext& context, QWidget *parent)
 
         auto updateMode = [this, mainMenu](NfUiMode mode) {
                 switch (mode) {
-                case NfUiMode::Shoots:
-                        mainMenu->setShootsMode();
+                        //case NfUiMode::Projects:
+                        //mainMenu->setProjectsMode();
                         break;
                 case NfUiMode::Folders:
                         showPathBrowser();
