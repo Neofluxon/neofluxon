@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryDatabase.h
+ * File name: NfDatabase.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_LIBRARY_DATABASE_H
-#define NF_LIBRARY_DATABASE_H
+#ifndef NF_DATABASE_H
+#define NF_DATABASE_H
 
 #include "NfLibraryRepresentation.h"
 #include "NfEquipmentQuery.h"
@@ -41,24 +41,12 @@
 
 namespace NfCore {
 
-/**
- * General Library structure
- *
- * [>] DateTime - Datetime tree strcuture: Captured via EXIF:CreateDate.
- *
- * [>] Canonical - Spatial/Physical Pillar: The "Source of Truth" location.
- *
- * [>] Collections - Intent/Curation Pillar. User organization.
- *
- * [>] Equipment - Technical Pillar: Hardware metadata (Camera & Lens).
- */
-
 class NfRepresentationRecord;
 class NfSourceRecord;
 class NfLibraryEntry;
 class NfLibraryQuery;
 
-class NfLibraryDatabase {
+class NfDatabase {
 public:
         class Transaction {
         public:
@@ -67,7 +55,7 @@ public:
                         LockOnly
                 };
 
-                Transaction(NfLibraryDatabase* db, Mode mode = Mode::Transaction);
+                Transaction(NfDatabase* db, Mode mode = Mode::Transaction);
                 ~Transaction();
                 Transaction(const Transaction&) = delete;
                 Transaction& operator=(const Transaction&) = delete;
@@ -80,12 +68,12 @@ public:
                 std::unique_lock<std::mutex> m_lock;
         };
 
-        explicit NfLibraryDatabase(const std::filesystem::path& dbPath);
-        ~NfLibraryDatabase();
-        NfLibraryDatabase(const NfLibraryDatabase&) = delete;
-        NfLibraryDatabase& operator=(const NfLibraryDatabase&) = delete;
-        NfLibraryDatabase(NfLibraryDatabase&&) = delete;
-        NfLibraryDatabase& operator=(NfLibraryDatabase&&) = delete;
+        explicit NfDatabase(const std::filesystem::path& dbPath);
+        ~NfDatabase();
+        NfDatabase(const NfDatabase&) = delete;
+        NfDatabase& operator=(const NfDatabase&) = delete;
+        NfDatabase(NfDatabase&&) = delete;
+        NfDatabase& operator=(NfDatabase&&) = delete;
         const std::filesystem::path& path() const;
         bool open(std::string& errorMessage);
         void close();
@@ -148,4 +136,4 @@ private:
 
 } // namespace NfCore
 
-#endif // NF_LIBRARY_DATABASE_H
+#endif // NF_LIBRARY_H

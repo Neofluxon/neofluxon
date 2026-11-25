@@ -36,7 +36,7 @@
 namespace NfCore {
 
 class NfRepresentationRecord;
-class NfLibraryDatabase;
+class NfDatabase;
 class NfLibraryQuery;
 struct NfEquipmentSourceRecord;
 
@@ -50,7 +50,7 @@ public:
                 Collections
         };
 
-        NfLibraryRepresentation(NfLibraryDatabase *db,
+        NfLibraryRepresentation(NfDatabase *db,
                                 int64_t libraryId,
                                 RepresentationType t);
         ~NfLibraryRepresentation();
@@ -79,7 +79,7 @@ protected:
 private:
         static std::vector<NfPhoto> imageRecordsToPhotos(const NfImageRecords& records);
 
-        NfLibraryDatabase* m_database;
+        NfDatabase* m_database;
         int64_t m_libraryId;
         RepresentationType m_type;
         std::string m_name;

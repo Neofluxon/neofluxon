@@ -67,8 +67,8 @@ set(CORE_HEADERS
         NfUserTaskManager.h
         NfThumbnail.h
         NfThumbnailTask.h
+        NfDatabase.h
         library/NfLibrary.h
-        library/NfLibraryDatabase.h
         library/NfSourceRecords.h
         library/NfLibraryPhotoSource.h
         library/NfLibraryPhotoScanTask.h
@@ -121,8 +121,8 @@ set(CORE_SOURCES
         NfUserTaskManager.cpp
         NfThumbnail.cpp
         NfThumbnailTask.cpp
+        NfDatabase.cpp
         library/NfLibrary.cpp
-        library/NfLibraryDatabase.cpp
         library/NfLibraryPhotoSource.cpp
         library/NfLibraryPhotoScanTask.cpp
         library/NfLibraryManager.cpp

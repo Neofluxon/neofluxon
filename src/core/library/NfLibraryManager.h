@@ -41,7 +41,7 @@ namespace NfCore {
 
 class NfLibrary;
 class NfScheduler;
-class NfLibraryDatabase;
+class NfDatabase;
 class NfLibraryQuery;
 class NfUserTaskManager;
 
@@ -80,7 +80,7 @@ private:
         NfScheduler* m_backgroundScheduler;
         NfScheduler* m_foregroundScheduler;
         NfUserTaskManager* m_userTaskManager;
-        std::unique_ptr<NfLibraryDatabase> m_database;
+        std::unique_ptr<NfDatabase> m_database;
         std::mutex m_mutex;
         FolderImportedCallback m_folderImportedCb;
 };

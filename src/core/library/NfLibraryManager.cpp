@@ -25,7 +25,7 @@
 #include "NfLibraryTreeTask.h"
 #include "NfApplicationPaths.h"
 #include "NfSourceRecords.h"
-#include "NfLibraryDatabase.h"
+#include "NfDatabase.h"
 #include "NfLibrary.h"
 #include "NfImportFolderTask.h"
 #include "NfUserTaskManager.h"
@@ -60,7 +60,7 @@ bool NfLibraryManager::initialize(std::string& errorMessage)
 
         try {
                 const auto databasePath = NfApplicationPaths().dataDirectory() / "neofluxon.db";
-                auto database = std::make_unique<NfLibraryDatabase>(databasePath);
+                auto database = std::make_unique<NfDatabase>(databasePath);
                 if (!database->open(errorMessage)) {
                         errorMessage = "Unable to open library database '"
                                 + NfFileUtils::pathToUtf8(databasePath) + "': " + errorMessage;
@@ -93,7 +93,7 @@ bool NfLibraryManager::initialize(std::string& errorMessage)
 std::vector<std::unique_ptr<NfLibrary>>
 NfLibraryManager::libraries() const
 {
-        using Transaction = NfLibraryDatabase::Transaction;
+        using Transaction = NfDatabase::Transaction;
         std::vector<int64_t> librariesIds;
         {
                 Transaction tx(m_database.get(), Transaction::Mode::LockOnly);
@@ -110,7 +110,7 @@ NfLibraryManager::libraries() const
 std::optional<std::unique_ptr<NfLibrary>>
 NfLibraryManager::addLibrary(std::string_view name)
 {
-        using Transaction = NfLibraryDatabase::Transaction;
+        using Transaction = NfDatabase::Transaction;
         {
                 Transaction tx(m_database.get(), Transaction::Mode::LockOnly);
                 if (auto record = m_database->library(name))
@@ -129,7 +129,7 @@ NfLibraryManager::addLibrary(std::string_view name)
 
 bool NfLibraryManager::updateLibrary(uint64_t libraryId, std::string_view name)
 {
-        using Transaction = NfLibraryDatabase::Transaction;
+        using Transaction = NfDatabase::Transaction;
         Transaction tx(m_database.get());
         if (!m_database->updateLibrary(static_cast<int64_t>(libraryId), name))
                 return false;
@@ -140,7 +140,7 @@ bool NfLibraryManager::updateLibrary(uint64_t libraryId, std::string_view name)
 
 bool NfLibraryManager::removeLibrary(uint64_t libraryId)
 {
-        using Transaction = NfLibraryDatabase::Transaction;
+        using Transaction = NfDatabase::Transaction;
         Transaction tx(m_database.get());
         auto res = m_database->removeLibrary(static_cast<int64_t>(libraryId));
         if (!res)
@@ -153,9 +153,9 @@ bool NfLibraryManager::removeLibrary(uint64_t libraryId)
 
 std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 {
-        using Transaction = NfLibraryDatabase::Transaction;
+        using Transaction = NfDatabase::Transaction;
         {
-                NfLibraryDatabase::Transaction tx(m_database.get(),
+                NfDatabase::Transaction tx(m_database.get(),
                                                   Transaction::Mode::LockOnly);
                 if (!m_database->libraryExists(id))
                         return nullptr;

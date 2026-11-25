@@ -35,7 +35,7 @@
 
 namespace NfCore {
 
-class NfLibraryDatabase;
+class NfDatabase;
 class NfLibraryRepresentation;
 class NfPhotoId;
 class NfPhoto;
@@ -45,7 +45,7 @@ class NfLibraryRepresentation;
 
 class NfLibrary {
 public:
-        explicit NfLibrary(NfLibraryDatabase *db, int64_t id);
+        explicit NfLibrary(NfDatabase *db, int64_t id);
         ~NfLibrary();
 
         int64_t id() const;
@@ -63,7 +63,7 @@ private:
         int64_t storeCamera(std::string_view maker, std::string_view model);
         int64_t storeLens(std::string_view lensName);
 
-        NfLibraryDatabase *m_db;
+        NfDatabase *m_db;
         int64_t m_id;
         std::string m_name;
         std::vector<std::unique_ptr<NfLibraryRepresentation>> m_representations;

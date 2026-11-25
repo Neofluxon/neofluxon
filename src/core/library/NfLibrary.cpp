@@ -24,7 +24,7 @@
 #include "NfLibrary.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryRepresentation.h"
-#include "NfLibraryDatabase.h"
+#include "NfDatabase.h"
 #include "NfPhoto.h"
 #include "NfPhotoMetadataExtractor.h"
 #include "NfLibraryQuery.h"
@@ -35,7 +35,7 @@
 
 namespace NfCore {
 
-NfLibrary::NfLibrary(NfLibraryDatabase *db, int64_t id)
+NfLibrary::NfLibrary(NfDatabase *db, int64_t id)
         : m_db{db}
         , m_id{id}
 {
@@ -52,8 +52,8 @@ int64_t NfLibrary::id() const
 
 std::string NfLibrary::name() const noexcept
 {
-        using Mode = NfLibraryDatabase::Transaction::Mode;
-        NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
+        using Mode = NfDatabase::Transaction::Mode;
+        NfDatabase::Transaction tx(m_db, Mode::LockOnly);
         return m_db->library(m_id)->name;
 }
 
@@ -81,7 +81,7 @@ std::optional<NfDateRange> NfLibrary::dateTimeRange() const
 
 bool NfLibrary::addFolder(const std::filesystem::path& folder)
 {
-        NfLibraryDatabase::Transaction tx(m_db);
+        NfDatabase::Transaction tx(m_db);
         auto folderId = m_db->addFolder(folder, id());
         if (folderId < 0) {
                 NF_LOG_ERROR("Failed to add folder: " << folder);
@@ -101,7 +101,7 @@ void NfLibrary::addPhoto(const NfPhoto& photo)
                 return;
         }
 
-        NfLibraryDatabase::Transaction tx(m_db);
+        NfDatabase::Transaction tx(m_db);
         auto folderId = m_db->addFolder(photo.path().parent_path(), id());
         if (folderId < 0) {
                 NF_LOG_ERROR("Failed to add folder: " << photo.path());
@@ -165,14 +165,14 @@ std::vector<NfPhoto> NfLibrary::queryPhotos(const NfLibraryQuery &query) const
 
 bool NfLibrary::folderExists(std::filesystem::path &folder) const
 {
-        using Mode = NfLibraryDatabase::Transaction::Mode;
-        NfLibraryDatabase::Transaction tx(m_db, Mode::LockOnly);
+        using Mode = NfDatabase::Transaction::Mode;
+        NfDatabase::Transaction tx(m_db, Mode::LockOnly);
         return m_db->getFolderIdByPath(folder, id()) != -1;
 }
 
 bool NfLibrary::setImageFavorite(const NfPhotoId& photoId, bool favorite)
 {
-        NfLibraryDatabase::Transaction tx(m_db);
+        NfDatabase::Transaction tx(m_db);
         if (!m_db->setImagesFavorite({photoId}, favorite)) {
                 NF_LOG_ERROR("Failed to set favorite for photo id: "
                              << photoId.value());
@@ -186,7 +186,7 @@ bool NfLibrary::setImageFavorite(const NfPhotoId& photoId, bool favorite)
 
 bool NfLibrary::setImageRating(const NfPhotoId& photoId, int rating)
 {
-        NfLibraryDatabase::Transaction tx(m_db);
+        NfDatabase::Transaction tx(m_db);
         if (!m_db->setImagesRating({photoId}, rating)) {
                 NF_LOG_ERROR("Failed to set rating for photo id: "
                              << photoId.value());

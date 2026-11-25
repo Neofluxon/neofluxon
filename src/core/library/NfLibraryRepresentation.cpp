@@ -22,7 +22,7 @@
  */
 
 #include "NfLibraryRepresentation.h"
-#include "NfLibraryDatabase.h"
+#include "NfDatabase.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryTreeNode.h"
 #include "NfLibraryQuery.h"
@@ -37,7 +37,7 @@
 
 namespace NfCore {
 
-NfLibraryRepresentation::NfLibraryRepresentation(NfLibraryDatabase *db,
+NfLibraryRepresentation::NfLibraryRepresentation(NfDatabase *db,
                                                  int64_t libraryId,
                                                  RepresentationType t)
         : m_database{db}

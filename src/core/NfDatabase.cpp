@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryDatabase.h
+ * File name: NfDatabase.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfLibraryDatabase.h"
+#include "NfDatabase.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryRepresentation.h"
 #include "NfLogger.h"
@@ -34,7 +34,7 @@
 
 namespace NfCore {
 
-NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db,
+NfDatabase::Transaction::Transaction(NfDatabase* db,
                                             Mode mode)
         : m_db{db->m_db}
         , m_mode{mode}
@@ -44,13 +44,13 @@ NfLibraryDatabase::Transaction::Transaction(NfLibraryDatabase* db,
                 sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
 }
 
-NfLibraryDatabase::Transaction::~Transaction()
+NfDatabase::Transaction::~Transaction()
 {
         if (m_mode == Mode::Transaction && !m_committed)
                 sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
 }
 
-void NfLibraryDatabase::Transaction::commit()
+void NfDatabase::Transaction::commit()
 {
         if (m_mode != Mode::Transaction)
                 return;
@@ -61,22 +61,22 @@ void NfLibraryDatabase::Transaction::commit()
         }
 }
 
-NfLibraryDatabase::NfLibraryDatabase(const std::filesystem::path& dbPath)
+NfDatabase::NfDatabase(const std::filesystem::path& dbPath)
         : m_dbPath{dbPath}
 {
 }
 
-NfLibraryDatabase::~NfLibraryDatabase()
+NfDatabase::~NfDatabase()
 {
         close();
 }
 
-const std::filesystem::path& NfLibraryDatabase::path() const
+const std::filesystem::path& NfDatabase::path() const
 {
         return m_dbPath;
 }
 
-bool NfLibraryDatabase::open(std::string& errorMessage)
+bool NfDatabase::open(std::string& errorMessage)
 {
         auto u8path = m_dbPath.u8string();
         if (sqlite3_open(reinterpret_cast<const char*>(u8path.c_str()), &m_db) == SQLITE_OK) {
@@ -89,7 +89,7 @@ bool NfLibraryDatabase::open(std::string& errorMessage)
         return false;
 }
 
-void NfLibraryDatabase::close()
+void NfDatabase::close()
 {
         if (m_db) {
                 sqlite3_close(m_db);
@@ -97,7 +97,7 @@ void NfLibraryDatabase::close()
         }
 }
 
-bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
+bool NfDatabase::initializeSchema(std::string& errorMessage)
 {
         if (!m_db) {
                 errorMessage = "database is not open";
@@ -171,6 +171,33 @@ bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
            UNIQUE (photo_id, folder_id, file_name)
        );
 
+       CREATE TABLE IF NOT EXISTS projects (
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            name             TEXT NOT NULL UNIQUE,
+            description      TEXT,
+            path             TEXT NOT NULL UNIQUE,
+            status           INTEGER NOT NULL DEFAULT 0,
+            creation_date    INTEGER NOT NULL,
+            modified_date    INTEGER NOT NULL,
+            archived_date    INTEGER
+       );
+
+       CREATE TABLE IF NOT EXISTS project_images (
+            project_id  INTEGER NOT NULL,
+            image_id  INTEGER NOT NULL,
+
+            PRIMARY KEY (project_id, image_id),
+
+            FOREIGN KEY (project_id)
+                REFERENCES projects(id) ON DELETE CASCADE,
+
+            FOREIGN KEY (image_id)
+                REFERENCES images(id) ON DELETE CASCADE
+       );
+
+       CREATE INDEX IF NOT EXISTS idx_project_images_image_id
+           ON project_images(image_id);
+
        CREATE INDEX IF NOT EXISTS idx_images_camera_id
            ON images(camera_id);
 
@@ -202,7 +229,7 @@ bool NfLibraryDatabase::initializeSchema(std::string& errorMessage)
        return true;
 }
 
-int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
+int64_t NfDatabase::addLibrary(const std::string_view name)
 {
         const char* sql = R"(
         INSERT INTO libraries (name)
@@ -227,7 +254,7 @@ int64_t NfLibraryDatabase::addLibrary(const std::string_view name)
         return libraryId;
 }
 
-bool NfLibraryDatabase::updateLibrary(int64_t id, std::string_view name)
+bool NfDatabase::updateLibrary(int64_t id, std::string_view name)
 {
         const char* sql = "UPDATE libraries SET name = ? WHERE id = ?;";
 
@@ -248,7 +275,7 @@ bool NfLibraryDatabase::updateLibrary(int64_t id, std::string_view name)
         return updated;
 }
 
-bool NfLibraryDatabase::removeLibrary(int64_t id)
+bool NfDatabase::removeLibrary(int64_t id)
 {
         // Deleting the library cascades to its folder memberships.
         sqlite3_stmt* stmt = nullptr;
@@ -280,7 +307,7 @@ bool NfLibraryDatabase::removeLibrary(int64_t id)
                 == SQLITE_OK;
 }
 
-bool NfLibraryDatabase::libraryExists(int64_t id) const
+bool NfDatabase::libraryExists(int64_t id) const
 {
         const char* sql = R"(
         SELECT 1
@@ -306,7 +333,7 @@ bool NfLibraryDatabase::libraryExists(int64_t id) const
 }
 
 std::vector<int64_t>
-NfLibraryDatabase::libraryIds() const
+NfDatabase::libraryIds() const
 {
         std::vector<int64_t> ids;
 
@@ -325,7 +352,7 @@ NfLibraryDatabase::libraryIds() const
 }
 
 std::unique_ptr<NfLibraryEntry>
-NfLibraryDatabase::library(int64_t id) const
+NfDatabase::library(int64_t id) const
 {
         const char* sql = R"(
         SELECT id, name
@@ -360,7 +387,7 @@ NfLibraryDatabase::library(int64_t id) const
 }
 
 std::unique_ptr<NfLibraryEntry>
-NfLibraryDatabase::library(std::string_view name) const
+NfDatabase::library(std::string_view name) const
 {
         const char* sql = R"(
         SELECT id, name
@@ -398,7 +425,7 @@ NfLibraryDatabase::library(std::string_view name) const
 }
 
 std::vector<NfLibraryEntry>
-NfLibraryDatabase::libraries() const
+NfDatabase::libraries() const
 {
         std::vector<NfLibraryEntry> libraries;
 
@@ -433,7 +460,7 @@ NfLibraryDatabase::libraries() const
         return libraries;
 }
 
-int64_t NfLibraryDatabase::addFolder(const std::filesystem::path& path,
+int64_t NfDatabase::addFolder(const std::filesystem::path& path,
                                      int64_t libraryId)
 {
         const std::string pathStr = path.lexically_normal().generic_string();
@@ -487,7 +514,7 @@ int64_t NfLibraryDatabase::addFolder(const std::filesystem::path& path,
         return id;
 }
 
-int64_t NfLibraryDatabase::addImage(uint64_t photo_id,
+int64_t NfDatabase::addImage(uint64_t photo_id,
                                     int64_t folderId,
                                     const std::string& fileName,
                                     NfPhoto::PhotoFormat format,
@@ -557,7 +584,7 @@ int64_t NfLibraryDatabase::addImage(uint64_t photo_id,
         return resultId;
 }
 
-NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
+NfImageRecords NfDatabase::getImages(const NfLibraryQuery& query) const
 {
         auto images = NfImageRecords{};
         if (!m_db || query.libraryId <= 0)
@@ -740,7 +767,7 @@ NfImageRecords NfLibraryDatabase::getImages(const NfLibraryQuery& query) const
 }
 
 std::optional<NfDateRange>
-NfLibraryDatabase::getDateTimeRange(int64_t libraryId) const
+NfDatabase::getDateTimeRange(int64_t libraryId) const
 {
         if (!m_db || libraryId <= 0)
                 return std::nullopt;
@@ -779,7 +806,7 @@ NfLibraryDatabase::getDateTimeRange(int64_t libraryId) const
 }
 
 NfImageRecords
-NfLibraryDatabase::getImagesByFolderId(int64_t folderId,
+NfDatabase::getImagesByFolderId(int64_t folderId,
                                        int64_t libraryId) const
 {
 
@@ -858,7 +885,7 @@ NfLibraryDatabase::getImagesByFolderId(int64_t folderId,
 }
 
 NfImageRecords
-NfLibraryDatabase::getImagesByDate(const NfDateRange& dateRange,
+NfDatabase::getImagesByDate(const NfDateRange& dateRange,
                                    int64_t libraryId) const
 {
         constexpr auto sql = R"(
@@ -927,7 +954,7 @@ NfLibraryDatabase::getImagesByDate(const NfDateRange& dateRange,
 }
 
 NfImageRecords
-NfLibraryDatabase::getImagesByEquipment(const NfEquipmentQuery& equipment,
+NfDatabase::getImagesByEquipment(const NfEquipmentQuery& equipment,
                                         int64_t libraryId) const
 {
         auto images = NfImageRecords{};
@@ -1022,7 +1049,7 @@ NfLibraryDatabase::getImagesByEquipment(const NfEquipmentQuery& equipment,
         return images;
 }
 
-int64_t NfLibraryDatabase::getFolderIdByPath(const std::filesystem::path& folder,
+int64_t NfDatabase::getFolderIdByPath(const std::filesystem::path& folder,
                                              int64_t libraryId) const
 {
         const char* sql = R"(
@@ -1052,7 +1079,7 @@ int64_t NfLibraryDatabase::getFolderIdByPath(const std::filesystem::path& folder
         return result;
 }
 
-int64_t NfLibraryDatabase::addCamera(std::string_view maker,
+int64_t NfDatabase::addCamera(std::string_view maker,
                                      std::string_view model)
 {
         NF_LOG_DEBUG("add camera, maker = " << maker << ", " << model);
@@ -1093,7 +1120,7 @@ int64_t NfLibraryDatabase::addCamera(std::string_view maker,
         return resultId;
 }
 
-int64_t NfLibraryDatabase::addLens(std::string_view lens)
+int64_t NfDatabase::addLens(std::string_view lens)
 {
         const char* selectSql = "SELECT id FROM lenses WHERE name = ?;";
         sqlite3_stmt* stmt = nullptr;
@@ -1129,7 +1156,7 @@ int64_t NfLibraryDatabase::addLens(std::string_view lens)
 }
 
 std::unique_ptr<NfRepresentationRecord>
-NfLibraryDatabase::getRepresentationRecord(int64_t libraryId,
+NfDatabase::getRepresentationRecord(int64_t libraryId,
                                            NfLibraryRepresentation::RepresentationType repType)
 {
         using RepresentationType = NfLibraryRepresentation::RepresentationType;
@@ -1162,7 +1189,7 @@ NfLibraryDatabase::getRepresentationRecord(int64_t libraryId,
         return std::move(record);
 }
 
-bool NfLibraryDatabase::setImagesFavorite(const std::vector<NfPhotoId>& photoIds,
+bool NfDatabase::setImagesFavorite(const std::vector<NfPhotoId>& photoIds,
                                           bool favorite)
 {
         const char* sql = "UPDATE images SET favorite = ? WHERE photo_id = ?;";
@@ -1192,7 +1219,7 @@ bool NfLibraryDatabase::setImagesFavorite(const std::vector<NfPhotoId>& photoIds
         return result;
 }
 
-bool NfLibraryDatabase::setImagesRating(const std::vector<NfPhotoId>& photoIds,
+bool NfDatabase::setImagesRating(const std::vector<NfPhotoId>& photoIds,
                                         int rating)
 {
         const char* sql = "UPDATE images SET rating = ? WHERE photo_id = ?;";
@@ -1221,11 +1248,11 @@ bool NfLibraryDatabase::setImagesRating(const std::vector<NfPhotoId>& photoIds,
 }
 
 /*std::vector<std::unique_ptr<NfRepresentationRecord>>
-NfLibraryDatabase::getRepresentations(int libraryId) const
+NfDatabase::getRepresentations(int libraryId) const
 {
 }*/
 
-void NfLibraryDatabase::populateSourceData(NfRepresentationRecord *record)
+void NfDatabase::populateSourceData(NfRepresentationRecord *record)
 {
         using RepresentationType = NfLibraryRepresentation::RepresentationType;
         switch (static_cast<RepresentationType>(record->type)) {
@@ -1248,7 +1275,7 @@ void NfLibraryDatabase::populateSourceData(NfRepresentationRecord *record)
         }
 }
 
-void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libraryId)
+void NfDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libraryId)
 {
         NF_LOG_DEBUG("called");
         auto* record = static_cast<NfDatetimeSourceRecord*>(source);
@@ -1278,7 +1305,7 @@ void NfLibraryDatabase::loadDateTimeSource(NfSourceRecord *source, int64_t libra
         sqlite3_finalize(stmt);
 }
 
-void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libraryId)
+void NfDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libraryId)
 {
         auto* record = static_cast<NfCanonicalSourceRecord*>(source);
         const char* sql =
@@ -1303,7 +1330,7 @@ void NfLibraryDatabase::loadCanonicalSource(NfSourceRecord* source, int64_t libr
         sqlite3_finalize(stmt);
 }
 
-void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libraryId)
+void NfDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libraryId)
 {
         auto* record = static_cast<NfEquipmentSourceRecord*>(source);
 
@@ -1353,7 +1380,7 @@ void NfLibraryDatabase::loadEquipmentSource(NfSourceRecord *source, int64_t libr
         sqlite3_finalize(stmt);
 }
 
-void NfLibraryDatabase::loadCollectionsSource(NfSourceRecord *source, int64_t libraryId)
+void NfDatabase::loadCollectionsSource(NfSourceRecord *source, int64_t libraryId)
 {
         /*auto* record = static_cast<NfCollectionsSourceRecord*>(source.get());
 
