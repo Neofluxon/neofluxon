@@ -35,6 +35,8 @@
 #include "NfLibraryTreeModel.h"
 #include "core/NfApplicationPaths.h"
 #include "core/NeofluxonCore.h"
+#include "NfProjectsManager.h"
+#include "NfUiProjectsModeState.h"
 
 #include <QCoreApplication>
 #include <QGuiApplication>
@@ -52,6 +54,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         : QMainWindow()
         , m_context{NfDesktopContext(ctx)}
         , m_splitter{new QSplitter(Qt::Horizontal)}
+        , m_rojectsManager{new NfProjectsManager(m_context, this)}
 {
         auto* uiContext = m_context.uiContext;
         setWindowTitle(QStringLiteral("%1").arg(QGuiApplication::applicationDisplayName()));
@@ -124,6 +127,8 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         topBar->raise();
 
         setCentralWidget(container);
+
+        setupShortcuts();
 }
 
 NfMainWindow::~NfMainWindow()
@@ -132,14 +137,16 @@ NfMainWindow::~NfMainWindow()
 
 void NfMainWindow::setupShortcuts()
 {
-        if (m_context->uiState && m_context->uiState->projectsModeState()) {
-                auto* newProjectAction = new QAction(tr("New Project"), this);
-                newProjectAction->setShortcut(QKeySequence("Ctrl+Shift+N"));
-                QObject::connect(newProjectAction,
-                                 &QAction::triggered,
-                                 m_context->uiState->projectsModeState(),
-                                 &NFProjectModelState::newProject);
-        }
+        auto* newProjectAction = new QAction(tr("New Project"), this);
+        newProjectAction->setShortcut(QKeySequence("Ctrl+Shift+N"));
+        newProjectAction->setShortcutContext(Qt::WindowShortcut);
+
+        addAction(newProjectAction);
+
+        QObject::connect(newProjectAction,
+                         &QAction::triggered,
+                         m_context.uiState()->projectsModeState(),
+                         &NfUiProjectsModeState::addNewProject);
 }
 
 } // namespace NfDesktop

@@ -36,8 +36,7 @@ public:
         explicit NfUiProjectsModeState(QObject* parent = nullptr);
 
 signals:
-        void newProject();
-
+        void addNewProject();
 };
 
 } // namespace NfUi

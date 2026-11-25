@@ -52,9 +52,9 @@ NfCentralWidget::NfCentralWidget(NfDesktopContext context, QWidget* parent)
         updateView();
 }
 
-void NfCentralWidget::showShootsView()
+void NfCentralWidget::showProjectsView()
 {
-        //setCurrentView(new NfShootsModeView(this, m_shootsModel));
+        //setCurrentView(new NfProjectsModeView(this, m_projectsModel));
 }
 
 void NfCentralWidget::showFolderView()
@@ -86,8 +86,8 @@ void NfCentralWidget::updateView()
 {
         auto mode = m_context.uiState()->mode();
         switch (mode) {
-        case NfUiMode::Shoots:
-                showShootsView();
+        case NfUiMode::Projects:
+                showProjectsView();
                 break;
         case NfUiMode::Folders:
                 showFolderView();

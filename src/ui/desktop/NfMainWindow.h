@@ -38,6 +38,8 @@ using namespace NfUi;
 
 namespace NfDesktop {
 
+class NfProjectsManager;
+
 class NfMainWindow : public QMainWindow
 {
         Q_OBJECT
@@ -51,6 +53,7 @@ private:
 
         NfDesktopContext m_context;
         QSplitter *m_splitter;
+        NfProjectsManager *m_rojectsManager;
 };
 
 } // namespace NfDesktop

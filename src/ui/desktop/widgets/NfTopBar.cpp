@@ -28,12 +28,11 @@
 #include "NfSettingsDialog.h"
 #include "NfLibraryAdapter.h"
 #include "core/library/NfLibrary.h"
-#include "NfUiShootsModeState.h"
+#include "NfUiProjectsModeState.h"
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfUiBrowserState.h"
 #include "NfSeparator.h"
-#include "NfNewProjectDialog.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -95,11 +94,8 @@ NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
         topBarLayout->addWidget(newProjectButton, 0, Qt::AlignLeft);
         QObject::connect(newProjectButton,
                          &QToolButton::clicked,
-                         this,
-                         [this]() {
-                                 NfNewProjectDialog dialog(*m_context.uiContext, this);
-                                 dialog.exec();
-                         });
+                         m_context.uiState()->projectsModeState(),
+                         &NfUiProjectsModeState::addNewProject);
 
         topBarLayout->addStretch(1);
 
@@ -146,8 +142,8 @@ NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
 void NfTopBar::onModeChanged(NfUiMode mode)
 {
         switch (mode) {
-        case NfUiMode::Shoots:
-                showShootsControls();
+        case NfUiMode::Projects:
+                showProjectsControls();
                 break;
 
         case NfUiMode::Folders:
@@ -160,9 +156,9 @@ void NfTopBar::onModeChanged(NfUiMode mode)
     }
 }
 
-void NfTopBar::showShootsControls()
+void NfTopBar::showProjectsControls()
 {
-        //auto state = m_context.uiState->shootsModeState()->browser();
+        //auto state = m_context.uiState->projectsModeState()->browser();
         //showBrowserViewModeBar(state);
 }
 

@@ -47,7 +47,7 @@ public:
         virtual ~NfTopBar() = default;
 
 protected:
-        void showShootsControls();
+        void showProjectsControls();
         void showFolderControls();
         void showLibraryControls();
 

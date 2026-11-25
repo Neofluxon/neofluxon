@@ -5,7 +5,7 @@ set(COMMON_HEADERS
     state/NfUiBrowserState.h
     state/NfUiFolderModeState.h
     state/NfUiLibraryModeState.h
-    state/NfUiShootsModeState.h
+    state/NfUiProjectsModeState.h
     state/NfUiState.h
     NfPhotoProvider.h
     NfLibraryAdapter.h
@@ -19,7 +19,7 @@ set(COMMON_SOURCES
     state/NfUiBrowserState.cpp
     state/NfUiFolderModeState.cpp
     state/NfUiLibraryModeState.cpp
-    state/NfUiShootsModeState.cpp
+    state/NfUiProjectsModeState.cpp
     state/NfUiState.cpp
     NfPhotoProvider.cpp
     NfLibraryAdapter.cpp

@@ -1,12 +1,14 @@
 set(DESKTOP_HEADERS
    ${CMAKE_CURRENT_SOURCE_DIR}/NfDesktopContext.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/NfApplication.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/NfProjectsManager.h
    ${CMAKE_CURRENT_SOURCE_DIR}/NfMainWindow.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/NfApplication.h
 )
 
 set(DESKTOP_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/NfApplication.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/NfProjectsManager.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/NfMainWindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/NfApplication.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 

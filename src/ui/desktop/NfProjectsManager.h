@@ -1,5 +1,5 @@
 /**
- * File name: NfShootsModeState.h
+ * File name: NfProjectsManager.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,13 +21,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "NfUiShootsModeState.h"
+#ifndef NF_PROEJCTS_MANAGER_H
+#define NF_PROEJCTS_MANAGER_H
 
-namespace NfUi {
+#include <QObject>
 
-NfUiShootsModeState::NfUiShootsModeState(QObject* parent)
-    : QObject(parent)
+class QWidget;
+
+namespace NfDesktop {
+
+class NfDesktopContext;
+
+class NfProjectsManager: public QObject
 {
-}
+        Q_OBJECT
 
-} // namespace NfUi
+ public:
+        explicit NfProjectsManager(const NfDesktopContext &ctx,
+                                   QWidget* parent = nullptr);
+
+ public slots:
+         void addNewProject();
+
+ private:
+         const NfDesktopContext& m_context;
+         QWidget *m_parentWidget;
+};
+
+} // namespace NfDesktopContext
+
+#endif // NF_PROEJCTS_MANAGER_H

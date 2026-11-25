@@ -176,6 +176,7 @@ void NfBrowserView::setupShortcuts(NfUi::NfUiState* uiState)
                                          : NfUiBrowserState::SortOrder::Ascending;
                                  m_state->setSortOrder(nextOrder);
                          });
+
         setupSortFieldCycleShortcut();
 
         auto* metadataPanelShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);

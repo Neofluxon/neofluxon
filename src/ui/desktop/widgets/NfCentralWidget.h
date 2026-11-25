@@ -43,7 +43,7 @@ class NfCentralWidget : public QWidget
                                  QWidget* parent = nullptr);
 
  protected slots:
-        void showShootsView();
+        void showProjectsView();
         void showFolderView();
         void showLibraryView();
         void updateView();

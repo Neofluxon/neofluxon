@@ -136,7 +136,7 @@ void NfSearchBar::onSearchRequested()
                 state->setQuery(searchQuery);
                 return;
         }
-        case NfUi::NfUiMode::Shoots:
+        case NfUi::NfUiMode::Projects:
                 return;
         }
 }
