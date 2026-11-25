@@ -1,5 +1,5 @@
 /**
- * File name: NfShootsModeState.h
+ * File name: NfProjectsModeState.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor
@@ -21,21 +21,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_UI_SHOOTS_MODE_STATE_H
-#define NF_UI_SHOOTS_MODE_STATE_H
+#ifndef NF_UI_PROJECTS_MODE_STATE_H
+#define NF_UI_PROJECTS_MODE_STATE_H
 
 #include <QObject>
 
 namespace NfUi {
 
-class NfUiShootsModeState : public QObject
+class NfUiProjectsModeState : public QObject
 {
         Q_OBJECT
 
 public:
-        explicit NfUiShootsModeState(QObject* parent = nullptr);
+        explicit NfUiProjectsModeState(QObject* parent = nullptr);
+
+signals:
+        void newProject();
+
 };
 
 } // namespace NfUi
 
-#endif // NF_UI_SHOOTS_MODE_STATE_H
+#endif // NF_UI_PROJECTS_MODE_STATE_H

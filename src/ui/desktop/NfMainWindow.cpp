@@ -130,4 +130,16 @@ NfMainWindow::~NfMainWindow()
 {
 }
 
+void NfMainWindow::setupShortcuts()
+{
+        if (m_context->uiState && m_context->uiState->projectsModeState()) {
+                auto* newProjectAction = new QAction(tr("New Project"), this);
+                newProjectAction->setShortcut(QKeySequence("Ctrl+Shift+N"));
+                QObject::connect(newProjectAction,
+                                 &QAction::triggered,
+                                 m_context->uiState->projectsModeState(),
+                                 &NFProjectModelState::newProject);
+        }
+}
+
 } // namespace NfDesktop

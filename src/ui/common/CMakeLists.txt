@@ -1,5 +1,6 @@
 set(COMMON_HEADERS
     NfQPixmap.h
+    NfQtPathUtils.h
     context/NfContext.h
     state/NfUiBrowserState.h
     state/NfUiFolderModeState.h
@@ -14,6 +15,7 @@ set(COMMON_HEADERS
 
 set(COMMON_SOURCES
     NfQPixmap.cpp
+    NfQtPathUtils.cpp
     state/NfUiBrowserState.cpp
     state/NfUiFolderModeState.cpp
     state/NfUiLibraryModeState.cpp
@@ -44,3 +46,10 @@ target_link_libraries(NfCommonUi
         Qt6::Gui
         ${PROJECT_NAME}::CoreLibrary
 )
+
+if(WIN32)
+    target_link_libraries(NfCommonUi PRIVATE
+        shell32
+        ole32
+    )
+endif()

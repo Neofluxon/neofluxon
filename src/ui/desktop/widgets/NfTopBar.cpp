@@ -22,6 +22,7 @@
  */
 
 #include "NfTopBar.h"
+#include "NfContext.h"
 #include "NfDesktopContext.h"
 #include "NfBrowserViewModeBar.h"
 #include "NfSettingsDialog.h"
@@ -31,6 +32,8 @@
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfUiBrowserState.h"
+#include "NfSeparator.h"
+#include "NfNewProjectDialog.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -72,7 +75,12 @@ NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
         m_libraryName = new QLabel(this);
         m_libraryName->setObjectName("CurrentLibraryName");
         topBarLayout->addWidget(m_libraryName, 0, Qt::AlignLeft);
-        topBarLayout->addStretch(1);
+
+        topBarLayout->addSpacing(4);
+        auto separator = new NfSeparator(this, NfSeparator::Orientation::Vertical);
+        separator->setObjectName("TopBarSeparator");
+        separator->setFixedHeight(26);
+        topBarLayout->addWidget(separator);
 
         // Add new project
         auto newProjectButton = new QToolButton(this);
@@ -80,8 +88,8 @@ NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
         newProjectButton->setToolTip(tr("Create a new project"));
         newProjectButton->setAccessibleName("NewProject");
         newProjectButton->setIcon(QIcon(":/icons/new-project.svg"));
-        newProjectButton->setIconSize(QSize(18, 18));
-        newProjectButton->setFixedSize(30, 30);
+        newProjectButton->setIconSize(QSize(38, 30));
+        newProjectButton->setFixedSize(38, 30);
         newProjectButton->setCursor(Qt::PointingHandCursor);
         newProjectButton->setAutoRaise(true);
         topBarLayout->addWidget(newProjectButton, 0, Qt::AlignLeft);
@@ -89,9 +97,11 @@ NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
                          &QToolButton::clicked,
                          this,
                          [this]() {
-                                 //NfSettingsDialog dialog(this);
-                                 //dialog.exec();
+                                 NfNewProjectDialog dialog(*m_context.uiContext, this);
+                                 dialog.exec();
                          });
+
+        topBarLayout->addStretch(1);
 
         // Settings
         auto settingsButton = new QToolButton(this);

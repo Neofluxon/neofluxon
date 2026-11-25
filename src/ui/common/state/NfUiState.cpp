@@ -22,7 +22,7 @@
  */
 
 #include "NfUiState.h"
-#include "NfUiShootsModeState.h"
+#include "NfUiProjectsModeState.h"
 #include "NfUiFolderModeState.h"
 #include "NfUiLibraryModeState.h"
 #include "NfUiBrowserState.h"
@@ -244,8 +244,8 @@ void restoreLibraryQuery(QSettings& settings,
 
 NfUiState::NfUiState(QObject* parent)
         : QObject(parent)
-        , m_uiMode{NfUiMode::Shoots}
-        , m_shootsModeState{new NfUiShootsModeState(this)}
+        , m_uiMode{NfUiMode::Projects}
+        , m_projectsModeState{new NfUiProjectsModeState(this)}
         , m_folderModeState{new NfUiFolderModeState(this)}
         , m_libraryModeState{new NfUiLibraryModeState(this)}
 {
@@ -253,8 +253,8 @@ NfUiState::NfUiState(QObject* parent)
 
         const auto savedMode = settingValue(
                 settings, QStringLiteral("UI/mode"), QStringLiteral("ui/mode"),
-                static_cast<int>(NfUiMode::Shoots)).toInt();
-        if (savedMode >= static_cast<int>(NfUiMode::Shoots) &&
+                static_cast<int>(NfUiMode::Projects)).toInt();
+        if (savedMode >= static_cast<int>(NfUiMode::Projects) &&
             savedMode <= static_cast<int>(NfUiMode::Library))
                 m_uiMode = static_cast<NfUiMode>(savedMode);
 
@@ -321,17 +321,23 @@ NfUiState::NfUiState(QObject* parent)
                          &NfUiLibraryModeState::queryChanged,
                          this,
                          &NfUiState::saveState);
-        QObject::connect(m_folderModeState->browser(), &NfUiBrowserState::viewModeChanged,
+        QObject::connect(m_folderModeState->browser(),
+                         &NfUiBrowserState::viewModeChanged,
                          this, &NfUiState::saveState);
-        QObject::connect(m_libraryModeState->browser(), &NfUiBrowserState::viewModeChanged,
+        QObject::connect(m_libraryModeState->browser(),
+                         &NfUiBrowserState::viewModeChanged,
                          this, &NfUiState::saveState);
-        QObject::connect(m_folderModeState->browser(), &NfUiBrowserState::currentPhotoChanged,
+        QObject::connect(m_folderModeState->browser(),
+                         &NfUiBrowserState::currentPhotoChanged,
                          this, &NfUiState::saveState);
-        QObject::connect(m_libraryModeState->browser(), &NfUiBrowserState::currentPhotoChanged,
+        QObject::connect(m_libraryModeState->browser(),
+                         &NfUiBrowserState::currentPhotoChanged,
                          this, &NfUiState::saveState);
-        QObject::connect(m_folderModeState->browser(), &NfUiBrowserState::formatFilterChanged,
+        QObject::connect(m_folderModeState->browser(),
+                         &NfUiBrowserState::formatFilterChanged,
                          this, &NfUiState::saveState);
-        QObject::connect(m_libraryModeState->browser(), &NfUiBrowserState::formatFilterChanged,
+        QObject::connect(m_libraryModeState->browser(),
+                         &NfUiBrowserState::formatFilterChanged,
                          this, &NfUiState::saveState);
 }
 
@@ -342,16 +348,16 @@ NfUiBrowserState* NfUiState::browserState() const
                 return folderModeState()->browser();
         case NfUi::NfUiMode::Library:
                 return libraryModeState()->browser();
-        case NfUi::NfUiMode::Shoots:
+        case NfUi::NfUiMode::Projects:
         default:
                 Q_ASSERT(false);
                 return nullptr;
         }
 }
 
-NfUiShootsModeState* NfUiState::shootsModeState() const
+NfUiProjectsModeState* NfUiState::projectsModeState() const
 {
-        return m_shootsModeState;
+        return m_projectsModeState;
 }
 
 NfUiFolderModeState* NfUiState::folderModeState() const

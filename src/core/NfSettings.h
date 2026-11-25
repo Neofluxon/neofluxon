@@ -44,6 +44,10 @@ struct NfSettings
         std::uint64_t thumbnailMemoryLimitBytes{512ULL * 1024 * 1024};
         std::uint64_t previewMemoryLimitBytes{1024ULL * 1024 * 1024};
         std::set<std::string> selectedFormats;
+        // Default projects directory
+        std::filesystem::path projectsDirectory;
+
+        std::filesystem::path projectsPath;
 
         static NfSettings defaults();
         static NfSettings load(std::string* error = nullptr);

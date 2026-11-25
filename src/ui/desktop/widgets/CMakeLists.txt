@@ -40,6 +40,7 @@ set(WIDGETS_HEADERS
     NfStorageListView.h
     NfSourceBrowser.h
     NfSeparator.h
+    NfNewProjectDialog.h
 )
 
 set(WIDGETS_UTILS
@@ -89,6 +90,7 @@ set(WIDGETS_SOURCES
     NfStorageListView.cpp
     NfSourceBrowser.cpp
     NfSeparator.cpp
+    NfNewProjectDialog.cpp
 )
 
 add_library(NfDesktopWidgets STATIC

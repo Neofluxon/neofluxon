@@ -35,11 +35,13 @@ public:
         [[nodiscard]] std::filesystem::path dataDirectory() const;
         [[nodiscard]] std::filesystem::path configDirectory() const;
         [[nodiscard]] std::filesystem::path cacheDirectory() const;
+        [[nodiscard]] std::filesystem::path picturesDirectory() const;
 
 private:
         std::filesystem::path m_dataDirectory;
         std::filesystem::path m_configDirectory;
         std::filesystem::path m_cacheDirectory;
+        std::filesystem::path m_picturesDirectory;
 };
 
 } // namespace NfCore

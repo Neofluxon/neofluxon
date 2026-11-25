@@ -5,6 +5,28 @@ QWidget {
     font-size: 13px;
 }
 
+/*------- Dialogs style ----------- */
+
+QDialog {
+    background-color: #1e1f28;
+    color: #e6eaf2;
+    border-radius: 8px;
+}
+
+QDialog QGroupBox {
+    border: 1px solid #323546;
+    border-radius: 4px;
+    margin-top: 9px;
+    padding: 8px;
+    font-weight: bold;
+}
+
+QDialog QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 0 4px;
+}
+
 QFrame#SearchCriteriaWidget {
     background-color: #20222e;
     border: 1px solid #404452;
@@ -536,6 +558,11 @@ QLabel#TaskPopupCount {
     filter: brightness(0.9);
 }
 
+#NfTopBar #TopBarSeparator {
+    background-color: #323546;
+    border: none;
+}
+
 /* Left panel */
 
 #NfPanel[side="left"] {
@@ -559,13 +586,7 @@ QLabel#TaskPopupCount {
     border-bottom: 1px solid #323546;
 }
 
-/* Settings Dialog */
-
-QDialog {
-    background-color: #1e1f28;
-    color: #e6eaf2;
-    border-radius: 8px;
-}
+/* ------ Setting Dialog ----------- */
 
 QListWidget#SettingsCategories {
     background-color: #242632;
@@ -611,20 +632,6 @@ QLabel#SettingsPageTitle {
 QLabel#SettingsDescription {
     color: #8f96a6;
     font-size: 11px;
-}
-
-QDialog QGroupBox {
-    border: 1px solid #323546;
-    border-radius: 4px;
-    margin-top: 9px;
-    padding: 8px;
-    font-weight: bold;
-}
-
-QDialog QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 8px;
-    padding: 0 4px;
 }
 
 QTabWidget::pane {

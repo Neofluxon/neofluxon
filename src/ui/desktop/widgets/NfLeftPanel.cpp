@@ -54,9 +54,7 @@ NfLeftPanel::NfLeftPanel(const NfDesktopContext& context, QWidget *parent)
         auto mainMenu = new NfMainMenu(this);
         panelLayout->addWidget(mainMenu);
 
-        auto* separator = new NfSeparator(NfSeparator::Orientation::Horizontal,
-                                          1,
-                                          this);
+        auto* separator = new NfSeparator(this, NfSeparator::Orientation::Horizontal);
         separator->setObjectName(QStringLiteral("PanelSeparator"));
         panelLayout->addWidget(separator);
         panelLayout->addSpacing(12);

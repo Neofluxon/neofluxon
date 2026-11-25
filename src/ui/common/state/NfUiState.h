@@ -32,13 +32,13 @@ namespace NfUi {
 
 enum class NfUiMode
 {
-        Shoots,
+        Projects,
         Folders,
         Library
 };
 
 class NfUiBrowserState;
-class NfUiShootsModeState;
+class NfUiProjectsModeState;
 class NfUiFolderModeState;
 class NfUiLibraryModeState;
 
@@ -49,7 +49,7 @@ class NfUiState : public QObject
 public:
         explicit NfUiState(QObject* parent = nullptr);
         NfUiBrowserState* browserState() const;
-        NfUiShootsModeState* shootsModeState() const;
+        NfUiProjectsModeState* projectsModeState() const;
         NfUiFolderModeState* folderModeState() const;
         NfUiLibraryModeState* libraryModeState() const;
 
@@ -68,7 +68,7 @@ private:
         void saveState();
 
         NfUiMode m_uiMode;
-        NfUiShootsModeState *m_shootsModeState;
+        NfUiProjectsModeState *m_projectsModeState;
         NfUiFolderModeState *m_folderModeState;
         NfUiLibraryModeState *m_libraryModeState;
         QHash<QString, bool> m_metadataSectionStates;

@@ -47,6 +47,8 @@ public:
         ~NfMainWindow();
 
 private:
+        void setupShortcuts();
+
         NfDesktopContext m_context;
         QSplitter *m_splitter;
 };

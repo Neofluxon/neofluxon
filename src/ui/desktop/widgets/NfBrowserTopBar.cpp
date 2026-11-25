@@ -71,6 +71,14 @@ void NfBrowserTopBar::setupUi()
                 m_searchBar = new NfSearchBar(m_context, this);
         m_filterBar = new NfBrowserFilterBar(m_context, m_browserState, this);
 
+        const auto addSeparator = [this, layout]() {
+                auto* separator = new NfSeparator(this, NfSeparator::Orientation::Vertical, 1);
+                separator->setAttribute(Qt::WA_StyledBackground, true);
+                separator->setFixedHeight(20);
+                separator->setObjectName("BrowserControlSeparator");
+                layout->addWidget(separator, 0, Qt::AlignVCenter);
+        };
+
         //        layout->addWidget(m_breadcrumbBar,1);
         if (m_state->mode() == NfUi::NfUiMode::Folders) {
                 m_recursiveScanButton = new QToolButton(this);
@@ -88,20 +96,11 @@ void NfBrowserTopBar::setupUi()
                                  &NfUi::NfUiBrowserState::scanRecursivelyChanged,
                                  this,
                                  &NfBrowserTopBar::updateRecursiveScanButton);
+
+                layout->addWidget(m_recursiveScanButton, 0, Qt::AlignVCenter);
+                addSeparator();
         }
 
-        const auto addSeparator = [this, layout]() {
-                auto* separator = new NfSeparator(NfSeparator::Orientation::Vertical, 1, this);
-                separator->setAttribute(Qt::WA_StyledBackground, true);
-                separator->setFixedHeight(20);
-                separator->setObjectName("BrowserControlSeparator");
-                layout->addWidget(separator, 0, Qt::AlignVCenter);
-        };
-
-        if (m_recursiveScanButton)
-                layout->addWidget(m_recursiveScanButton, 0, Qt::AlignVCenter);
-
-        addSeparator();
         layout->addWidget(m_viewModeBar, 0, Qt::AlignVCenter);
         addSeparator();
         layout->addWidget(m_sortBar, 0, Qt::AlignVCenter);

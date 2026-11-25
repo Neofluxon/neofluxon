@@ -23,6 +23,7 @@
 #include "NfSettings.h"
 #include "NfApplicationPaths.h"
 #include "NfSupportedFormats.h"
+#include "NfFileUtils.h"
 
 #include <INIReader.h>
 
@@ -98,6 +99,9 @@ NfSettings NfSettings::defaults()
         setting.diskCacheDirectory = NfApplicationPaths().cacheDirectory() / "images";
         for (const auto& format : NfSupportedFormats::all)
                 setting.selectedFormats.emplace(format.first);
+        setting.projectsPath = NfApplicationPaths().picturesDirectory()
+                               / std::string(NEOFLUXON_APP_NAME) / "Projects";
+
         return setting;
 }
 
@@ -180,12 +184,20 @@ NfSettings NfSettings::load(std::string* error)
                         selectedFormats.insert(extensionValue);
         }
 
-        setting.diskCacheDirectory = std::filesystem::path{directory};
+        setting.diskCacheDirectory = NfFileUtils::pathFromUtf8(directory);
         setting.diskCacheMaxSizeBytes = maxSizeBytes;
         setting.minimumFreeDiskSpaceBytes = minimumFreeSpaceBytes;
         setting.thumbnailMemoryLimitBytes = thumbnailMemoryLimitBytes;
         setting.previewMemoryLimitBytes = previewMemoryLimitBytes;
         setting.selectedFormats = std::move(selectedFormats);
+        directory = "";
+        parseQuotedString(ini, "Pojects", "path", directory);
+        if (directory.empty()) {
+                setting.projectsDirectory = NfApplicationPaths().picturesDirectory()
+                        / std::string(NEOFLUXON_APP_NAME) / "Projects";
+        } else {
+                setting.projectsDirectory = NfFileUtils::pathFromUtf8(directory);
+        }
 
         return setting;
 }
@@ -222,7 +234,8 @@ bool NfSettings::save(std::string& error) const
                 }
 
                 file << "[Cache]\n"
-                     << "directory=" << std::quoted(diskCacheDirectory.string()) << '\n'
+                     << "directory="
+                     << std::quoted(NfFileUtils::pathToUtf8(diskCacheDirectory)) << '\n'
                      << "disk_limit_bytes=" << diskCacheMaxSizeBytes << '\n'
                      << "minimum_free_space_bytes=" << minimumFreeDiskSpaceBytes
                      << "\n\n"
@@ -234,6 +247,12 @@ bool NfSettings::save(std::string& error) const
                      << "\n\n"
                      << "[SupportedExtensions]\n"
                      << "count=" << supportedFormatCount << '\n';
+
+                if (!projectsDirectory.empty()) {
+                        file << "[Projects]\n"
+                             << "directory="
+                             << std::quoted(NfFileUtils::pathToUtf8(projectsDirectory)) << '\n';
+                }
 
                 std::size_t index{};
                 for (const auto& extension : selectedFormats) {

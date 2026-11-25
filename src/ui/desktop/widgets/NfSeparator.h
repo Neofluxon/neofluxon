@@ -38,9 +38,9 @@ public:
                 Vertical
         };
 
-        explicit NfSeparator(Orientation orientation = Orientation::Horizontal,
-                             int thickness = 1,
-                             QWidget* parent = nullptr);
+        explicit NfSeparator(QWidget* parent = nullptr,
+                             Orientation orientation = Orientation::Horizontal,
+                             int thickness = 1);
         void setOrientation(Orientation orientation);
         Orientation orientation() const;
         void setThickness(int thickness);

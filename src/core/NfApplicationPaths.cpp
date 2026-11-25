@@ -24,10 +24,34 @@
 #include "NfApplicationPaths.h"
 
 #include <cstdlib>
+#if defined(NF_PLATFORM_WINDOWS)
+#include <Windows.h>
+#include <ShlObj.h>
+#endif // defined(NF_PLATFORM_WINDOWS)
 
 namespace NfCore {
 
 namespace {
+
+#if defined(NF_PLATFORM_WINDOWS)
+std::filesystem::path picturesDirectory()
+{
+        PWSTR path = nullptr;
+        const auto result = SHGetKnownFolderPath(FOLDERID_Pictures,
+                                                 0,
+                                                 nullptr,
+                                                 &path);
+
+        if (FAILED(result))
+                return {};
+
+        std::filesystem::path directory(path);
+        CoTaskMemFree(path);
+
+        return directory;
+}
+#endif // defined(NF_PLATFORM_WINDOWS)
+
 std::filesystem::path environmentPath(const char* variable)
 {
         const auto* value = std::getenv(variable);
@@ -45,24 +69,20 @@ std::filesystem::path xdgPath(const char* variable,
 
 NfApplicationPaths::NfApplicationPaths()
 {
-#if defined(_WIN32)
+#if defined(NF_PLATFORM_WINDOWS)
         const auto roaming = environmentPath("APPDATA");
         const auto local = environmentPath("LOCALAPPDATA");
-        m_dataDirectory = roaming / "Neofluxon";
-        m_configDirectory = roaming / "Neofluxon";
-        m_cacheDirectory = local / "Neofluxon" / "Cache";
-#elif defined(__APPLE__)
-        const auto home = environmentPath("HOME");
-        const auto support = home / "Library" / "Application Support" / "Neofluxon";
-        m_dataDirectory = support;
-        m_configDirectory = support;
-        m_cacheDirectory = home / "Library" / "Caches" / "Neofluxon";
+        m_dataDirectory = roaming / std::string(NEOFLUXON_APP_NAME);
+        m_configDirectory = roaming / std::string(NEOFLUXON_APP_NAME);
+        m_cacheDirectory = local / std::string(NEOFLUXON_APP_NAME) / "Cache";
+        m_picturesDirectory = picturesDirectory();
 #else
         const auto home = environmentPath("HOME");
-        const auto appDirectory = std::filesystem::path{"neofluxon"};
+        const auto appDirectory = std::filesystem::path{NEOFLUXON_APP_NAME};
         m_dataDirectory = xdgPath("XDG_DATA_HOME", home / ".local" / "share") / appDirectory;
         m_configDirectory = xdgPath("XDG_CONFIG_HOME", home / ".config") / appDirectory;
         m_cacheDirectory = xdgPath("XDG_CACHE_HOME", home / ".cache") / appDirectory;
+        m_picturesDirectory = home / "Pictures";
 #endif
 }
 
@@ -79,6 +99,11 @@ std::filesystem::path NfApplicationPaths::configDirectory() const
 std::filesystem::path NfApplicationPaths::cacheDirectory() const
 {
         return m_cacheDirectory;
+}
+
+std::filesystem::path NfApplicationPaths::picturesDirectory() const
+{
+        return m_picturesDirectory;
 }
 
 } // namespace NfCore

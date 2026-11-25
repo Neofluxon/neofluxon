@@ -27,11 +27,12 @@
 
 namespace NfDesktop {
 
-NfSeparator::NfSeparator(Orientation orientation, int thickness, QWidget* parent)
+NfSeparator::NfSeparator(QWidget* parent, Orientation orientation, int thickness)
         : QFrame(parent)
         , m_orientation{orientation}
         , m_thickness{std::max(1, thickness)}
 {
+        setAttribute(Qt::WA_StyledBackground, true);
         setFrameShape(QFrame::NoFrame);
         setOrientation(m_orientation);
 }
