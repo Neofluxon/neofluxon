@@ -74,18 +74,37 @@ NfTopBar::NfTopBar(const NfDesktopContext& ctx, QWidget *parent)
         topBarLayout->addWidget(m_libraryName, 0, Qt::AlignLeft);
         topBarLayout->addStretch(1);
 
+        // Add new project
+        auto newProjectButton = new QToolButton(this);
+        newProjectButton->setObjectName("NewProjectButton");
+        newProjectButton->setToolTip(tr("Create a new project"));
+        newProjectButton->setAccessibleName("NewProject");
+        newProjectButton->setIcon(QIcon(":/icons/new-project.svg"));
+        newProjectButton->setIconSize(QSize(18, 18));
+        newProjectButton->setFixedSize(30, 30);
+        newProjectButton->setCursor(Qt::PointingHandCursor);
+        newProjectButton->setAutoRaise(true);
+        topBarLayout->addWidget(newProjectButton, 0, Qt::AlignLeft);
+        QObject::connect(newProjectButton,
+                         &QToolButton::clicked,
+                         this,
+                         [this]() {
+                                 //NfSettingsDialog dialog(this);
+                                 //dialog.exec();
+                         });
+
         // Settings
-        auto m_settingsButton = new QToolButton(this);
-        m_settingsButton->setObjectName("SettingsButton");
-        m_settingsButton->setToolTip("Open Settings");
-        m_settingsButton->setAccessibleName("Settings");
-        m_settingsButton->setIcon(QIcon(":/icons/settings.svg"));
-        m_settingsButton->setIconSize(QSize(18, 18));
-        m_settingsButton->setFixedSize(30, 30);
-        m_settingsButton->setCursor(Qt::PointingHandCursor);
-        m_settingsButton->setAutoRaise(true);
-        topBarLayout->addWidget(m_settingsButton, 0, Qt::AlignLeft);
-        QObject::connect(m_settingsButton,
+        auto settingsButton = new QToolButton(this);
+        settingsButton->setObjectName("SettingsButton");
+        settingsButton->setToolTip(tr("Open Settings"));
+        settingsButton->setAccessibleName("Settings");
+        settingsButton->setIcon(QIcon(":/icons/settings.svg"));
+        settingsButton->setIconSize(QSize(18, 18));
+        settingsButton->setFixedSize(30, 30);
+        settingsButton->setCursor(Qt::PointingHandCursor);
+        settingsButton->setAutoRaise(true);
+        topBarLayout->addWidget(settingsButton, 0, Qt::AlignLeft);
+        QObject::connect(settingsButton,
                          &QToolButton::clicked,
                          this,
                          [this]() {

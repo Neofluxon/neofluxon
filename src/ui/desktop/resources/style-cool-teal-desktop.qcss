@@ -498,18 +498,21 @@ QLabel#TaskPopupCount {
     padding: 0;
 }
 
-#NfTopBar QToolButton#SettingsButton {
+#NfTopBar QToolButton#SettingsButton,
+          QToolButton#NewProjectButton {
     background-color: transparent;
     border: 1px solid transparent;
     border-radius: 6px;
     padding: 4px;
 }
 
-#NfTopBar QToolButton#SettingsButton:hover {
+#NfTopBar QToolButton#SettingsButton:hover,
+          QToolButton#NewProjectButton:hover {
     background-color: #323546;
 }
 
-#NfTopBar QToolButton#SettingsButton:pressed {
+#NfTopBar QToolButton#SettingsButton:pressed,
+          QToolButton#NewProjectButton:pressed {
     background-color: #383b4e;
 }
 
