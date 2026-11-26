@@ -24,24 +24,22 @@
 #ifndef NF_PROJECTS_MODEL_H
 #define NF_PROJECTS_MODEL_H
 
-#include "core/NfImportFolderTaskData.h"
-#include "core/NfTask.h"
-#include "core/NfUserTaskData.h"
+#include "core/NfProjectData.h"
 
 #include <QAbstractListModel>
 #include <QMetaType>
 
-#include <cstddef>
-#include <unordered_map>
 #include <vector>
 
 Q_DECLARE_METATYPE(NfCore::NfProjectData)
 
 namespace NfUi {
-class NfProjectsAdapter;
+        //class NfProjectsAdapter;
 }
 
 namespace NfDesktop {
+
+class NfDesktopContext;
 
 class NfProjectsModel : public QAbstractListModel
 {
@@ -52,14 +50,15 @@ public:
                 ProjectDataRole = Qt::UserRole + 1
         };
 
-        explicit NfProjectsModel(NfUi::NfProjectsAdapter* adapter,
+        explicit NfProjectsModel(const NfDesktopContext &ctx,
                                  QObject* parent = nullptr);
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         QVariant data(const QModelIndex& index,
                       int role = Qt::DisplayRole) const override;
 
 private:
-        NfUi::NfUserTasksAdapter* m_adapter;
+        const NfDesktopContext &m_context;
+        //NfUi::NfUserTasksAdapter* m_adapter;
         std::vector<NfCore::NfProjectData> m_projects;
 };
 

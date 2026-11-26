@@ -77,7 +77,7 @@ set(CORE_HEADERS
         library/NfLibraryTreeNode.h
         library/NfLibraryTreeSnapshot.h
         library/NfLibraryTreeTask.h
-        )
+        NfProjectData.h)
 
 set(CORE_SOURCES
         utils/NfTimeUtils.cpp

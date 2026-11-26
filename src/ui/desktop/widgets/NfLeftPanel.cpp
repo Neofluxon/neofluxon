@@ -64,7 +64,7 @@ NfLeftPanel::NfLeftPanel(const NfDesktopContext& context, QWidget *parent)
         setLayout(panelLayout);
 
         QObject::connect(mainMenu, &NfMainMenu::projectsClicked, [this]() {
-                //m_context.uiState()->setMode(NfUiMode::Projects);
+                m_context.uiState()->setMode(NfUiMode::Projects);
         });
         QObject::connect(mainMenu, &NfMainMenu::foldersClicked, [this]() {
                 m_context.uiState()->setMode(NfUiMode::Folders);

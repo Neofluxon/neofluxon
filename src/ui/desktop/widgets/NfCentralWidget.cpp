@@ -26,6 +26,7 @@
 #include "NfUiState.h"
 #include "NfFolderView.h"
 #include "NfLibraryView.h"
+#include "NfProjectsView.h"
 
 #include <QVBoxLayout>
 
@@ -54,7 +55,7 @@ NfCentralWidget::NfCentralWidget(NfDesktopContext context, QWidget* parent)
 
 void NfCentralWidget::showProjectsView()
 {
-        //setCurrentView(new NfProjectsModeView(this, m_projectsModel));
+        setCurrentView(new NfProjectsView(m_context, this));
 }
 
 void NfCentralWidget::showFolderView()

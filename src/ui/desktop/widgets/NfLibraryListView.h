@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryBrowser.h
+ * File name: NfLibraryListView.h
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor

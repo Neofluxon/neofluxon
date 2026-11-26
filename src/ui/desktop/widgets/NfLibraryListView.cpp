@@ -1,5 +1,5 @@
 /**
- * File name: NfLibraryListView.h
+ * File name: NfLibraryListView.cpp
  * Project: Neofluxon (a photography workflow software)
  *
  * Copyright (C) 2026 Iurie Nistor

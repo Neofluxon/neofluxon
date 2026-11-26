@@ -41,6 +41,8 @@ set(WIDGETS_HEADERS
     NfSourceBrowser.h
     NfSeparator.h
     NfNewProjectDialog.h
+    NfProjectsListView.h
+    NfProjectsView.cpp
 )
 
 set(WIDGETS_UTILS
@@ -91,6 +93,8 @@ set(WIDGETS_SOURCES
     NfSourceBrowser.cpp
     NfSeparator.cpp
     NfNewProjectDialog.cpp
+    NfProjectsListView.cpp
+    NfProjectsView.cpp
 )
 
 add_library(NfDesktopWidgets STATIC
