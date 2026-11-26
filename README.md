@@ -91,9 +91,12 @@ application is installed. Documentation generation is disabled by default.
 
 ## Planned features
 
-The project is currently focused on building its Digital Asset Management (DAM) foundation.
- Planned features include photo culling, collections, searches,
- batch operations, duplicate detection, and file integrity checking.
+The project is currently focused on building its
+Digital Asset Management (DAM) foundation.
+
+Planned features include: projects and photo culling,
+hierarchical keywords and tagging. After version 1.0, basic
+non-destructive editing will begin to be introduced.
 
 ## Technical overview
 
