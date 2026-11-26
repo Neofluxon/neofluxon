@@ -44,6 +44,7 @@ class NfPhoto {
         };
 
         explicit NfPhoto(const std::filesystem::path &filePath = {});
+        virtual ~NfPhoto() = default;
         const std::filesystem::path& path() const;
         const NfPhotoId& id() const;
         void setName(std::string_view name);

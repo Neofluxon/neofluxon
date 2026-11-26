@@ -66,6 +66,7 @@ public:
 
 protected:
         NfTask();
+        virtual ~NfTask() = default;
 
 private:
         TaskResultHandler m_onComplete;

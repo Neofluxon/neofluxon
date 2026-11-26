@@ -76,10 +76,10 @@ QVariant NfUserTasksModel::data(const QModelIndex& index, int role) const
 
 int NfUserTasksModel::rowByTaskId(NfTask::TaskId id) const
 {
-        for (std::size_t row = 0; row < m_tasks.size(); ++row) {
-                if (m_tasks[row].id == id)
-                        return static_cast<int>(row);
-        }
+        auto res = m_taskIndexMap.find(id);
+        if (res != m_taskIndexMap.end())
+                return res.second;
+
         return -1;
 }
 

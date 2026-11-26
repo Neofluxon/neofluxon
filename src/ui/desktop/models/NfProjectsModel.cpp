@@ -23,9 +23,10 @@
 
 #include "NfProjectsModel.h"
 #include "NfDesktopContext.h"
-//#include "NfProjectsAdapter.h"
+#include "NfProjectsAdapter.h"
 
 using namespace NfCore;
+using namespace NfUi;
 
 namespace NfDesktop {
 
@@ -34,12 +35,25 @@ NfProjectsModel::NfProjectsModel(const NfDesktopContext &ctx,
         : QAbstractListModel(parent)
         , m_context{ctx}
 {
-        /*QObject::connect(m_adapter, &NfUi::NfUserTasksAdapter::projectAdded,
-                         this, &NfProjectsModel::onProjectAdded);
-        QObject::connect(m_adapter, &NfUi::NfUserTasksAdapter::projectUpdated,
-                         this, &NfProjectsModel::onProjectUpdated);
-        QObject::connect(m_adapter, &NfUi::NfUserTasksAdapter::projectRemoved,
-        this, &NfProjectsModel::onProjectRemoved);*/
+        auto* projectsAdapter = m_context->uiContext->projectsAdapter;
+        QObject::connect(projectsAdapter,
+                         &NfProjectsAdapter::projectsListUpdated
+                         this,
+                         &NfProjectsModel::onProjectsListUpdated);
+        QObject::connect(projectsAdapter,
+                         &NfProjectsAdapter::projectAdded,
+                         this,
+                         &NfProjectsModel::onProjectAdded);
+        QObject::connect(projectsAdapter,
+                         &NfProjectsAdapter::projectUpdated,
+                         this,
+                         &NfProjectsModel::onProjectUpdated);
+        QObject::connect(projectsAdapter,
+                         &NfProjectsAdapter::projectRemoved,
+                         this,
+                         &NfProjectsModel::onProjectRemoved);
+
+        m_adapter->requestProjectsList();
 }
 
 int NfProjectsModel::rowCount(const QModelIndex& parent) const
@@ -62,6 +76,77 @@ QVariant NfProjectsModel::data(const QModelIndex& index, int role) const
         }
 
         return {};
+}
+
+void NfProjectsModel::onProjectsListUpdated(std::vector<NfProjectData> projects)
+{
+        m_projects = std::move(projects);
+}
+
+void NfProjectsModel::onProjectAdded(NfProjectData project)
+{
+        const auto row = rowByProjectId(project.id);
+        if (row >= 0) {
+                updateProject(row, project);
+                return;
+        }
+
+        // Insert new item
+        const auto newRow = static_cast<int>(m_projects.size());
+        beginInsertRows({}, newRow, newRow);
+        m_projects.push_back(std::move(data));
+        endInsertRows();
+
+        rebuildIndexMap();
+}
+
+void NfProjectsModel::onProjectUpdated(NfProjectData project)
+{
+        const auto row = rowByProjectId(project.id);
+        if (row < 0)
+                return;
+
+        updateProjectItem(row, std::move(project));
+}
+
+void NfUserTasksModel::onProjectRemoved(int64_t id)
+{
+        const auto row = rowByTaskId(id);
+        if (row < 0)
+                return;
+
+        beginRemoveRows({}, row, row);
+        m_tasks.erase(m_tasks.begin() + row);
+        endRemoveRows();
+
+        rebuildIndexMap();
+}
+
+void NfProjectsModel::updateProjectItem(int row, NfProjectData project)
+{
+        const auto itemIndex = index(row);
+        if (!itemIndex.isValid())
+                return;
+
+        m_projects[row] = std::move(project);
+        emit dataChanged(itemIndex, itemIndex, {ImageDataRole::ThumbnailRole});
+}
+
+int NfUserTasksModel::rowByProjectId(NfTask::TaskId id) const
+{
+        auto res = m_projectIndexMap.find(id);
+        if (res != m_projectIndexMap.end())
+                return res.second;
+
+        return -1;
+}
+
+void NfUserTasksModel::rebuildIndexMap()
+{
+        m_projectIndexMap.clear();
+        m_projectIndexMap.reserve(m_tasks.size());
+        for (int row = 0; row < static_cast<int>(m_projects.size()); row++)
+                m_projectIndexMap[m_tasks[row].id] = row;
 }
 
 } // namespace NfDesktop

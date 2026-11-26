@@ -29,13 +29,10 @@
 #include <QAbstractListModel>
 #include <QMetaType>
 
+#include <cstdint>
 #include <vector>
 
 Q_DECLARE_METATYPE(NfCore::NfProjectData)
-
-namespace NfUi {
-        //class NfProjectsAdapter;
-}
 
 namespace NfDesktop {
 
@@ -56,9 +53,18 @@ public:
         QVariant data(const QModelIndex& index,
                       int role = Qt::DisplayRole) const override;
 
+protected slots:
+        void onProjectsListUpdated(std::vector<NfProjectData> projects);
+        void onProjectAdded(NfProjectData project);
+        void onProjectUpdated(NfProjectData project);
+        void onProjectRemoved(int64_t id);
+        void updateProjectItem(int row, NfCore::NfProjectData project);
+
+protected:
+        int rowByProjectId(int64_t id) const;
+
 private:
         const NfDesktopContext &m_context;
-        //NfUi::NfUserTasksAdapter* m_adapter;
         std::vector<NfCore::NfProjectData> m_projects;
 };
 
