@@ -43,7 +43,6 @@ NfThumbnailsView::NfThumbnailsView(const NfDesktopContext& context, QWidget* par
         , m_hasControls{context.uiState()->mode() == NfUi::NfUiMode::Library}
 
 {
-        setObjectName("NfThumbnailsView");
         setAttribute(Qt::WA_StyledBackground, true);
 
         m_thumbnailDelegate = new NfThumbnailDelegate(this);

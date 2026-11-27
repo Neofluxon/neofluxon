@@ -24,16 +24,34 @@
 #include "NfProjectsListView.h"
 #include "NfDesktopContext.h"
 #include "NfProjectsModel.h"
+#include "NfProjectCardDelegate.h"
 
 namespace NfDesktop {
 
 NfProjectsListView::NfProjectsListView(const NfDesktopContext &ctx,
-                                       NfProjectsModel* m_model,
+                                       NfProjectsModel* model,
                                        QWidget* parent)
         : QListView(parent)
         , m_context{ctx}
 {
-        setModel(m_model);
+        setAttribute(Qt::WA_StyledBackground, true);
+
+        auto delegate = new NfProjectCardDelegate(this);
+        setItemDelegate(delegate);
+
+        setModel(model);
+
+        setViewMode(QListView::IconMode);
+        setFlow(QListView::LeftToRight);
+        setMovement(QListView::Static);
+        setUniformItemSizes(true);
+        setWrapping(true);
+        setResizeMode(QListView::Adjust);
+        setMinimumHeight(0);
+        setMaximumHeight(QWIDGETSIZE_MAX);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setIconSize({250, 250});
+        setGridSize({250, 250});
 }
 
 } // namespace NfDesktop

@@ -35,6 +35,11 @@ class NfProjectsModel;
 class NfProjectsListView : public QListView {
         Q_OBJECT
 public:
+        enum class ViewMode {
+                Cards,
+                List
+        };
+
         explicit NfProjectsListView(const NfDesktopContext &ctx,
                                     NfProjectsModel* m_model,
                                     QWidget* parent = nullptr);

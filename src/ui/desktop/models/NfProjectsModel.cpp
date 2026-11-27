@@ -27,6 +27,8 @@
 #include "NfProjectsAdapter.h"
 #include "core/NfLogger.h"
 
+#include <QPixmap>
+
 using namespace NfCore;
 using namespace NfUi;
 
@@ -71,6 +73,8 @@ QVariant NfProjectsModel::data(const QModelIndex& index, int role) const
         }
 
         switch (role) {
+        case Qt::DecorationRole:
+                return QPixmap(":/placeholder_thumbnail.svg");
         case Qt::DisplayRole:
                 return QString::fromStdString(m_projects[static_cast<std::size_t>(index.row())].name);
         case ProjectDataRole:
