@@ -28,6 +28,12 @@
 
 namespace NfCore {
 
+NfUserTaskManager::~NfUserTaskManager()
+{
+        std::lock_guard lock(m_observersMutex);
+        m_observers.clear();
+}
+
 NfUserTaskManager::SubscriptionId
 NfUserTaskManager::subscribe(Observer observer)
 {
@@ -41,12 +47,6 @@ void NfUserTaskManager::unsubscribe(SubscriptionId id)
 {
         std::lock_guard lock(m_observersMutex);
         m_observers.erase(id);
-}
-
-NfUserTaskManager::~NfUserTaskManager()
-{
-        std::lock_guard lock(m_observersMutex);
-        m_observers.clear();
 }
 
 void NfUserTaskManager::taskAdded(TaskId id, NfUserTaskData data)

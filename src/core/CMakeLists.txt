@@ -77,7 +77,9 @@ set(CORE_HEADERS
         library/NfLibraryTreeNode.h
         library/NfLibraryTreeSnapshot.h
         library/NfLibraryTreeTask.h
-        NfProjectData.h)
+        projects/NfProjectInfo.h
+        projects/NfProjectData.h
+        projects/NfProjectsManager.h)
 
 set(CORE_SOURCES
         utils/NfTimeUtils.cpp
@@ -129,6 +131,7 @@ set(CORE_SOURCES
         library/NfLibraryRepresentation.cpp
         library/NfLibraryTreeNode.cpp
         library/NfLibraryTreeTask.cpp
+        projects/NfProjectsManager.cpp
         )
 
 add_library(NfCore STATIC
@@ -142,6 +145,7 @@ target_include_directories(NfCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/library
+    ${CMAKE_CURRENT_SOURCE_DIR}/projects
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${JPEG_TURBO_INCLUDE_DIRS}
     ${EXIV2_INCLUDE_DIRS}

@@ -36,12 +36,14 @@ namespace NfUi {
 
 class NfUiState;
 class NfLibraryAdapter;
+class NfProjectsAdapter;
 class NfMetadataProvider;
 
 struct NfContext {
         NeofluxonCore* const neofluxonCore;
         NfUiState* const uiState;
         NfLibraryAdapter* library;
+        NfProjectsAdapter* projectsAdapter;
         NfMetadataProvider* metadataProvider;
         NeofluxonCore* core() const {return neofluxonCore; }
 

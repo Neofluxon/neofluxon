@@ -26,6 +26,9 @@
 #include "NfPhotoLoaderContext.h"
 #include "NfPhotoLoader.h"
 #include "NfPhotoMetadataLoader.h"
+#include "NfApplicationPaths.h"
+#include "NfDatabase.h"
+#include "NfProjectsManager.h"
 #include "NfLibraryManager.h"
 #include "NfCache.h"
 #include "NfDiskCache.h"
@@ -117,13 +120,18 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
 
                 auto userTaskManager = std::make_unique<NfUserTaskManager>();
 
-                auto libraryManager = std::make_unique<NfLibraryManager>(
-                        backgroundScheduler.get(), foregroundScheduler.get(),
-                        userTaskManager.get());
-                if (!libraryManager->initialize(errorMessage)) {
-                        NF_LOG_ERROR(errorMessage);
+                auto dbPath = NfApplicationPaths().dataDirectory() / "neofluxon.db";
+                auto neofluxonDatabase = std::make_unique<NfDatabase>(dbPath);
+                if (!neofluxonDatabase->initialize()) {
+                        NF_LOG_ERROR("can't create database");
                         return false;
                 }
+
+                auto projectsManager = std::make_unique<NfProjectsManager>(neofluxonDatabase.get());
+                auto libraryManager = std::make_unique<NfLibraryManager>(neofluxonDatabase.get(),
+                                                                         backgroundScheduler.get(),
+                                                                         foregroundScheduler.get(),
+                                                                         userTaskManager.get());
 
                 auto photoLoader = std::make_unique<NfPhotoLoader>(NfPhotoLoaderContext{
                         .thumbnailCache = thumbnailCache.get(),
@@ -146,6 +154,8 @@ bool NeofluxonCore::initialize(std::string& errorMessage)
                 m_foregroundThreadPool = std::move(foregroundThreadPool);
                 m_backgroundScheduler = std::move(backgroundScheduler);
                 m_backgroundThreadPool = std::move(backgroundThreadPool);
+                m_database = std::move(neofluxonDatabase);
+                m_projectsManager = std::move(projectsManager);
                 m_libraryManager = std::move(libraryManager);
                 m_photoLoader = std::move(photoLoader);
                 m_metadataLoader = std::move(metadataLoader);
@@ -172,6 +182,11 @@ NfPhotoLoader* NeofluxonCore::photoLoader() const
 NfPhotoMetadataLoader* NeofluxonCore::metadataLoader() const
 {
         return m_metadataLoader.get();
+}
+
+NfProjectsManager* NeofluxonCore::projectsManager() const
+{
+        return m_projectsManager.get();
 }
 
 NfLibraryManager* NeofluxonCore::libraryManager() const

@@ -30,6 +30,7 @@
 #include "NfStyledWidget.h"
 #include "NfCentralWidget.h"
 #include "NfLibraryAdapter.h"
+#include "NfProjectsAdapter.h"
 #include "NfMetadataProvider.h"
 #include "NfUserTasksWidget.h"
 #include "NfLibraryTreeModel.h"
@@ -63,6 +64,7 @@ NfMainWindow::NfMainWindow(NfContext *ctx)
         statusBar()->addPermanentWidget(new NfUserTasksWidget(uiContext->core()->userTaskManager(),
                                                               this));
 
+        uiContext->projectsAdapter = new NfProjectsAdapter(uiContext->core()->projectsManager(), this);
         uiContext->library = new NfLibraryAdapter(uiContext->core()->libraryManager(), this);
         uiContext->metadataProvider = new NfMetadataProvider(uiContext->core(), this);
         m_context.libraryTreeModel = new NfLibraryTreeModel(m_context, this);

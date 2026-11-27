@@ -78,7 +78,7 @@ int NfUserTasksModel::rowByTaskId(NfTask::TaskId id) const
 {
         auto res = m_taskIndexMap.find(id);
         if (res != m_taskIndexMap.end())
-                return res.second;
+                return res->second;
 
         return -1;
 }

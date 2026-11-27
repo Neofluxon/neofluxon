@@ -23,7 +23,6 @@
 
 #include "NfLibraryManager.h"
 #include "NfLibraryTreeTask.h"
-#include "NfApplicationPaths.h"
 #include "NfSourceRecords.h"
 #include "NfDatabase.h"
 #include "NfLibrary.h"
@@ -38,10 +37,12 @@
 
 namespace NfCore {
 
-NfLibraryManager::NfLibraryManager(NfScheduler *backgroundScheduler,
+NfLibraryManager::NfLibraryManager(NfDatabase* db,
+                                   NfScheduler *backgroundScheduler,
                                    NfScheduler *foregroundScheduler,
                                    NfUserTaskManager* userTaskManager)
-        : m_backgroundScheduler{backgroundScheduler}
+        : m_db{db}
+        , m_backgroundScheduler{backgroundScheduler}
         , m_foregroundScheduler{foregroundScheduler}
         , m_userTaskManager{userTaskManager}
 {
@@ -51,58 +52,19 @@ NfLibraryManager::~NfLibraryManager()
 {
 }
 
-bool NfLibraryManager::initialize(std::string& errorMessage)
-{
-        NF_LOG_DEBUG("called");
-
-        if (m_database)
-                return true;
-
-        try {
-                const auto databasePath = NfApplicationPaths().dataDirectory() / "neofluxon.db";
-                auto database = std::make_unique<NfDatabase>(databasePath);
-                if (!database->open(errorMessage)) {
-                        errorMessage = "Unable to open library database '"
-                                + NfFileUtils::pathToUtf8(databasePath) + "': " + errorMessage;
-                        NF_LOG_ERROR(errorMessage);
-                        return false;
-                }
-
-                if (!database->initializeSchema(errorMessage)) {
-                        errorMessage = "Unable to initialize library database schema '"
-                                + NfFileUtils::pathToUtf8(databasePath) + "': " + errorMessage;
-                        NF_LOG_ERROR(errorMessage);
-                        return false;
-                }
-
-                m_database = std::move(database);
-
-                NF_LOG_DEBUG("Database created: " << databasePath);
-        } catch (const std::exception& exception) {
-                errorMessage = "Unable to initialize library database: ";
-                errorMessage += exception.what();
-                NF_LOG_ERROR(errorMessage);
-                return false;
-        }
-
-        errorMessage.clear();
-
-        return true;
-}
-
 std::vector<std::unique_ptr<NfLibrary>>
 NfLibraryManager::libraries() const
 {
         using Transaction = NfDatabase::Transaction;
         std::vector<int64_t> librariesIds;
         {
-                Transaction tx(m_database.get(), Transaction::Mode::LockOnly);
-                librariesIds = m_database->libraryIds();
+                Transaction tx(m_db, Transaction::Mode::LockOnly);
+                librariesIds = m_db->libraryIds();
         }
 
         std::vector<std::unique_ptr<NfLibrary>> libraries;
         for (const auto &id: librariesIds)
-                libraries.push_back(std::make_unique<NfLibrary>(m_database.get(), id));
+                libraries.push_back(std::make_unique<NfLibrary>(m_db, id));
 
         return libraries;
 }
@@ -112,26 +74,26 @@ NfLibraryManager::addLibrary(std::string_view name)
 {
         using Transaction = NfDatabase::Transaction;
         {
-                Transaction tx(m_database.get(), Transaction::Mode::LockOnly);
-                if (auto record = m_database->library(name))
-                        return std::make_unique<NfLibrary>(m_database.get(), record->id);
+                Transaction tx(m_db, Transaction::Mode::LockOnly);
+                if (auto record = m_db->library(name))
+                        return std::make_unique<NfLibrary>(m_db, record->id);
         }
 
-        Transaction tx(m_database.get());
-        const auto id = m_database->addLibrary(name);
+        Transaction tx(m_db);
+        const auto id = m_db->addLibrary(name);
         if (id < 0)
                 return nullptr;
 
         tx.commit();
 
-        return std::make_unique<NfLibrary>(m_database.get(), id);
+        return std::make_unique<NfLibrary>(m_db, id);
 }
 
 bool NfLibraryManager::updateLibrary(uint64_t libraryId, std::string_view name)
 {
         using Transaction = NfDatabase::Transaction;
-        Transaction tx(m_database.get());
-        if (!m_database->updateLibrary(static_cast<int64_t>(libraryId), name))
+        Transaction tx(m_db);
+        if (!m_db->updateLibrary(static_cast<int64_t>(libraryId), name))
                 return false;
 
         tx.commit();
@@ -141,8 +103,8 @@ bool NfLibraryManager::updateLibrary(uint64_t libraryId, std::string_view name)
 bool NfLibraryManager::removeLibrary(uint64_t libraryId)
 {
         using Transaction = NfDatabase::Transaction;
-        Transaction tx(m_database.get());
-        auto res = m_database->removeLibrary(static_cast<int64_t>(libraryId));
+        Transaction tx(m_db);
+        auto res = m_db->removeLibrary(static_cast<int64_t>(libraryId));
         if (!res)
                 return res;
 
@@ -155,13 +117,13 @@ std::unique_ptr<NfLibrary> NfLibraryManager::getLibrary(uint64_t id) const
 {
         using Transaction = NfDatabase::Transaction;
         {
-                NfDatabase::Transaction tx(m_database.get(),
-                                                  Transaction::Mode::LockOnly);
-                if (!m_database->libraryExists(id))
+                NfDatabase::Transaction tx(m_db,
+                                           Transaction::Mode::LockOnly);
+                if (!m_db->libraryExists(id))
                         return nullptr;
         }
 
-        return std::make_unique<NfLibrary>(m_database.get(), id);
+        return std::make_unique<NfLibrary>(m_db, id);
 }
 
 void NfLibraryManager::importPath(const std::filesystem::path& path, uint64_t id)

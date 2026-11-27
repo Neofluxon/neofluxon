@@ -50,7 +50,8 @@ public:
         using FolderImportedCallback = std::function<void()>;
         using LibraryTreeResultCallback = std::function<void(NfLibraryTreeSnapshot snapshot)>;
         using LibraryResultCallback = std::function<void(NfLibrarySnapshot snapshot)>;
-        NfLibraryManager(NfScheduler *backgroundScheduler,
+        NfLibraryManager(NfDatabase *db,
+                         NfScheduler *backgroundScheduler,
                          NfScheduler *foregroundScheduler,
                          NfUserTaskManager* userTaskManager);
         ~NfLibraryManager();
@@ -80,7 +81,7 @@ private:
         NfScheduler* m_backgroundScheduler;
         NfScheduler* m_foregroundScheduler;
         NfUserTaskManager* m_userTaskManager;
-        std::unique_ptr<NfDatabase> m_database;
+        NfDatabase* m_db;
         std::mutex m_mutex;
         FolderImportedCallback m_folderImportedCb;
 };

@@ -21,46 +21,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef NF_USER_TASK_MANAGER_H
-#define NF_USER_TASK_MANAGER_H
+#ifndef NF_PROJECTS_MANAGER_H
+#define NF_PROJECTS_MANAGER_H
 
-#include "NfTask.h"
-#include "NfUserTaskData.h"
+#include "NfProjectInfo.h"
+#include "NfProjectData.h"
 
-#include <functional>
-#include <mutex>
-#include <unordered_map>
 #include <vector>
+#include <optional>
 
 namespace NfCore {
 
+class NfDatabase;
+
+/**
+* TODO: For now the projects manger makes synchronous requests to DB.
+* There shuold not be too many projects, and if this creates UI
+* blocking than move to async requestes to DB.
+*/
 class NfProjectsManager  {
 public:
-        using TaskId = NfTask::TaskId;
-        using SubscriptionId = uint64_t;
-
-        struct Observer {
-                std::function<void(TaskId, NfUserTaskData)> taskAdded;
-                std::function<void(TaskId, NfUserTaskData)> taskUpdated;
-                std::function<void(TaskId)> taskRemoved;
-        };
-
-        NfProjectsManager() = default;
-        ~NfProjectsManager();
+        explicit NfProjectsManager(NfDatabase *db);
         NfProjectsManager(const NfProjectsManager&) = delete;
         NfProjectsManager& operator=(const NfProjectsManager&) = delete;
-        SubscriptionId subscribe(Observer observer);
-        void unsubscribe(SubscriptionId id);
-        void taskAdded(TaskId id, NfUserTaskData data);
-        void taskUpdated(TaskId id, NfUserTaskData data);
-        void taskRemoved(TaskId id);
+        std::vector<NfProjectData> getProjects() const;
+        std::optional<NfProjectData> addProject(NfCore::NfProjectInfo info);
+        std::optional<NfProjectData> updateProject(uint64_t id, NfCore::NfProjectInfo info);
+        bool removeProject(uint64_t id);
 
 private:
-        mutable std::mutex m_observersMutex;
-        std::unordered_map<SubscriptionId, Observer> m_observers;
-        SubscriptionId m_subscriptionGenerator{};
+        NfDatabase *m_db;
 };
 
 } // namespace NfCore
 
-#endif // NF_USER_TASK_MANAGER_H
+#endif // NF_PROJECTS_MANAGER_H

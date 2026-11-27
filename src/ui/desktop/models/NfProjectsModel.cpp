@@ -22,8 +22,10 @@
  */
 
 #include "NfProjectsModel.h"
+#include "NfContext.h"
 #include "NfDesktopContext.h"
 #include "NfProjectsAdapter.h"
+#include "core/NfLogger.h"
 
 using namespace NfCore;
 using namespace NfUi;
@@ -34,26 +36,26 @@ NfProjectsModel::NfProjectsModel(const NfDesktopContext &ctx,
                                  QObject* parent)
         : QAbstractListModel(parent)
         , m_context{ctx}
+        , m_adapter{m_context.uiContext->projectsAdapter}
 {
-        auto* projectsAdapter = m_context->uiContext->projectsAdapter;
-        QObject::connect(projectsAdapter,
-                         &NfProjectsAdapter::projectsListUpdated
+        QObject::connect(m_adapter,
+                         &NfProjectsAdapter::projectsListUpdated,
                          this,
                          &NfProjectsModel::onProjectsListUpdated);
-        QObject::connect(projectsAdapter,
+        QObject::connect(m_adapter,
                          &NfProjectsAdapter::projectAdded,
                          this,
                          &NfProjectsModel::onProjectAdded);
-        QObject::connect(projectsAdapter,
+        QObject::connect(m_adapter,
                          &NfProjectsAdapter::projectUpdated,
                          this,
                          &NfProjectsModel::onProjectUpdated);
-        QObject::connect(projectsAdapter,
+        QObject::connect(m_adapter,
                          &NfProjectsAdapter::projectRemoved,
                          this,
                          &NfProjectsModel::onProjectRemoved);
 
-        m_adapter->requestProjectsList();
+        m_adapter->requestProjects();
 }
 
 int NfProjectsModel::rowCount(const QModelIndex& parent) const
@@ -70,7 +72,7 @@ QVariant NfProjectsModel::data(const QModelIndex& index, int role) const
 
         switch (role) {
         case Qt::DisplayRole:
-                return {};
+                return QString::fromStdString(m_projects[static_cast<std::size_t>(index.row())].name);
         case ProjectDataRole:
                 return QVariant::fromValue(m_projects[static_cast<std::size_t>(index.row())]);
         }
@@ -80,21 +82,24 @@ QVariant NfProjectsModel::data(const QModelIndex& index, int role) const
 
 void NfProjectsModel::onProjectsListUpdated(std::vector<NfProjectData> projects)
 {
+        beginResetModel();
         m_projects = std::move(projects);
+        endResetModel();
+        rebuildIndexMap();
 }
 
 void NfProjectsModel::onProjectAdded(NfProjectData project)
 {
         const auto row = rowByProjectId(project.id);
         if (row >= 0) {
-                updateProject(row, project);
+                updateProjectItem(row, project);
                 return;
         }
 
         // Insert new item
         const auto newRow = static_cast<int>(m_projects.size());
         beginInsertRows({}, newRow, newRow);
-        m_projects.push_back(std::move(data));
+        m_projects.push_back(std::move(project));
         endInsertRows();
 
         rebuildIndexMap();
@@ -109,14 +114,14 @@ void NfProjectsModel::onProjectUpdated(NfProjectData project)
         updateProjectItem(row, std::move(project));
 }
 
-void NfUserTasksModel::onProjectRemoved(int64_t id)
+void NfProjectsModel::onProjectRemoved(int64_t id)
 {
-        const auto row = rowByTaskId(id);
+        const auto row = rowByProjectId(id);
         if (row < 0)
                 return;
 
         beginRemoveRows({}, row, row);
-        m_tasks.erase(m_tasks.begin() + row);
+        m_projects.erase(m_projects.begin() + row);
         endRemoveRows();
 
         rebuildIndexMap();
@@ -129,24 +134,24 @@ void NfProjectsModel::updateProjectItem(int row, NfProjectData project)
                 return;
 
         m_projects[row] = std::move(project);
-        emit dataChanged(itemIndex, itemIndex, {ImageDataRole::ThumbnailRole});
+        emit dataChanged(itemIndex, itemIndex, {Qt::DisplayRole});
 }
 
-int NfUserTasksModel::rowByProjectId(NfTask::TaskId id) const
+int NfProjectsModel::rowByProjectId(int64_t id) const
 {
         auto res = m_projectIndexMap.find(id);
         if (res != m_projectIndexMap.end())
-                return res.second;
+                return res->second;
 
         return -1;
 }
 
-void NfUserTasksModel::rebuildIndexMap()
+void NfProjectsModel::rebuildIndexMap()
 {
         m_projectIndexMap.clear();
-        m_projectIndexMap.reserve(m_tasks.size());
+        m_projectIndexMap.reserve(m_projects.size());
         for (int row = 0; row < static_cast<int>(m_projects.size()); row++)
-                m_projectIndexMap[m_tasks[row].id] = row;
+                m_projectIndexMap[m_projects[row].id] = row;
 }
 
 } // namespace NfDesktop

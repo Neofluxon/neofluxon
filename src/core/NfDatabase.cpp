@@ -24,6 +24,7 @@
 #include "NfDatabase.h"
 #include "NfSourceRecords.h"
 #include "NfLibraryRepresentation.h"
+#include "NfFileUtils.h"
 #include "NfLogger.h"
 
 #include <algorithm>
@@ -31,8 +32,22 @@
 
 #include <bit>
 #include <iostream>
+#include <chrono>
 
 namespace NfCore {
+
+namespace {
+std::chrono::system_clock::time_point
+sqliteColumnTimePoint(sqlite3_stmt* stmt, int index)
+{
+        if (sqlite3_column_type(stmt, index) == SQLITE_NULL)
+        return {};
+
+        using time_point = std::chrono::system_clock::time_point;
+        const auto timestamp = sqlite3_column_int64(stmt, index);
+        return time_point{std::chrono::seconds{timestamp}};
+}
+} // namespace
 
 NfDatabase::Transaction::Transaction(NfDatabase* db,
                                             Mode mode)
@@ -71,20 +86,46 @@ NfDatabase::~NfDatabase()
         close();
 }
 
+bool NfDatabase::initialize()
+{
+        NF_LOG_DEBUG("called");
+
+        try {
+                if (!open()) {
+                        NF_LOG_ERROR("Unable to open library database: "
+                                     << NfFileUtils::pathToUtf8(m_dbPath));
+                        return false;
+                }
+
+                if (!initializeSchema()) {
+                        NF_LOG_ERROR("Unable to initialize library database schema: "
+                                     << NfFileUtils::pathToUtf8(m_dbPath));
+                        return false;
+                }
+
+                NF_LOG_DEBUG("Database created: " << m_dbPath);
+        } catch (const std::exception& exception) {
+                NF_LOG_ERROR("Unable to initialize library database: "
+                             << exception.what());
+                return false;
+        }
+
+        return true;
+}
+
+
 const std::filesystem::path& NfDatabase::path() const
 {
         return m_dbPath;
 }
 
-bool NfDatabase::open(std::string& errorMessage)
+bool NfDatabase::open()
 {
         auto u8path = m_dbPath.u8string();
-        if (sqlite3_open(reinterpret_cast<const char*>(u8path.c_str()), &m_db) == SQLITE_OK) {
-                errorMessage.clear();
+        if (sqlite3_open(reinterpret_cast<const char*>(u8path.c_str()), &m_db) == SQLITE_OK)
                 return true;
-        }
 
-        errorMessage = m_db ? sqlite3_errmsg(m_db) : "SQLite failed to allocate a database handle";
+        NF_LOG_ERROR(m_db ? sqlite3_errmsg(m_db) : "SQLite failed to allocate a database handle");
         close();
         return false;
 }
@@ -97,10 +138,10 @@ void NfDatabase::close()
         }
 }
 
-bool NfDatabase::initializeSchema(std::string& errorMessage)
+bool NfDatabase::initializeSchema()
 {
         if (!m_db) {
-                errorMessage = "database is not open";
+                NF_LOG_ERROR("database is not open");
                 return false;
         }
 
@@ -219,13 +260,12 @@ bool NfDatabase::initializeSchema(std::string& errorMessage)
        char* sqliteError = nullptr;
        const auto result = sqlite3_exec(m_db, sql, nullptr, nullptr, &sqliteError);
        if (result != SQLITE_OK) {
-               errorMessage = sqliteError ? sqliteError : sqlite3_errmsg(m_db);
+               NF_LOG_ERROR(sqliteError ? sqliteError : sqlite3_errmsg(m_db));
                sqlite3_free(sqliteError);
                return false;
        }
        sqlite3_free(sqliteError);
 
-       errorMessage.clear();
        return true;
 }
 
@@ -732,12 +772,7 @@ NfImageRecords NfDatabase::getImages(const NfLibraryQuery& query) const
                         sqlite3_column_int64(stmt, index++));
                 const auto format = static_cast<NfPhoto::PhotoFormat>(
                         sqlite3_column_int(stmt, index++));
-                const auto dateTaken = sqlite3_column_type(stmt, index) == SQLITE_NULL
-                        ? std::chrono::system_clock::time_point{}
-                        : std::chrono::system_clock::time_point{
-                                std::chrono::seconds{sqlite3_column_int64(stmt, index)}
-                        };
-                index++;
+                const auto dateTaken = sqliteColumnTimePoint(stmt, index++);
                 const auto* folderPath = reinterpret_cast<const char*>(
                         sqlite3_column_text(stmt, index++));
 
@@ -1245,6 +1280,73 @@ bool NfDatabase::setImagesRating(const std::vector<NfPhotoId>& photoIds,
 
         sqlite3_finalize(stmt);
         return result;
+}
+
+std::vector<NfProjectData> NfDatabase::getProjects() const
+{
+        std::vector<NfProjectData> projects;
+
+        const char* sql = R"(SELECT id,
+                                    name,
+                                    description,
+                                    path,
+                                    status,
+                                    modified_date
+                                    FROM projects
+                                    ORDER BY name, modified_date;)";
+
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+                return {};
+
+        auto loadProject = [stmt]() -> NfProjectData {
+                NfProjectData project;
+
+                size_t index = 0;
+                project.id = static_cast<int64_t>(sqlite3_column_int64(stmt, index++));
+                const auto* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt,
+                                                                                     index++));
+                if (text)
+                        project.name = text;
+
+                text = reinterpret_cast<const char*>(sqlite3_column_text(stmt,
+                                                                         index++));
+                if (text)
+                        project.description = text;
+
+                text = reinterpret_cast<const char*>(sqlite3_column_text(stmt,
+                                                                         index++));
+                if (text)
+                        project.path = NfFileUtils::pathFromUtf8(text);
+
+                project.status = static_cast<NfProjectStatus>(sqlite3_column_int(stmt,
+                                                                                 index++));
+                project.updated = sqliteColumnTimePoint(stmt, index++);
+
+                return project;
+        };
+
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+                projects.push_back(loadProject());
+
+        sqlite3_finalize(stmt);
+
+        return projects;
+}
+
+std::optional<NfProjectData> NfDatabase::addProject(NfProjectInfo info)
+{
+        return std::nullopt;
+}
+
+std::optional<NfProjectData> NfDatabase::updateProject(uint64_t id, NfProjectInfo info)
+{
+        return std::nullopt;
+}
+
+bool NfDatabase::removeProject(uint64_t id)
+{
+        return false;
 }
 
 /*std::vector<std::unique_ptr<NfRepresentationRecord>>

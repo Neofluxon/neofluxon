@@ -50,6 +50,8 @@ public:
 
         using TaskId = uint64_t;
         using TaskResultHandler = std::function<void(NfTask*, TaskStatus)>;
+
+        NfTask();
         virtual ~NfTask() = default;
         uint64_t taskId() const;
         virtual TaskStatus execute() = 0;
@@ -63,10 +65,6 @@ public:
         uint64_t generationId() const;
         void cancel();
         bool isCancelled() const;
-
-protected:
-        NfTask();
-        virtual ~NfTask() = default;
 
 private:
         TaskResultHandler m_onComplete;

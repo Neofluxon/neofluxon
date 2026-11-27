@@ -22,40 +22,51 @@
  */
 
 #include "NfProjectsAdapter.h"
-#include "core/NfProjectsManager.h"
-#include "core/NfProjectData.h"
-
-#include <utility>
-#include <vector>
 
 using namespace NfCore;
 
 namespace NfUi {
 
 NfProjectsAdapter::NfProjectsAdapter(NfProjectsManager* taskManager,
-                                       QObject* parent)
+                                     QObject* parent)
         : QObject(parent)
-        , m_taskManager{taskManager}
+        , m_projectsManager{taskManager}
 {
-        m_subscription = m_taskManager->subscribe({
-                        .projectListUpdated = [this](std::vector<NfProjectData> data) {
-                                emit projectListUpdated(std::move(data));
-                        },
-                        .projectAdded = [this](NfProjectData data) {
-                                emit projectAdded(id, std::move(data));
-                        },
-                        .projectUpdated = [this](NfProjectData data) {
-                                emit projectUpdated(id, std::move(data));
-                        },
-                        .projectRemoved = [this](int64_t id) {
-                                emit projectRemoved(id);
-                        }
-        });
 }
 
 NfProjectsAdapter::~NfProjectsAdapter()
 {
-        m_taskManager->unsubscribe(m_subscription);
+}
+
+void NfProjectsAdapter::requestProjects()
+{
+        // TODO: there is not supposed to be too many projects, thus,
+        // for now blocking request to DB will be used.
+        emit projectsListUpdated(m_projectsManager->getProjects());
+
+}
+
+void NfProjectsAdapter::addProject(NfProjectInfo info)
+{
+        auto project = m_projectsManager->addProject(std::move(info));
+        if (project && project->id >= 0)
+                emit projectAdded(std::move(*project));
+
+}
+
+void NfProjectsAdapter::updateProject(uint64_t id, NfProjectInfo info)
+{
+        auto project = m_projectsManager->updateProject(id, std::move(info));
+        if (project && project->id >= 0)
+                emit projectUpdated(std::move(*project));
+
+}
+
+void NfProjectsAdapter::removeProject(uint64_t id)
+{
+        if (m_projectsManager->removeProject(id))
+                emit projectRemoved(id);
+
 }
 
 } // namespace NfUi

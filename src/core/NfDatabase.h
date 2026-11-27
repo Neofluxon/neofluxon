@@ -27,6 +27,8 @@
 #include "NfLibraryRepresentation.h"
 #include "NfEquipmentQuery.h"
 #include "NfSourceRecords.h"
+#include "NfProjectInfo.h"
+#include "NfProjectData.h"
 #include "NfTimeUtils.h"
 
 #include <cstdint>
@@ -74,10 +76,11 @@ public:
         NfDatabase& operator=(const NfDatabase&) = delete;
         NfDatabase(NfDatabase&&) = delete;
         NfDatabase& operator=(NfDatabase&&) = delete;
+        bool initialize();
         const std::filesystem::path& path() const;
-        bool open(std::string& errorMessage);
+        bool open();
         void close();
-        bool initializeSchema(std::string& errorMessage);
+        bool initializeSchema();
         int64_t addLibrary(const std::string_view name);
         bool updateLibrary(int64_t id, std::string_view name);
         bool removeLibrary(int64_t id);
@@ -120,6 +123,12 @@ public:
                                bool favorite = true);
         bool setImagesRating(const std::vector<NfPhotoId>& photoIds,
                              int rating);
+
+        // Projects related methods
+        std::vector<NfProjectData> getProjects() const;
+        std::optional<NfProjectData> addProject(NfProjectInfo info);
+        std::optional<NfProjectData> updateProject(uint64_t id, NfProjectInfo info);
+        bool removeProject(uint64_t id);
 
 protected:
         void populateSourceData(NfRepresentationRecord *record);

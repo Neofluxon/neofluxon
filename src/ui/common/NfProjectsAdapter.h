@@ -24,9 +24,9 @@
 #ifndef NF_PROJECTS_ADAPTER_H
 #define NF_PROJECTS_ADAPTER_H
 
-#include "core/NfTask.h"
-#include "core/NfProjectData.h"
-#include "core/NfProjectsManager.h"
+#include "core/projects/NfProjectInfo.h"
+#include "core/projects/NfProjectData.h"
+#include "core/projects/NfProjectsManager.h"
 
 #include <QObject>
 
@@ -44,6 +44,11 @@ public:
                                    QObject* parent = nullptr);
         ~NfProjectsAdapter() override;
 
+        void requestProjects();
+        void addProject(NfCore::NfProjectInfo info);
+        void updateProject(uint64_t id, NfCore::NfProjectInfo info);
+        void removeProject(uint64_t id);
+
 signals:
         void projectsListUpdated(std::vector<NfCore::NfProjectData> projects);
         void projectAdded(NfCore::NfProjectData project);
@@ -52,7 +57,6 @@ signals:
 
 private:
         NfCore::NfProjectsManager* m_projectsManager;
-        NfCore::NfProjectsManager::SubscriptionId m_subscription{};
 };
 
 } // namespace NfUi

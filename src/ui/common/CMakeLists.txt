@@ -8,6 +8,7 @@ set(COMMON_HEADERS
     state/NfUiProjectsModeState.h
     state/NfUiState.h
     NfPhotoProvider.h
+    NfProjectsAdapter.h
     NfLibraryAdapter.h
     NfUserTasksAdapter.h
     NfMetadataProvider.h
@@ -22,6 +23,7 @@ set(COMMON_SOURCES
     state/NfUiProjectsModeState.cpp
     state/NfUiState.cpp
     NfPhotoProvider.cpp
+    NfProjectsAdapter.cpp
     NfLibraryAdapter.cpp
     NfUserTasksAdapter.cpp
     NfMetadataProvider.cpp

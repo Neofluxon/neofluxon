@@ -39,6 +39,8 @@ class NfDiskCache;
 class NfScheduler;
 class NfThreadPool;
 class NfThreadAllocationManager;
+class NfDatabase;
+class NfProjectsManager;
 class NfLibraryManager;
 class NfUserTaskManager;
 
@@ -53,6 +55,7 @@ public:
         [[nodiscard]] bool initialize(std::string& errorMessage);
         NfPhotoLoader* photoLoader() const;
         NfPhotoMetadataLoader* metadataLoader() const;
+        NfProjectsManager* projectsManager() const;
         NfLibraryManager* libraryManager() const;
         NfCache* thumbnailCache() const;
         NfCache* previewCache() const;
@@ -69,6 +72,8 @@ private:
         std::unique_ptr<NfThreadPool> m_foregroundThreadPool;
         std::unique_ptr<NfScheduler> m_backgroundScheduler;
         std::unique_ptr<NfThreadPool> m_backgroundThreadPool;
+        std::unique_ptr<NfDatabase> m_database;
+        std::unique_ptr<NfProjectsManager> m_projectsManager;
         std::unique_ptr<NfLibraryManager> m_libraryManager;
         std::unique_ptr<NfPhotoLoader> m_photoLoader;
         std::unique_ptr<NfPhotoMetadataLoader> m_metadataLoader;

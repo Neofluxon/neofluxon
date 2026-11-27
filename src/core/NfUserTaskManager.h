@@ -26,7 +26,6 @@
 
 #include "NfTask.h"
 #include "NfUserTaskData.h"
-#include "NfObserverRegistry.h"
 
 #include <functional>
 #include <mutex>
@@ -35,9 +34,10 @@
 
 namespace NfCore {
 
-class NfUserTaskManager : public NfObserverRegistry<NfUserTaskManager::Observer> {
+class NfUserTaskManager {
 public:
         using TaskId = NfTask::TaskId;
+        using SubscriptionId = uint64_t;
 
         struct Observer {
                 std::function<void(TaskId, NfUserTaskData)> taskAdded;
@@ -49,9 +49,16 @@ public:
         ~NfUserTaskManager();
         NfUserTaskManager(const NfUserTaskManager&) = delete;
         NfUserTaskManager& operator=(const NfUserTaskManager&) = delete;
+        SubscriptionId subscribe(Observer observer);
+        void unsubscribe(SubscriptionId id);
         void taskAdded(TaskId id, NfUserTaskData data);
         void taskUpdated(TaskId id, NfUserTaskData data);
         void taskRemoved(TaskId id);
+
+private:
+        mutable std::mutex m_observersMutex;
+        std::unordered_map<SubscriptionId, Observer> m_observers;
+        SubscriptionId m_subscriptionGenerator{};
 };
 
 } // namespace NfCore

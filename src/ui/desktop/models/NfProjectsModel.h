@@ -24,15 +24,20 @@
 #ifndef NF_PROJECTS_MODEL_H
 #define NF_PROJECTS_MODEL_H
 
-#include "core/NfProjectData.h"
+#include "core/projects/NfProjectData.h"
 
 #include <QAbstractListModel>
 #include <QMetaType>
 
 #include <cstdint>
 #include <vector>
+#include <unordered_map>
 
 Q_DECLARE_METATYPE(NfCore::NfProjectData)
+
+namespace NfUi {
+class NfProjectsAdapter;
+}
 
 namespace NfDesktop {
 
@@ -54,18 +59,22 @@ public:
                       int role = Qt::DisplayRole) const override;
 
 protected slots:
-        void onProjectsListUpdated(std::vector<NfProjectData> projects);
-        void onProjectAdded(NfProjectData project);
-        void onProjectUpdated(NfProjectData project);
+        void onProjectsListUpdated(std::vector<NfCore::NfProjectData> projects);
+        void onProjectAdded(NfCore::NfProjectData project);
+        void onProjectUpdated(NfCore::NfProjectData project);
         void onProjectRemoved(int64_t id);
-        void updateProjectItem(int row, NfCore::NfProjectData project);
 
 protected:
         int rowByProjectId(int64_t id) const;
+        void rebuildIndexMap();
+        void updateProjectItem(int row, NfCore::NfProjectData project);
 
 private:
         const NfDesktopContext &m_context;
+        NfUi::NfProjectsAdapter* m_adapter;
         std::vector<NfCore::NfProjectData> m_projects;
+        // Map of task id to model row
+        std::unordered_map<int64_t, int> m_projectIndexMap;
 };
 
 } // namespace NfDesktop
