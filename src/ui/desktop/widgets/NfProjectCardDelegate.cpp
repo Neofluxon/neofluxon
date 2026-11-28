@@ -28,12 +28,12 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QApplication>
-#include <QIcon>
 #include <QMouseEvent>
 #include <QFontMetrics>
 #include <QTextOption>
-
-#include <algorithm>
+#include <QDateTime>
+#include <QLocale>
+#include <QPixmap>
 
 namespace NfDesktop {
 
@@ -97,7 +97,7 @@ void NfProjectCardDelegate::paint(QPainter* painter,
 
         painter->restore();
 
-        drawControls(painter, opt, index);
+        drawControls(painter, opt, index, imageRect);
 }
 
 QRect NfProjectCardDelegate::thumbnailRect(const QRect& rect) const
@@ -110,23 +110,72 @@ QRect NfProjectCardDelegate::thumbnailRect(const QRect& rect) const
 
 void NfProjectCardDelegate::drawControls(QPainter* painter,
                                          const QStyleOptionViewItem& opt,
-                                         const QModelIndex& index) const
+                                         const QModelIndex& index,
+                                         const QRect &imageRect) const
 {
         painter->save();
-        QRect controlsRect = opt.rect.adjusted(m_padding + 10,
-                                               opt.rect.height() - m_controlsHeight,
-                                               -m_padding,
-                                               -m_padding);
+        auto controlsHeight = opt.rect.height() - 2 * m_padding - imageRect.height();
+        QRect controlsRect(QPoint(opt.rect.left() + m_padding, imageRect.bottom()),
+                           QSize{opt.rect.width() - 2 * m_padding, controlsHeight});
+        controlsRect.adjust(10, 2, -10, -2);
+
+        // Draw project name
         auto font = painter->font();
         font.setWeight(QFont::Bold);
         painter->setFont(font);
-        painter->drawText(controlsRect.topLeft(),
+        auto nameTextHeight = QFontMetrics(painter->font()).height();
+        auto nameTextPos = controlsRect.topLeft() + QPoint(0, nameTextHeight);
+        painter->drawText(nameTextPos,
                           index.data(Qt::DisplayRole).value<QString>());
+
         font.setPixelSize(10);
         font.setWeight(QFont::Normal);
         painter->setFont(font);
-        painter->drawText(controlsRect.topLeft() + QPoint{0, 20},
-                          "128 Photos  |  3 Nov 2026 | Archived");
+
+        // The position of the porject info
+        auto infoRect = QRect(nameTextPos + QPoint(0, 5),
+                              QSize{controlsRect.width(), 30});
+
+        auto drawLabel = [painter, infoRect](int xPos,
+                                             const QPixmap &icon,
+                                             const QString &text) -> int {
+                QRect iconRect(QPoint(xPos, infoRect.top()
+                                      + (infoRect.height() - icon.height()) / 2),
+                               icon.size());
+
+                painter->drawPixmap(iconRect, icon);
+
+                if (text.isEmpty())
+                        return iconRect.right();
+
+                auto labelRect = iconRect;
+                labelRect.translate(labelRect.width() + 3, 1);
+                labelRect.setWidth(QFontMetrics(painter->font()).horizontalAdvance(text));
+                painter->drawText(labelRect,
+                                  Qt::AlignVCenter | Qt::AlignLeft,
+                                  text);
+
+                return labelRect.right();
+        };
+
+        auto labelPos = infoRect.left();
+        auto icon = QPixmap{":/icons/picture.svg"};
+        auto numberOfPhotos = index.data(NfProjectsModel::NumberOfPhotosRole).value<int>();
+        labelPos = drawLabel(labelPos,
+                             icon.scaled(QSize(16, 16),
+                                         Qt::KeepAspectRatio,
+                                         Qt::SmoothTransformation),
+                             QString("%1 %2").arg(numberOfPhotos).arg(tr(" Photos")));
+        labelPos = drawLabel(labelPos + 5,
+                             QPixmap{":/icons/v-separator.svg"},
+                             "");
+        icon = QPixmap{":/icons/calendar.svg"};
+        auto modifiedDate = index.data(NfProjectsModel::ModifiedRole).value<QDateTime>();
+        drawLabel(labelPos,
+                  icon.scaled(QSize(18, 18),
+                              Qt::KeepAspectRatio,
+                              Qt::SmoothTransformation),
+                  QLocale().toString(modifiedDate.date(), "dd MMM"));
 
         painter->restore();
 }

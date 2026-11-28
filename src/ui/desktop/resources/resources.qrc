@@ -44,5 +44,6 @@
   <file>icons/picture.svg</file>
   <file>icons/place-documents.svg</file>
   <file>icons/place-storage.svg</file>
+  <file>icons/v-separator.svg</file>
 </qresource>
 </RCC>

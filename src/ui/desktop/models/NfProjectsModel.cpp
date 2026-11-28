@@ -25,6 +25,7 @@
 #include "NfContext.h"
 #include "NfDesktopContext.h"
 #include "NfProjectsAdapter.h"
+#include "NfQtDateTimeUtils.h"
 #include "core/NfLogger.h"
 
 #include <QPixmap>
@@ -72,13 +73,19 @@ QVariant NfProjectsModel::data(const QModelIndex& index, int role) const
                 return {};
         }
 
+        const auto& project = m_projects[static_cast<std::size_t>(index.row())];
+
         switch (role) {
         case Qt::DecorationRole:
                 return QPixmap(":/placeholder_thumbnail.svg");
         case Qt::DisplayRole:
-                return QString::fromStdString(m_projects[static_cast<std::size_t>(index.row())].name);
+                return QString::fromStdString(project.name);
+        case NumberOfPhotosRole:
+                return project.numberOfPhotos;
+        case ModifiedRole:
+                return NfQtDateTimeUtils::toQDateTime(project.updated);
         case ProjectDataRole:
-                return QVariant::fromValue(m_projects[static_cast<std::size_t>(index.row())]);
+                return QVariant::fromValue(project);
         }
 
         return {};

@@ -49,7 +49,9 @@ class NfProjectsModel : public QAbstractListModel
 
 public:
         enum DataRole {
-                ProjectDataRole = Qt::UserRole + 1
+                ProjectDataRole    = Qt::UserRole + 1,
+                NumberOfPhotosRole = Qt::UserRole + 2,
+                ModifiedRole       = Qt::UserRole + 3,
         };
 
         explicit NfProjectsModel(const NfDesktopContext &ctx,

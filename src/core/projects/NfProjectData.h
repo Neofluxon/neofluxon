@@ -37,11 +37,12 @@ enum class NfProjectStatus {
 };
 
 struct NfProjectData {
-        int64_t id;
+        int64_t id{-1};
         std::string name;
         std::string description;
         std::filesystem::path path;
-        NfProjectStatus status;
+        NfProjectStatus status{};
+        int numberOfPhotos{0};
         std::chrono::system_clock::time_point updated;
 };
 

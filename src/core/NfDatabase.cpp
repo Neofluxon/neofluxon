@@ -1291,7 +1291,9 @@ std::vector<NfProjectData> NfDatabase::getProjects() const
                                     description,
                                     path,
                                     status,
-                                    modified_date
+                                    modified_date,
+                                    (SELECT COUNT(*) FROM project_images
+                                    WHERE project_id = projects.id) AS image_count
                                     FROM projects
                                     ORDER BY name, modified_date;)";
 
@@ -1322,6 +1324,7 @@ std::vector<NfProjectData> NfDatabase::getProjects() const
                 project.status = static_cast<NfProjectStatus>(sqlite3_column_int(stmt,
                                                                                  index++));
                 project.updated = sqliteColumnTimePoint(stmt, index++);
+                project.numberOfPhotos = sqlite3_column_int(stmt, index++);
 
                 return project;
         };

@@ -48,11 +48,12 @@ protected:
         QRect thumbnailRect(const QRect& rect) const;
         void drawControls(QPainter* painter,
                           const QStyleOptionViewItem& option,
-                          const QModelIndex& index) const;
+                          const QModelIndex& index,
+                          const QRect &imageRect) const;
 
 private:
         int m_padding{15};
-        int m_controlsHeight{50};
+        int m_controlsHeight{60};
         QSize m_cardSize;
 };
 

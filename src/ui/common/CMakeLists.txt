@@ -1,6 +1,7 @@
 set(COMMON_HEADERS
     NfQPixmap.h
     NfQtPathUtils.h
+    NfQtDateTimeUtils.h
     context/NfContext.h
     state/NfUiBrowserState.h
     state/NfUiFolderModeState.h
@@ -17,6 +18,7 @@ set(COMMON_HEADERS
 set(COMMON_SOURCES
     NfQPixmap.cpp
     NfQtPathUtils.cpp
+    NfQtDateTimeUtils.cpp
     state/NfUiBrowserState.cpp
     state/NfUiFolderModeState.cpp
     state/NfUiLibraryModeState.cpp
